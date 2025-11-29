@@ -1,6 +1,7 @@
 # Home Assistant Boks Integration
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![GitHub License](https://img.shields.io/github/license/thib3113/ha-boks?color=blue)](LICENSE)
 [![Validate Integration](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml)
 [![Validate HACS](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml)
 
@@ -10,28 +11,28 @@ This is a custom integration for **Home Assistant** that allows you to control a
 
 It allows you to open your Boks directly from Home Assistant without needing the official mobile app or an internet connection (once configured), leveraging Home Assistant's Bluetooth capabilities (local adapter or ESPHome proxies).
 
-> [!WARNING]
-> **Unofficial Integration**: This project is not affiliated with, endorsed by, or supported by Boks. Use it at your own risk.
-
 ## Features
 
-*   **Lock Entity**: Unlock your Boks directly from the dashboard.
-    *   Uses your stored **Master Code** by default.
-    *   *Smart Fallback*: If you provided a Config Key but no Master Code, it attempts to generate a temporary single-use code on the fly.
-*   **Sensors**:
-    *   **Battery Level**: Monitors the device battery.
-    *   **Code Counts** *(Admin only)*: Tracks the number of Master, Standard, and Multi-use codes stored on the device (requires Config Key).
-*   **Events**: 
-    *   Exposes an `event` entity (e.g., `event.boks_logs`) that reports history logs (openings, errors, etc.) retrieved from the device.
+* **Lock Entity**: Unlock your Boks directly from the dashboard.
+    * Uses your stored **Master Code** by default.
+    * *Smart Fallback*: If you provided a Credential but no Master Code, it attempts to generate a temporary single-use code on the fly.
+* **Sensors**:
+    * **Battery Level**: Monitors the device battery.
+    * **Code Counts** *(Admin only)*: Tracks the number of Master, Standard, and Multi-use codes stored on the device (requires Credential).
+* **Events**:
+    * Exposes an `event` entity (e.g., `event.boks_logs`) that reports history logs (openings, errors, etc.) retrieved from the device.
 
 ## Prerequisites
 
 1.  **Hardware**:
-    *   A Boks device.
-    *   A Home Assistant server with a working Bluetooth adapter **OR** an ESPHome Bluetooth Proxy near the Boks.
+    * A Boks device.
+    * A Home Assistant server with a working Bluetooth adapter **OR** an ESPHome Bluetooth Proxy near the Boks.
 2.  **Credentials**:
-    *   **Master Code (Required)**: The 6-character PIN code you use to open the door (e.g., `1234AB`).
-    *   **Credential (Optional)**: To enable advanced features (reading logs, counting codes), you need the **Configuration Key** (8 hex characters) or the **Master Key** (64 hex characters). These can be retrieved from your account data or during the initial provisioning process.
+    * **Master Code (Required)**: The 6-character PIN code you use to open the door (e.g., `1234AB`).
+    * **Credential (Optional)**: To enable advanced features (reading logs, counting codes), you need **ONE** of the following:
+        * **Configuration Key**: 8 hex characters.
+        * **Master Key**: 64 hex characters (Recommended for future-proofing).
+    * *Note: These keys can typically be retrieved from your account data (GDPR request) or during the initial provisioning process.*
 
 ## Installation
 
@@ -63,9 +64,9 @@ It allows you to open your Boks directly from Home Assistant without needing the
 3.  Search for **Boks**.
 4.  The integration should automatically discover your Boks if it is within range. Click on it.
 5.  **Setup**:
-    *   **Master Code**: Enter your unlock code (0-9, A, B).
-    *   **Credential (Optional)**: Enter your Config Key (8 chars) or Master Key (64 hex characters) if you want to enable logs and admin sensors.
-        *   *Future Proofing*: Providing the **Master Key** (64 hex chars) will likely allow for **offline code generation** in future versions of this integration, although it currently provides the same features as the Config Key.
+    * **Master Code**: Enter your unlock code (0-9, A, B).
+    * **Credential (Optional)**: Enter your Config Key OR Master Key if you want to enable logs and admin sensors.
+        * *Tip:* Providing the **Master Key** (64 hex chars) is recommended as it may allow for **offline code generation** in future versions of this integration.
 
 ## Events & Automations
 
@@ -76,33 +77,32 @@ The integration exposes an `event` entity (e.g., `event.boks_logs`) that fires w
 You can use the "Event" trigger in Home Assistant automations to react to specific log events.
 
 **Available Event Types:**
-
-*   `door_opened`: Door Opened
-*   `door_closed`: Door Closed
-*   `code_ble_valid`: Valid BLE Code Used
-*   `code_key_valid`: Valid Keypad Code Used
-*   `code_ble_invalid`: Invalid BLE Code Used
-*   `code_key_invalid`: Invalid Keypad Code Used
-*   `error`: System Error
-*   ... and more (battery tests, reboots, etc.)
+* `door_opened` / `door_closed`
+* `code_ble_valid` / `code_key_valid`
+* `code_ble_invalid` / `code_key_invalid`
+* `error`
+* ... and more.
 
 ### Example Automation
+
+This automation notifies you every time the door is opened.
 
 ```yaml
 alias: Notify when Boks door is opened
 description: ""
 trigger:
   - platform: state
-    entity_id:
-      - event.boks_logs
+    entity_id: event.boks_logs
+condition:
+  - condition: state
+    entity_id: event.boks_logs
     attribute: event_type
-    to: door_opened
-condition: []
+    state: door_opened
 action:
-  - service: notify.mobile_app_iphone
+  - action: notify.mobile_app_iphone
     data:
       message: "Your Boks has been opened!"
-mode: single
+mode: queued
 ```
 
 ## Debugging
