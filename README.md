@@ -5,7 +5,7 @@
 [![Validate HACS](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml)
 
 <p align="center">
-  <img src="icon.png" alt="Boks Logo" width="200">
+  <img src="https://brands.home-assistant.io/boks/dark_icon@2x.png" alt="Boks Logo" width="200">
 </p>
 
 ## Description
