@@ -4,10 +4,6 @@
 [![Validate Integration](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml)
 [![Validate HACS](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml)
 
-<p align="center">
-  <img src="https://brands.home-assistant.io/boks/dark_icon@2x.png" alt="Boks Logo" width="200">
-</p>
-
 ## Description
 
 This is a custom integration for **Home Assistant** that allows you to control and monitor your **Boks** connected parcel box via **Bluetooth Low Energy (BLE)**.
@@ -120,5 +116,9 @@ logger:
     custom_components.boks: debug
 ```
 
----
-*Note: "Boks" is a trademark of Boks.*
+## ⚖️ Legal Notice
+
+> **⚠️ Disclaimer:** This is an unofficial project developed for **interoperability purposes only**.
+> It is not affiliated with the device manufacturer. No proprietary code or assets are distributed here.
+>
+> 👉 Please read the full **[Legal Disclaimer & Reverse Engineering Notice](LEGALS.md)** before using this software.
