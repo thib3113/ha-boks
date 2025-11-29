@@ -1,0 +1,183 @@
+"""Lock platform for Boks."""
+from typing import Any
+import logging
+import asyncio
+
+from homeassistant.components import bluetooth
+from homeassistant.components.lock import LockEntity, LockEntityFeature
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from .const import DOMAIN, CONF_MASTER_CODE
+from .coordinator import BoksDataUpdateCoordinator
+from .ble import BoksBluetoothDevice
+
+_LOGGER = logging.getLogger(__name__)
+
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up the Boks lock."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]
+    async_add_entities([BoksLock(coordinator, entry)])
+
+class BoksLock(CoordinatorEntity, LockEntity):
+    """Representation of a Boks Lock."""
+
+    _attr_has_entity_name = True
+    _attr_translation_key = "door"
+    _attr_supported_features = LockEntityFeature.OPEN
+
+    def __init__(self, coordinator: BoksDataUpdateCoordinator, entry: ConfigEntry) -> None:
+        """Initialize the lock."""
+        super().__init__(coordinator)
+        self._entry = entry
+        self._attr_unique_id = f"{entry.data[CONF_MAC]}_lock"
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        """Return the suggested object id."""
+        return "door"
+
+    @property
+    def device_info(self):
+        """Return device info."""
+        info = {
+            "identifiers": {(DOMAIN, self._entry.data[CONF_MAC])},
+            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_MAC])},
+            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_MAC]}",
+            "manufacturer": "Boks",
+            "model": "Boks ONE",
+        }
+        
+        # Update with data from coordinator if available
+        if self.coordinator.data:
+            if "sw_version" in self.coordinator.data:
+                info["sw_version"] = self.coordinator.data["sw_version"]
+            
+            # Also check device_info_service for more details
+            dev_info = self.coordinator.data.get("device_info_service", {})
+            if dev_info:
+                if dev_info.get("software_revision"):
+                    info["sw_version"] = dev_info["software_revision"]
+                if dev_info.get("hardware_revision"):
+                    info["hw_version"] = dev_info["hardware_revision"]
+                if dev_info.get("manufacturer_name"):
+                    info["manufacturer"] = dev_info["manufacturer_name"]
+                if dev_info.get("model_number"):
+                    info["model"] = dev_info["model_number"]
+                    
+        return info
+
+    @property
+    def is_locked(self) -> bool:
+        """Return true if the lock is locked."""
+        # Boks is a latch, it's technically always "locked" until opened.
+        # If door is open, it's 'unlocked'.
+        return not self.coordinator.data.get("door_open", False)
+
+    async def async_unlock(self, **kwargs: Any) -> None:
+        """Unlock the device."""
+        # Not supported for Boks, use open()
+        await self.async_open(**kwargs)
+
+    async def async_open(self, **kwargs: Any) -> None:
+        """Open the door."""
+        code = kwargs.get("code")
+        if code:
+            code = code.strip().upper()
+        ble_device: BoksBluetoothDevice = self.coordinator.ble_device
+
+        # Always connect to increment reference counter
+        # Try with connectable=True first, then connectable=False
+        device = bluetooth.async_ble_device_from_address(
+            self.hass, self._entry.data[CONF_MAC], connectable=True
+        )
+        if not device:
+            # If not found with connectable=True, try with connectable=False
+            device = bluetooth.async_ble_device_from_address(
+                self.hass, self._entry.data[CONF_MAC], connectable=False
+            )
+        if not device:
+            raise ValueError(f"Device {self._entry.data[CONF_MAC]} not found in Bluetooth cache. No connectable path available.")
+        await ble_device.connect(device)
+
+        success = False
+        try:
+            # 1. Priority: Use stored Master Code if available
+            if not code:
+                code = self._entry.data.get(CONF_MASTER_CODE)
+                if code:
+                    _LOGGER.info("Using stored Master Code for opening.")
+
+            # 2. Fallback: Try to generate a single-use code if no master code and we have the key
+            if not code and ble_device._config_key_str:
+                for attempt in range(2): # Try twice
+                    try:
+                        _LOGGER.debug(f"Attempting to generate single-use code (Attempt {attempt+1})...")
+                        code = await ble_device.create_pin_code(code_type="single")
+                        _LOGGER.debug("Generated single-use code successfully.")
+                        break
+                    except Exception as e:
+                        _LOGGER.warning(f"Failed to generate single-use code (Attempt {attempt+1}): {e}")
+                        if attempt == 0:
+                            await asyncio.sleep(2) # Wait a bit before retry
+
+            if not code:
+                # Detailed error message for user
+                msg = "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN."
+                if not ble_device._config_key_str:
+                     msg += " (No Config Key available)"
+                raise ValueError(msg)
+
+            # 3. Open the door
+            await ble_device.open_door(code)
+            
+            # Update state immediately
+            self.coordinator.data["door_open"] = True
+            self.async_write_ha_state()
+            
+            # Launch background task to wait for close and disconnect
+            # We do NOT trigger a refresh here because it would disconnect the device immediately,
+            # breaking the wait_for_door_close logic. The refresh will be handled in _wait_and_disconnect.
+            self.hass.async_create_task(self._wait_and_disconnect(ble_device))
+            success = True
+            
+        finally:
+            # If we failed to launch the background task (e.g. open_door failed),
+            # we must disconnect (decrement reference counter) ourselves.
+            if not success:
+                await ble_device.disconnect()
+
+    async def _wait_and_disconnect(self, ble_device):
+        """Keep connection alive to wait for door close and sync logs."""
+        _LOGGER.debug("Monitoring door status for up to 2 minutes...")
+        try:
+            # Wait for door to close (timeout 120s)
+            # This blocks until door is closed or timeout
+            closed = await ble_device.wait_for_door_closed(timeout=120.0)
+            
+            if closed:
+                _LOGGER.info("Door closed detected. Initiating log sync...")
+                # Small delay to ensure device has finished writing logs
+                await asyncio.sleep(2)
+            else:
+                _LOGGER.debug("Door did not close within 2 minutes.")
+            
+            # Perform a full refresh (logs, battery, etc.) and disconnect
+            # This replaces the manual async_sync_logs and ensures clean disconnection via coordinator
+            await self.coordinator.async_request_refresh()
+                
+        except Exception as e:
+            _LOGGER.warning(f"Error during post-open monitoring: {e}")
+        finally:
+            # Ensure disconnection if something failed above or if coordinator didn't disconnect
+            if ble_device.is_connected:
+                _LOGGER.debug("Disconnecting from Boks (cleanup).")
+                await ble_device.disconnect()

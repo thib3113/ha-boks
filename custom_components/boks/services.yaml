@@ -1,0 +1,55 @@
+add_pin_code:
+  name: translation::services.add_pin_code.name
+  description: translation::services.add_pin_code.description
+  fields:
+    code:
+      name: translation::services.add_pin_code.fields.code.name
+      description: translation::services.add_pin_code.fields.code.description
+      required: false
+      selector:
+        text:
+    type:
+      name: translation::services.add_pin_code.fields.type.name
+      description: translation::services.add_pin_code.fields.type.description
+      default: standard
+      selector:
+        select:
+          options:
+            - standard
+            - master
+            - single
+            - multi
+    index:
+      name: translation::services.add_pin_code.fields.index.name
+      description: translation::services.add_pin_code.fields.index.description
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 255
+
+delete_pin_code:
+  name: translation::services.delete_pin_code.name
+  description: translation::services.delete_pin_code.description
+  fields:
+    identifier:
+      name: translation::services.delete_pin_code.fields.identifier.name
+      description: translation::services.delete_pin_code.fields.identifier.description
+      required: true
+      selector:
+        text:
+    type:
+      name: translation::services.delete_pin_code.fields.type.name
+      description: translation::services.delete_pin_code.fields.type.description
+      default: standard
+      selector:
+        select:
+          options:
+            - standard
+            - master
+            - single
+            - multi
+
+sync_logs:
+  name: translation::services.sync_logs.name
+  description: translation::services.sync_logs.description

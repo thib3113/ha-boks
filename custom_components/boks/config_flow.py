@@ -1,0 +1,162 @@
+"""Config flow for Boks integration."""
+
+import logging
+from typing import Any
+
+import voluptuous as vol
+
+from homeassistant import config_entries
+from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.data_entry_flow import FlowResult
+from homeassistant.core import callback
+
+from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, BOKS_CHAR_MAP
+
+_LOGGER = logging.getLogger(__name__)
+
+class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for Boks."""
+    VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
+        """Create the options flow."""
+        return BoksOptionsFlowHandler()
+
+    def __init__(self):
+        """Initialize."""
+        self._discovery_info = None
+
+    async def async_step_bluetooth(self, discovery_info: "BluetoothServiceInfoBleak") -> FlowResult:
+        """Handle the bluetooth discovery step."""
+        await self.async_set_unique_id(discovery_info.address)
+        self._abort_if_unique_id_configured()
+
+        self._discovery_info = discovery_info
+        self.context["title_placeholders"] = {"name": discovery_info.name}
+
+        return await self.async_step_user()
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        """Handle the manual entry step."""
+        errors = {}
+
+        # Pre-fill MAC if discovered
+        prefilled_mac = None
+        if self._discovery_info:
+            prefilled_mac = self._discovery_info.address
+
+        if user_input is not None:
+            mac = user_input[CONF_MAC]
+            master_code_input = user_input[CONF_MASTER_CODE].strip().upper()
+            credential = user_input.get("credential", "").strip().upper()
+
+            stored_key = None
+
+            # 1. Validate Master Code (Must be 6 chars, 0-9, A, B)
+            if not (len(master_code_input) == 6 and all(c in BOKS_CHAR_MAP for c in master_code_input)):
+                errors[CONF_MASTER_CODE] = "invalid_master_code_format"
+
+            # 2. Validate Credential (Master Key or Config Key) - Optional
+            if credential:
+                length = len(credential)
+                try:
+                    # Verify hex content
+                    int(credential, 16)
+
+                    if length == 64: # Master Key
+                        stored_key = credential
+                    elif length == 8: # Config Key
+                        stored_key = credential
+                    else:
+                        errors["credential"] = "invalid_credential_format"
+                except ValueError:
+                    errors["credential"] = "invalid_credential_format"
+
+            if not errors:
+                await self.async_set_unique_id(mac)
+                self._abort_if_unique_id_configured()
+
+                data = {
+                    CONF_MAC: mac,
+                    CONF_MASTER_CODE: master_code_input,
+                }
+
+                # Store the key (Master or Config) if provided
+                if stored_key:
+                    data[CONF_CONFIG_KEY] = stored_key
+
+                # Generate a default name
+                name = "Boks"
+                if self._discovery_info and self._discovery_info.name:
+                    name = self._discovery_info.name
+
+                # If name is generic, append short MAC to ensure uniqueness and better identification
+                if name in ["Boks", "Boks Parcel Box", "Boks ONE"]:
+                    short_mac = mac.replace(":", "")[-6:]
+                    name = f"{name} {short_mac}"
+
+                data[CONF_NAME] = name
+
+                return self.async_create_entry(
+                    title=data[CONF_NAME],
+                    data=data,
+                )
+
+        # Form Schema
+        schema = {
+            vol.Required(CONF_MAC, default=prefilled_mac or vol.UNDEFINED): str,
+            vol.Required(CONF_MASTER_CODE): str,
+            vol.Optional("credential"): str,
+        }
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=vol.Schema(schema),
+            errors=errors,
+        )
+
+class BoksOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle Boks options."""
+
+    def __init__(self) -> None:
+        """Initialize options flow."""
+        pass
+
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        """Manage the options."""
+        errors = {}
+
+        if user_input is not None:
+            # Validate and normalize Master Code if provided
+            if user_input.get(CONF_MASTER_CODE):
+                code = user_input[CONF_MASTER_CODE].strip().upper()
+                if not (len(code) == 6 and all(c in BOKS_CHAR_MAP for c in code)):
+                    errors[CONF_MASTER_CODE] = "invalid_master_code_format"
+                else:
+                    user_input[CONF_MASTER_CODE] = code
+
+            if not errors:
+                return self.async_create_entry(title="", data=user_input)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        "scan_interval",
+                        default=self.config_entry.options.get("scan_interval", 60),
+                    ): int,
+                    vol.Optional(
+                        "full_refresh_interval",
+                        default=self.config_entry.options.get("full_refresh_interval", 12),
+                    ): int,
+                    vol.Optional(
+                        CONF_MASTER_CODE,
+                        description={"suggested_value": self.config_entry.options.get(CONF_MASTER_CODE)},
+                    ): str,
+                }
+            ),
+            errors=errors,
+        )

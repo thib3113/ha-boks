@@ -1,0 +1,17 @@
+{
+  "domain": "boks",
+  "name": "Boks",
+  "bluetooth": [
+    {
+      "service_uuid": "a7630001-f491-4f21-95ea-846ba586e361",
+      "connectable": false
+    }
+  ],
+  "codeowners": ["@thib3113"],
+  "config_flow": true,
+  "dependencies": ["bluetooth", "logbook"],
+  "documentation": "https://github.com/thib3113/ha-boks",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/thib3113/ha-boks/issues",
+  "version": "0.0.1"
+}

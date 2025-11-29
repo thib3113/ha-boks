@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Home Assistant
+.storage/
+.cloud/
+.HA_VERSION
+home-assistant_v2.db
+home-assistant.log
+home-assistant.log.*
+
+# HACS
+hacs_resources/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yaml
+
+# Virtual Env
+venv/
+.venv/
+env/
+.env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+.ha_run.lock
+*.db-shm
+*.db-wal
+
+TODO.md
+api.py
