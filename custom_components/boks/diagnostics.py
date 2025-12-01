@@ -6,37 +6,41 @@ from typing import Any
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.components import bluetooth
 
-from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE
+from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, CONF_MASTER_KEY
 
 TO_REDACT = {
     CONF_CONFIG_KEY,
+    CONF_MASTER_KEY,
     CONF_MASTER_CODE,
     "credential",
     "password",
     "username",
+    "serial_number",
+    "address",
+    "mac"
 }
 
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: ConfigEntry
 ) -> dict[str, Any]:
     """Return diagnostics for a config entry."""
-    
+
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    
+
     # Get BLE Device info
     # Try with connectable=True first, then connectable=False
     ble_device = bluetooth.async_ble_device_from_address(
-        hass, entry.data[CONF_MAC], connectable=True
+        hass, entry.data[CONF_ADDRESS], connectable=True
     )
     if not ble_device:
         # If not found with connectable=True, try with connectable=False
         ble_device = bluetooth.async_ble_device_from_address(
-            hass, entry.data[CONF_MAC], connectable=False
+            hass, entry.data[CONF_ADDRESS], connectable=False
         )
-    
+
     ble_info = {}
     if ble_device:
         ble_info = {
@@ -45,7 +49,7 @@ async def async_get_config_entry_diagnostics(
             "rssi": getattr(ble_device, "rssi", None),
             "details": str(getattr(ble_device, "details", {})),
         }
-        
+
         # Try to extract manufacturer data if available
         if hasattr(ble_device, "metadata") and ble_device.metadata:
             # Safely access metadata attributes
@@ -53,18 +57,18 @@ async def async_get_config_entry_diagnostics(
             manufacturer_data = {}
             service_data = {}
             service_uuids = []
-            
+
             if hasattr(metadata, "get"):
                 manufacturer_data_dict = metadata.get("manufacturer_data", {})
                 if isinstance(manufacturer_data_dict, dict):
                     manufacturer_data = {k: v.hex() for k, v in manufacturer_data_dict.items()}
-                
+
                 service_data_dict = metadata.get("service_data", {})
                 if isinstance(service_data_dict, dict):
                     service_data = {k: v.hex() for k, v in service_data_dict.items()}
-                    
+
                 service_uuids = metadata.get("uuids", [])
-            
+
             ble_info["metadata"] = {
                 "manufacturer_data": manufacturer_data,
                 "service_uuids": service_uuids,
@@ -78,4 +82,4 @@ async def async_get_config_entry_diagnostics(
         "device_info_service": coordinator.data.get("device_info_service") if coordinator.data else None,
     }
 
-    return diagnostics_data
+    return async_redact_data(diagnostics_data, TO_REDACT)

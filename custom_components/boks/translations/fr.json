@@ -46,7 +46,9 @@
       "create_code_failed": "Échec de la création du code (l'appareil a renvoyé une erreur)",
       "change_master_code_failed": "Échec du changement de code permanent (l'appareil a renvoyé une erreur)",
       "config_key_required_simple": "Clé de configuration requise",
-      "unknown_code_type": "Type de code inconnu"
+      "unknown_code_type": "Type de code inconnu",
+      "unknown_device": "L'appareil n'est pas vu par l'adaptateur Bluetooth.",
+      "not_connectable": "L'appareil détecté n'est pas connectable (probablement via un proxy passif)."
     },
     "abort": {
       "already_configured": "Cette Boks est déjà configurée.",
@@ -133,6 +135,23 @@
     }
   },
   "services": {
+    "add_parcel": {
+      "name": "Ajouter un colis",
+      "description": "Ajoute un nouveau colis dans la liste",
+      "fields": {
+        "description": {
+          "name": "Description",
+          "description": "Ajoute une description au colis",
+          "example": "Livraison de livres"
+        }
+      },
+      "response": {
+        "code": {
+          "name": "Code PIN",
+          "description": "Le code PIN généré pour le colis."
+        }
+      }
+    },
     "add_pin_code": {
       "name": "Ajouter un code PIN",
       "description": "Ajoute un nouveau code PIN à la Boks. Nécessite une clé de configuration. Retourne le code créé.",

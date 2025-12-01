@@ -3,7 +3,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_MAC
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from ..entity import BoksEntity
@@ -18,7 +18,7 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
     def __init__(self, coordinator: BoksDataUpdateCoordinator, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, entry)
-        self._attr_unique_id = f"{entry.data[CONF_MAC]}_last_event"
+        self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_last_event"
         self._restored_state = None
 
     @property

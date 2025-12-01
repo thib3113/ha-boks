@@ -1,2 +1,9 @@
 pytest
 pytest-homeassistant-custom-component
+pyserial
+psutil-home-assistant
+fnv_hash_fast
+pytz
+tzdata
+janus
+Pillow

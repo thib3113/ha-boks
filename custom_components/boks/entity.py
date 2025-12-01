@@ -1,7 +1,7 @@
 """Base entity for Boks."""
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.const import CONF_ADDRESS, CONF_NAME
 
 from .const import DOMAIN
 from .coordinator import BoksDataUpdateCoordinator
@@ -22,9 +22,9 @@ class BoksEntity(CoordinatorEntity):
     def device_info(self):
         """Return device info."""
         info = {
-            "identifiers": {(DOMAIN, self._entry.data[CONF_MAC])},
-            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_MAC])},
-            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_MAC]}",
+            "identifiers": {(DOMAIN, self._entry.data[CONF_ADDRESS])},
+            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_ADDRESS])},
+            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_ADDRESS]}",
             "manufacturer": "Boks",
             "model": "Boks ONE",
         }

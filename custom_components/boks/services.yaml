@@ -1,6 +1,28 @@
+add_parcel:
+  name: translation::services.add_parcel.name
+  description: translation::services.add_parcel.description
+  target:
+    entity:
+      domain: todo
+  fields:
+    description:
+      name: translation::services.add_parcel.fields.description.name
+      description: translation::services.add_parcel.fields.description.description
+      required: false
+      example: translation::services.add_parcel.fields.description.example
+      selector:
+        text:
+  response:
+    code:
+      name: translation::services.add_parcel.response.code.name
+      description: translation::services.add_parcel.response.code.description
+
 add_pin_code:
   name: translation::services.add_pin_code.name
   description: translation::services.add_pin_code.description
+  target:
+    device:
+      integration: boks
   fields:
     code:
       name: translation::services.add_pin_code.fields.code.name
@@ -15,7 +37,6 @@ add_pin_code:
       selector:
         select:
           options:
-            - standard
             - master
             - single
             - multi
@@ -27,10 +48,17 @@ add_pin_code:
         number:
           min: 0
           max: 255
+  response:
+    code:
+      name: translation::services.add_parcel.response.code.name
+      description: translation::services.add_parcel.response.code.description
 
 delete_pin_code:
   name: translation::services.delete_pin_code.name
   description: translation::services.delete_pin_code.description
+  target:
+    device:
+      integration: boks
   fields:
     identifier:
       name: translation::services.delete_pin_code.fields.identifier.name
@@ -53,3 +81,6 @@ delete_pin_code:
 sync_logs:
   name: translation::services.sync_logs.name
   description: translation::services.sync_logs.description
+  target:
+    device:
+      integration: boks

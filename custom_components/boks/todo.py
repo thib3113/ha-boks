@@ -1,9 +1,8 @@
 """Todo platform for Boks."""
 import logging
-import voluptuous as vol
 import uuid
-from typing import cast
 
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.components.todo import (
     TodoItem,
     TodoItemStatus,
@@ -14,9 +13,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.util import slugify
 from homeassistant.helpers.storage import Store
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.const import CONF_ADDRESS
 
 from .const import DOMAIN, EVENT_LOG, CONF_CONFIG_KEY, EVENT_PARCEL_COMPLETED
 from .coordinator import BoksDataUpdateCoordinator
@@ -55,8 +54,7 @@ async def async_setup_entry(
 class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
     """A Boks Todo List to manage Parcels and Codes."""
 
-    _attr_has_entity_name = True
-    _attr_name = "Suivi Boks" # Clean name override
+    _attr_has_entity_name = False # Disable auto-naming to enforce our custom name
     _attr_supported_features = (
         TodoListEntityFeature.CREATE_TODO_ITEM
         | TodoListEntityFeature.UPDATE_TODO_ITEM
@@ -74,10 +72,18 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         super().__init__(coordinator)
         self._entry = entry
         self._store = store
+        self._attr_name = f"Colis {entry.title}" # Explicit name based on Entry Title
         self._attr_unique_id = f"{entry.entry_id}_parcels"
         self._items: list[TodoItem] = []
         self._raw_data = []
         self._has_config_key = has_config_key
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])},
+        )
 
     @property
     def todo_items(self) -> list[TodoItem] | None:

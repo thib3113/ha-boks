@@ -3,7 +3,7 @@ import logging
 from homeassistant.components import bluetooth
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -33,7 +33,7 @@ class BoksSyncLogsButton(CoordinatorEntity, ButtonEntity):
         """Initialize the button."""
         super().__init__(coordinator)
         self._entry = entry
-        self._attr_unique_id = f"{entry.data[CONF_MAC]}_sync_logs"
+        self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_sync_logs"
 
     @property
     def suggested_object_id(self) -> str | None:
@@ -44,8 +44,8 @@ class BoksSyncLogsButton(CoordinatorEntity, ButtonEntity):
     def device_info(self):
         """Return device info."""
         info = {
-            "identifiers": {(DOMAIN, self._entry.data[CONF_MAC])},
-            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_MAC])},
+            "identifiers": {(DOMAIN, self._entry.data[CONF_ADDRESS])},
+            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_ADDRESS])},
             "name": self._entry.data.get(CONF_NAME, "Boks Parcel Box"),
             "manufacturer": "Boks",
             "model": "Boks ONE",

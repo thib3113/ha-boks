@@ -6,10 +6,10 @@ class BoksServiceUUID(StrEnum):
     SERVICE = "a7630001-f491-4f21-95ea-846ba586e361"
     WRITE_CHARACTERISTIC = "a7630002-f491-4f21-95ea-846ba586e361"
     NOTIFY_CHARACTERISTIC = "a7630003-f491-4f21-95ea-846ba586e361"
-    
+
     BATTERY_SERVICE = "0000180f-0000-1000-8000-00805f9b34fb"
     BATTERY_LEVEL_CHARACTERISTIC = "00002a19-0000-1000-8000-00805f9b34fb"
-    
+
     DEVICE_INFO_SERVICE = "0000180a-0000-1000-8000-00805f9b34fb"
     SYSTEM_ID_CHARACTERISTIC = "00002a23-0000-1000-8000-00805f9b34fb"
     MODEL_NUMBER_CHARACTERISTIC = "00002a24-0000-1000-8000-00805f9b34fb"
@@ -78,21 +78,38 @@ class BoksHistoryEvent(IntEnum):
     POWER_ON = 0x96
     BLE_REBOOT = 0x97
     SCALE_CONTINUOUS_MEASURE = 0x98
-    KEY_OPENING = 0x99
+    NFC_ERROR_99 = 0x99
     ERROR = 0xA0
     NFC_OPENING = 0xA1
     NFC_TAG_REGISTERING_SCAN = 0xA2
 
 class BoksPowerOffReason(IntEnum):
     """Reason codes for POWER_OFF event."""
-    WATCHDOG = 1
-    SOFT_RESET = 2
-    PIN_RESET = 3
+    PIN_RESET = 1
+    WATCHDOG = 2
+    SOFT_RESET = 3
     LOCKUP = 4
-    GPIO = 5
-    LPCOMP = 6
-    DEBUG = 7
-    NFC = 8
+    POWER_ON = 5
+    WAKEUP_NFC = 6
+    WAKEUP_SYSTEM_OFF = 7
+    WAKEUP_LPCOMP = 8
+
+class BoksDiagnosticErrorCode(IntEnum):
+    """Specific error codes for diagnostic events (0xA0)."""
+    MFRC630_ERROR_BC = 0xBC
+    MFRC630_ERROR_INTEGRITY = 0x13
+    MFRC630_ERROR_NO_TAG = 0x15
+    MFRC630_ERROR_COLLISION = 0x0B
+    MFRC630_ERROR_BUFFER = 0x03
+
+ERROR_DESCRIPTIONS = {
+    BoksDiagnosticErrorCode.MFRC630_ERROR_BC: "Erreur interne MFRC630 (0xBC)",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_INTEGRITY: "Erreur d'intégrité (CRC/Parité)",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_NO_TAG: "Aucun tag détecté / Timeout",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_COLLISION: "Collision de tags détectée",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_BUFFER: "Dépassement de mémoire tampon (Buffer Overflow)",
+    "UNKNOWN_ERROR": "Erreur technique inconnue",
+}
 
 LOG_EVENT_DESCRIPTIONS = {
     BoksHistoryEvent.CODE_BLE_VALID: "Code BLE valide utilisé",
@@ -107,8 +124,8 @@ LOG_EVENT_DESCRIPTIONS = {
     BoksHistoryEvent.POWER_ON: "Allumage",
     BoksHistoryEvent.BLE_REBOOT: "Redémarrage BLE",
     BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "Mesure continue de la balance",
-    BoksHistoryEvent.KEY_OPENING: "Ouverture par clé",
-    BoksHistoryEvent.ERROR: "Erreur",
+    BoksHistoryEvent.NFC_ERROR_99: "Erreur Transaction NFC (0x99)",
+    BoksHistoryEvent.ERROR: "Erreur (Diagnostic)",
     BoksHistoryEvent.NFC_OPENING: "Ouverture NFC",
     BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "Scan d'enregistrement de tag NFC",
 }
@@ -126,7 +143,7 @@ LOG_EVENT_TYPES = {
     BoksHistoryEvent.POWER_ON: "power_on",
     BoksHistoryEvent.BLE_REBOOT: "ble_reboot",
     BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "scale_measure",
-    BoksHistoryEvent.KEY_OPENING: "key_opening",
+    BoksHistoryEvent.NFC_ERROR_99: "nfc_error_transaction",
     BoksHistoryEvent.ERROR: "error",
     BoksHistoryEvent.NFC_OPENING: "nfc_opening",
     BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "nfc_tag_registering",

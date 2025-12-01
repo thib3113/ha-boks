@@ -30,9 +30,9 @@ class BoksLogEntry:
         if payload is None:
             _LOGGER.warning("Received None payload for opcode 0x%02X", opcode)
             payload = bytearray()
-        
+
         _LOGGER.debug("Parsing log entry - Opcode: 0x%02X, Payload: %s", opcode, payload.hex() if payload else "None")
-        
+
         # Payload structure: [Age (3 bytes), Data...]
         # The timestamp is 'elapsed time' in seconds since the event occurred.
 
@@ -112,17 +112,76 @@ class BoksLogEntry:
 
         # Error
         elif event_opcode == BoksHistoryEvent.ERROR:
+            from .const import ERROR_DESCRIPTIONS, BoksDiagnosticErrorCode
+
             if len(stored_payload) >= 1:
-                extra_data["error_code"] = stored_payload[0]
+                # Firmware Analysis: [Subtype:1] [Error:4]
+                # Example: A0 08 ... BC 00 ...
+                # stored_payload here starts AFTER the timestamp, so index 0 is the subtype/param
+                subtype = stored_payload[0]
+                extra_data["error_subtype"] = subtype
+                
+                error_desc = ERROR_DESCRIPTIONS.get("UNKNOWN_ERROR")
+
+                # If payload has enough bytes for an error code (assuming it follows subtype)
+                if len(stored_payload) >= 2:
+                    # Check for specific error codes at offset 1
+                    error_code_byte = stored_payload[1]
+                    extra_data["error_code"] = error_code_byte
+                    
+                    if error_code_byte in list(BoksDiagnosticErrorCode):
+                         error_desc = ERROR_DESCRIPTIONS.get(BoksDiagnosticErrorCode(error_code_byte))
+                    
+                    extra_data["error_data"] = stored_payload.hex()
+                
+                extra_data["error_description"] = error_desc
+                _LOGGER.warning(
+                    "Boks reported a diagnostic error: Subtype=0x%02X, Data=%s, Desc=%s",
+                    subtype, stored_payload.hex(), error_desc
+                )
 
         # NFC
         elif event_opcode == BoksHistoryEvent.NFC_OPENING:
-            # stored_payload: [TYPE][UID_LEN][UID...]
-            if len(stored_payload) >= 2:
-                uid_len = stored_payload[1]
-                if len(stored_payload) >= 2 + uid_len:
-                    uid_bytes = stored_payload[2:2+uid_len]
-                    extra_data["tag_uid"] = uid_bytes.hex()
+            # stored_payload: [UID...] or [TYPE][UID...] ?
+            # Based on firmware analysis, it seems variable.
+            # Safest approach is to store the whole payload as hex for now until confirmed.
+            if len(stored_payload) >= 1:
+                extra_data["tag_uid"] = stored_payload.hex()
+
+        # NFC Tag Registering Scan (0xA2)
+        elif event_opcode == BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN:
+             if len(stored_payload) >= 1:
+                 extra_data["scan_data"] = stored_payload.hex()
+
+        # Door Events
+        elif event_opcode in (BoksHistoryEvent.DOOR_OPENED, BoksHistoryEvent.DOOR_CLOSED):
+            pass # No specific payload expected, description is sufficient
+
+        # System Events
+        elif event_opcode == BoksHistoryEvent.POWER_ON:
+             pass # Often empty or generic
+
+        elif event_opcode == BoksHistoryEvent.BLE_REBOOT:
+             pass # Often empty or generic
+
+        elif event_opcode == BoksHistoryEvent.BLOCK_RESET:
+             if len(stored_payload) >= 1:
+                 extra_data["reset_info"] = stored_payload.hex()
+
+        elif event_opcode == BoksHistoryEvent.HISTORY_ERASE:
+             pass
+
+        elif event_opcode == BoksHistoryEvent.LOG_END_HISTORY:
+             pass
+
+        # Other Events
+        elif event_opcode == BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE:
+             if len(stored_payload) >= 1:
+                 extra_data["scale_data"] = stored_payload.hex()
+
+        elif event_opcode == BoksHistoryEvent.NFC_ERROR_99:
+             if len(stored_payload) >= 1:
+                 extra_data["error_info"] = stored_payload.hex()
 
         # Ensure extra_data is never None (safety check)
         if extra_data is None:

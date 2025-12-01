@@ -33,6 +33,10 @@ env/
 *.swp
 *.swo
 
+# Test artifacts
+.coverage
+tests.log
+
 .ha_run.lock
 *.db-shm
 *.db-wal

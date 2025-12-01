@@ -3,7 +3,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import CONF_MAC
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.config_entries import ConfigEntry
 
 from ..entity import BoksEntity
@@ -20,7 +20,7 @@ class BoksCodeCountSensor(BoksEntity, SensorEntity):
         super().__init__(coordinator, entry)
         self._code_type = code_type
         self._attr_translation_key = f"{code_type}_codes_count"
-        self._attr_unique_id = f"{entry.data[CONF_MAC]}_{code_type}_codes_count"
+        self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_{code_type}_codes_count"
 
     @property
     def suggested_object_id(self) -> str | None:

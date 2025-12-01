@@ -6,7 +6,7 @@ import asyncio
 from homeassistant.components import bluetooth
 from homeassistant.components.lock import LockEntity, LockEntityFeature
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -38,7 +38,7 @@ class BoksLock(CoordinatorEntity, LockEntity):
         """Initialize the lock."""
         super().__init__(coordinator)
         self._entry = entry
-        self._attr_unique_id = f"{entry.data[CONF_MAC]}_lock"
+        self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_lock"
 
     @property
     def suggested_object_id(self) -> str | None:
@@ -49,18 +49,18 @@ class BoksLock(CoordinatorEntity, LockEntity):
     def device_info(self):
         """Return device info."""
         info = {
-            "identifiers": {(DOMAIN, self._entry.data[CONF_MAC])},
-            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_MAC])},
-            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_MAC]}",
+            "identifiers": {(DOMAIN, self._entry.data[CONF_ADDRESS])},
+            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_ADDRESS])},
+            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_ADDRESS]}",
             "manufacturer": "Boks",
             "model": "Boks ONE",
         }
-        
+
         # Update with data from coordinator if available
         if self.coordinator.data:
             if "sw_version" in self.coordinator.data:
                 info["sw_version"] = self.coordinator.data["sw_version"]
-            
+
             # Also check device_info_service for more details
             dev_info = self.coordinator.data.get("device_info_service", {})
             if dev_info:
@@ -72,7 +72,7 @@ class BoksLock(CoordinatorEntity, LockEntity):
                     info["manufacturer"] = dev_info["manufacturer_name"]
                 if dev_info.get("model_number"):
                     info["model"] = dev_info["model_number"]
-                    
+
         return info
 
     @property
@@ -97,15 +97,15 @@ class BoksLock(CoordinatorEntity, LockEntity):
         # Always connect to increment reference counter
         # Try with connectable=True first, then connectable=False
         device = bluetooth.async_ble_device_from_address(
-            self.hass, self._entry.data[CONF_MAC], connectable=True
+            self.hass, self._entry.data[CONF_ADDRESS], connectable=True
         )
         if not device:
             # If not found with connectable=True, try with connectable=False
             device = bluetooth.async_ble_device_from_address(
-                self.hass, self._entry.data[CONF_MAC], connectable=False
+                self.hass, self._entry.data[CONF_ADDRESS], connectable=False
             )
         if not device:
-            raise ValueError(f"Device {self._entry.data[CONF_MAC]} not found in Bluetooth cache. No connectable path available.")
+            raise ValueError(f"Device {self._entry.data[CONF_ADDRESS]} not found in Bluetooth cache. No connectable path available.")
         await ble_device.connect(device)
 
         success = False
@@ -138,17 +138,17 @@ class BoksLock(CoordinatorEntity, LockEntity):
 
             # 3. Open the door
             await ble_device.open_door(code)
-            
+
             # Update state immediately
             self.coordinator.data["door_open"] = True
             self.async_write_ha_state()
-            
+
             # Launch background task to wait for close and disconnect
             # We do NOT trigger a refresh here because it would disconnect the device immediately,
             # breaking the wait_for_door_close logic. The refresh will be handled in _wait_and_disconnect.
             self.hass.async_create_task(self._wait_and_disconnect(ble_device))
             success = True
-            
+
         finally:
             # If we failed to launch the background task (e.g. open_door failed),
             # we must disconnect (decrement reference counter) ourselves.
@@ -162,18 +162,18 @@ class BoksLock(CoordinatorEntity, LockEntity):
             # Wait for door to close (timeout 120s)
             # This blocks until door is closed or timeout
             closed = await ble_device.wait_for_door_closed(timeout=120.0)
-            
+
             if closed:
                 _LOGGER.info("Door closed detected. Initiating log sync...")
                 # Small delay to ensure device has finished writing logs
                 await asyncio.sleep(2)
             else:
                 _LOGGER.debug("Door did not close within 2 minutes.")
-            
+
             # Perform a full refresh (logs, battery, etc.) and disconnect
             # This replaces the manual async_sync_logs and ensures clean disconnection via coordinator
             await self.coordinator.async_request_refresh()
-                
+
         except Exception as e:
             _LOGGER.warning(f"Error during post-open monitoring: {e}")
         finally:

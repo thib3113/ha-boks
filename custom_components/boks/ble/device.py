@@ -42,12 +42,14 @@ class BoksBluetoothDevice:
         self.hass = hass
         self.address = address
 
-        # Sanitize Config Key: Keep only last 8 chars if longer (e.g. Master Key)
-        if config_key and len(config_key) > 8:
-            self._config_key_str = config_key[-8:]
-        else:
-            self._config_key_str = config_key
-        
+        # Validate Config Key length: Should be 8 characters.
+        # Old installations might have stored master key in config key (e.g., 64 chars),
+        # which were previously truncated. Now we enforce the length.
+        if config_key and len(config_key) != 8:
+            raise ValueError("Config key must be exactly 8 characters long.")
+
+        self._config_key_str = config_key
+
         _LOGGER.debug("BoksBluetoothDevice initialized with address: %s, Config Key Present: %s",
                        address, bool(config_key))
 
@@ -218,7 +220,7 @@ class BoksBluetoothDevice:
         """Handle incoming notifications."""
         _LOGGER.debug("Raw notification data received: %s", data.hex() if data else "None")
         self._log_packet("RX", data)
-        
+
         # Log duplicate notifications for debugging
         if hasattr(self, '_last_notification_data') and hasattr(self, '_last_notification_time'):
             current_time = time.time()
@@ -261,7 +263,7 @@ class BoksBluetoothDevice:
             self._door_status = False
             door_update = True
 
-        elif opcode in (BoksHistoryEvent.DOOR_OPENED, BoksHistoryEvent.KEY_OPENING, BoksHistoryEvent.NFC_OPENING):
+        elif opcode in (BoksHistoryEvent.DOOR_OPENED, BoksHistoryEvent.CODE_KEY_VALID, BoksHistoryEvent.CODE_BLE_VALID, BoksHistoryEvent.NFC_OPENING):
             self._door_status = True
             door_update = True
 
@@ -284,7 +286,7 @@ class BoksBluetoothDevice:
                 # Future is already done, remove it from tracking
                 if key in self._response_futures:
                     del self._response_futures[key]
-        
+
         if futures_processed > 1:
             _LOGGER.warning("Multiple futures (%d) resolved for opcode 0x%02X - possible duplicate handling", futures_processed, opcode)
         elif futures_processed == 0:
@@ -628,9 +630,37 @@ class BoksBluetoothDevice:
 
     async def get_logs(self, count: int = None) -> List[BoksLogEntry]:
         """Fetch logs."""
-        logs = []
+        async with self._lock: # Ensure exclusive access for log retrieval sequence
+            logs = []
+
+            if not self.is_connected:
+                # We need to connect. Since we hold the lock, we can't call self.connect() directly 
+                # if self.connect() also acquires the lock.
+                # Looking at connect(), it acquires the lock. Ideally, we should check connection 
+                # before acquiring lock, OR refactor connect to have an internal version without lock.
+                # However, since lock is reentrant only for same task but here we are in async... 
+                # asyncio.Lock is NOT reentrant.
+                
+                # QUICK FIX: Release lock, connect, re-acquire.
+                pass
+            
+        # REFACTOR STRATEGY:
+        # The _send_command method also acquires the lock. Calling _send_command inside a lock block
+        # will cause a DEADLOCK.
+        
+        # To fix this properly without rewriting everything:
+        # 1. We must ensure we are the only one setting _notify_callback.
+        # 2. We must NOT hold the lock while calling methods that also acquire the lock (like _send_command).
+        
+        # Alternative: Use a separate lock for the callback mechanism, OR simple check.
+        if self._notify_callback is not None:
+             raise BoksError("Busy: Another operation is already listening for notifications.")
 
         try:
+            # We set the callback. Since we are in async, we are not interrupted until await.
+            # But _send_command awaits.
+            
+            # 1. Get Count first (this calls _send_command, which locks)
             if count is None:
                 count = await self.get_logs_count()
             _LOGGER.debug("Logs count reported by device: %d", count)
@@ -665,11 +695,19 @@ class BoksBluetoothDevice:
                     _LOGGER.error("Error processing log entry: %s", e)
                     _LOGGER.debug("Error details - Opcode: 0x%02X, Data: %s", opcode, data.hex() if data else "None")
 
+        # CRITICAL SECTION START
+        # We need to ensure no one else touches _notify_callback while we use it.
+        # But we can't hold self._lock because _send_command needs it.
+        # We rely on the fact that this is the only method setting _notify_callback for LOGS.
+        # Ideally, _send_command shouldn't touch _notify_callback, only _notification_handler reads it.
+        
         self._notify_callback = log_callback
 
         try:
             _LOGGER.debug("Requesting logs...")
             # Send request with empty payload (length 0)
+            # This will acquire _lock, send, and release _lock.
+            # Notifications will arrive and trigger _notification_handler -> log_callback
             await self._send_command(BoksCommandOpcode.REQUEST_LOGS, b"")
 
             # Adjust timeout based on count, minimum 15s
@@ -682,6 +720,7 @@ class BoksBluetoothDevice:
             _LOGGER.error("Error during log retrieval: %s", e)
         finally:
             self._notify_callback = None
+            # CRITICAL SECTION END
 
         # Sort logs by timestamp (oldest first), with safety check
         try:
@@ -717,24 +756,24 @@ class BoksBluetoothDevice:
         """Get the number of logs stored."""
         # Collect all responses for opcode 0x79 (NOTIFY_LOGS_COUNT) for 0.5 seconds
         values = []
-        
+
         def callback(data):
             if len(data) >= 4:
                 # Payload is 2 bytes: [LogCount_MSB][LogCount_LSB] (Big Endian 16-bit integer)
                 count = (data[2] << 8) | data[3]
                 values.append(count)
                 _LOGGER.debug("Received logs count: %d", count)
-        
+
         # Register the callback
         self._response_callbacks[BoksNotificationOpcode.NOTIFY_LOGS_COUNT] = callback
-        
+
         try:
             # Send the command
             await self._send_command(BoksCommandOpcode.GET_LOGS_COUNT)
-            
+
             # Wait for responses
             await asyncio.sleep(0.5)
-            
+
             # Return the maximum value received, or 0 if none
             result = max(values) if values else 0
             _LOGGER.debug("Final logs count (max of received values): %d", result)

@@ -12,7 +12,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 from homeassistant.components import bluetooth
-from homeassistant.const import CONF_MAC
+from homeassistant.const import CONF_ADDRESS
 
 from .ble import BoksBluetoothDevice, BoksError
 from .const import DOMAIN, CONF_CONFIG_KEY
@@ -26,17 +26,14 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         """Initialize global Boks data updater."""
         self.ble_device = BoksBluetoothDevice(
             hass=hass,
-            address=entry.data[CONF_MAC],
+            address=entry.data[CONF_ADDRESS],
             config_key=entry.data.get(CONF_CONFIG_KEY)
         )
         self.entry = entry
-        _LOGGER.debug("BoksDataUpdateCoordinator initialized with MAC: %s, Config Key Present: %s",
-                       entry.data[CONF_MAC], bool(entry.data.get(CONF_CONFIG_KEY)))
+        _LOGGER.debug("BoksDataUpdateCoordinator initialized with Address: %s, Config Key Present: %s",
+                       entry.data[CONF_ADDRESS], bool(entry.data.get(CONF_CONFIG_KEY)))
         self._last_battery_update = None
-        self._last_door_status_update = None
-
-        # Register callback for push updates
-        self.ble_device.register_status_callback(self._handle_status_update)
+        self.full_refresh_interval_hours = entry.options.get("full_refresh_interval", 12)
 
         # Get scan interval from options, default to 1 minute
         scan_interval_minutes = entry.options.get("scan_interval", 1)
@@ -45,15 +42,13 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         else:
             update_interval = timedelta(minutes=scan_interval_minutes)
 
-        # Get full refresh interval from options, default to 12 hours
-        self.full_refresh_interval_hours = entry.options.get("full_refresh_interval", 12)
-
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
             update_interval=update_interval,
         )
+        self.data = {} # Initialize data to an empty dictionary after super init
 
     def _handle_status_update(self, status_data: dict):
         """Handle push updates from the device."""
@@ -91,7 +86,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
                     event_data = {
                         "device_id": self.entry.entry_id,
-                        "mac_address": self.entry.data[CONF_MAC],
+                        "address": self.entry.data[CONF_ADDRESS],
                         "logs": []
                     }
 
@@ -150,12 +145,12 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                 # Try to get the BLEDevice from HA's cache (Best Practice)
                 # First try with connectable=True, then with connectable=False
                 ble_device_struct = bluetooth.async_ble_device_from_address(
-                    self.hass, self.entry.data[CONF_MAC], connectable=True
+                    self.hass, self.entry.data[CONF_ADDRESS], connectable=True
                 )
                 if not ble_device_struct:
                     # If not found with connectable=True, try with connectable=False
                     ble_device_struct = bluetooth.async_ble_device_from_address(
-                        self.hass, self.entry.data[CONF_MAC], connectable=False
+                        self.hass, self.entry.data[CONF_ADDRESS], connectable=False
                     )
 
                 if ble_device_struct:
@@ -175,8 +170,8 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                 try:
                     now = datetime.now()
 
-                    # 1. Get Battery (Throttle: max once every X hours unless missing)
                     should_fetch_battery = True
+                    _LOGGER.debug(f"should_fetch_battery initial: {should_fetch_battery}")
 
                     if self._last_battery_update and "battery_level" in data:
                         if (now - self._last_battery_update) < timedelta(hours=self.full_refresh_interval_hours):
@@ -184,18 +179,25 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             _LOGGER.debug(f"Skipping battery update (last update < {self.full_refresh_interval_hours}h ago)")
 
                     if should_fetch_battery:
+                        _LOGGER.debug("Fetching battery level...")
                         try:
-                            data["battery_level"] = await self.ble_device.get_battery_level()
+                            battery_level = await self.ble_device.get_battery_level()
+                            data["battery_level"] = battery_level
                             self._last_battery_update = now
+                            _LOGGER.debug(f"Battery level fetched: {battery_level}")
                         except Exception as e:
-                            _LOGGER.warning(f"Failed to fetch battery level: {e}")
+                            _LOGGER.warning("Failed to fetch battery level: %s", e)
+                    else:
+                        _LOGGER.debug("Battery fetch skipped.")
 
                     # 2. Get Code Counts (Always fetch as it doesn't require config key)
+                    _LOGGER.debug("Fetching code counts...")
                     try:
                         counts = await self.ble_device.get_code_counts()
                         data.update(counts)
-                    except BoksError:
-                        _LOGGER.warning("Could not fetch code counts")
+                        _LOGGER.debug(f"Code counts fetched: {counts}")
+                    except BoksError as e:
+                        _LOGGER.warning("Could not fetch code counts: %s", e)
 
                     # 4. Get Device Information (Always update on poll, or maybe throttle?)
                     # Since these don't change often, we could throttle, but for now let's fetch to ensure we have them.
@@ -224,7 +226,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             # Update device registry
                             device_registry = dr.async_get(self.hass)
                             device_entry = device_registry.async_get_device(
-                                identifiers={(DOMAIN, self.entry.data[CONF_MAC])},
+                                identifiers={(DOMAIN, self.entry.data[CONF_ADDRESS])},
                             )
 
                             if device_entry:

@@ -6,11 +6,12 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.core import callback
+from homeassistant.components import bluetooth
 
-from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, BOKS_CHAR_MAP
+from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, BOKS_CHAR_MAP, CONF_MASTER_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,23 +43,36 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the manual entry step."""
         errors = {}
 
-        # Pre-fill MAC if discovered
-        prefilled_mac = None
+        # Pre-fill Address if discovered
+        prefilled_address = None
         if self._discovery_info:
-            prefilled_mac = self._discovery_info.address
+            prefilled_address = self._discovery_info.address
 
         if user_input is not None:
-            mac = user_input[CONF_MAC]
+            address = user_input[CONF_ADDRESS]
             master_code_input = user_input[CONF_MASTER_CODE].strip().upper()
             credential = user_input.get("credential", "").strip().upper()
 
-            stored_key = None
+            config_key = None
+            master_key = None
 
-            # 1. Validate Master Code (Must be 6 chars, 0-9, A, B)
+            # 1. Check if device is connectable (if manually entered)
+            # We try with connectable=True first (Best Practice)
+            device = bluetooth.async_ble_device_from_address(self.hass, address, connectable=True)
+            if not device:
+                 # Fallback: Check if it exists but is not connectable (Workaround for some setups)
+                 device = bluetooth.async_ble_device_from_address(self.hass, address, connectable=False)
+                 if device:
+                     _LOGGER.warning("Device %s found via non-connectable discovery. Connection might fail if no active adapter is available.", address)
+                 else:
+                     # Device not found at all
+                     errors["base"] = "unknown_device"
+
+            # 2. Validate Master Code (Must be 6 chars, 0-9, A, B)
             if not (len(master_code_input) == 6 and all(c in BOKS_CHAR_MAP for c in master_code_input)):
                 errors[CONF_MASTER_CODE] = "invalid_master_code_format"
 
-            # 2. Validate Credential (Master Key or Config Key) - Optional
+            # 3. Validate Credential (Master Key or Config Key) - Optional
             if credential:
                 length = len(credential)
                 try:
@@ -66,36 +80,41 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     int(credential, 16)
 
                     if length == 64: # Master Key
-                        stored_key = credential
+                        master_key = credential
+                        config_key = master_key[-8:]
                     elif length == 8: # Config Key
-                        stored_key = credential
+                        config_key = credential
                     else:
                         errors["credential"] = "invalid_credential_format"
                 except ValueError:
                     errors["credential"] = "invalid_credential_format"
 
             if not errors:
-                await self.async_set_unique_id(mac)
+                await self.async_set_unique_id(address)
                 self._abort_if_unique_id_configured()
 
                 data = {
-                    CONF_MAC: mac,
+                    CONF_ADDRESS: address,
                     CONF_MASTER_CODE: master_code_input,
                 }
 
                 # Store the key (Master or Config) if provided
-                if stored_key:
-                    data[CONF_CONFIG_KEY] = stored_key
+                if config_key:
+                    data[CONF_CONFIG_KEY] = config_key
+                if master_key:
+                    data[CONF_MASTER_KEY] = master_key
 
                 # Generate a default name
                 name = "Boks"
                 if self._discovery_info and self._discovery_info.name:
                     name = self._discovery_info.name
+                elif device and device.name:
+                    name = device.name
 
-                # If name is generic, append short MAC to ensure uniqueness and better identification
+                # If name is generic, append short Address to ensure uniqueness and better identification
                 if name in ["Boks", "Boks Parcel Box", "Boks ONE"]:
-                    short_mac = mac.replace(":", "")[-6:]
-                    name = f"{name} {short_mac}"
+                    short_address = address.replace(":", "")[-6:]
+                    name = f"{name} {short_address}"
 
                 data[CONF_NAME] = name
 
@@ -106,7 +125,7 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Form Schema
         schema = {
-            vol.Required(CONF_MAC, default=prefilled_mac or vol.UNDEFINED): str,
+            vol.Required(CONF_ADDRESS, default=prefilled_address or vol.UNDEFINED): str,
             vol.Required(CONF_MASTER_CODE): str,
             vol.Optional("credential"): str,
         }

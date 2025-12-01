@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.const import CONF_MAC, CONF_NAME
+from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN, EVENT_LOG
@@ -37,7 +37,7 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
         """Initialize the event."""
         super().__init__(coordinator)
         self._entry = entry
-        self._attr_unique_id = f"{entry.data[CONF_MAC]}_logs"
+        self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_logs"
         self._last_log_timestamp = None
 
     @property
@@ -49,8 +49,8 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
     def device_info(self):
         """Return device info."""
         return {
-            "identifiers": {(DOMAIN, self._entry.data[CONF_MAC])},
-            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_MAC]}",
+            "identifiers": {(DOMAIN, self._entry.data[CONF_ADDRESS])},
+            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_ADDRESS]}",
         }
 
     @callback
@@ -77,7 +77,7 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
                 
                 # Get device_id for logbook integration
                 device_registry = dr.async_get(self.hass)
-                device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_MAC])})
+                device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])})
                 device_id = device_entry.id if device_entry else None
                 
                 # Safely access log attributes with fallbacks

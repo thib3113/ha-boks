@@ -2,8 +2,20 @@
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![GitHub License](https://img.shields.io/github/license/thib3113/ha-boks?color=blue)](LICENSE)
-[![Validate Integration](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml)
-[![Validate HACS](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml)
+[![Validate Integration](https://img.shields.io/github/workflow/status/thib3113/ha-boks/Validate%20Integration?label=Validate%20Integration)](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml)
+[![Validate HACS](https://img.shields.io/github/workflow/status/thib3113/ha-boks/hacs.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml)
+
+## Table of Contents
+
+*   [Description](#description)
+*   [Features](#features)
+*   [Prerequisites](#prerequisites)
+*   [Installation](#installation)
+*   [Configuration](#configuration)
+*   [Events & Automations](#events--automations)
+*   [Debugging](#debugging)
+*   [Detailed Documentation](#detailed-documentation)
+*   [Legal Notice](#legal-notice)
 
 ## Description
 
@@ -13,26 +25,26 @@ It allows you to open your Boks directly from Home Assistant without needing the
 
 ## Features
 
-* **Lock Entity**: Unlock your Boks directly from the dashboard.
-    * Uses your stored **Master Code** by default.
-    * *Smart Fallback*: If you provided a Credential but no Master Code, it attempts to generate a temporary single-use code on the fly.
-* **Sensors**:
-    * **Battery Level**: Monitors the device battery.
-    * **Code Counts** *(Admin only)*: Tracks the number of Master, Standard, and Multi-use codes stored on the device (requires Credential).
-* **Events**:
-    * Exposes an `event` entity (e.g., `event.boks_logs`) that reports history logs (openings, errors, etc.) retrieved from the device.
+*   **Lock Entity**: Unlock your Boks directly from the dashboard.
+    *   Uses your stored **Master Code** by default.
+    *   *Smart Fallback*: If you provided a Credential but no Master Code, it attempts to generate a temporary single-use code on the fly.
+*   **Sensors**:
+    *   **Battery Level**: Monitors the device battery.
+    *   **Code Counts** *(Admin only)*: Tracks the number of Master, Standard, and Multi-use codes stored on the device (requires Credential).
+*   **Events**:
+    *   Exposes an `event` entity (e.g., `event.boks_logs`) that reports history logs (openings, errors, etc.) retrieved from the device.
 
 ## Prerequisites
 
 1.  **Hardware**:
-    * A Boks device.
-    * A Home Assistant server with a working Bluetooth adapter **OR** an ESPHome Bluetooth Proxy near the Boks.
+    *   A Boks device.
+    *   A Home Assistant server with a working Bluetooth adapter **OR** an ESPHome Bluetooth Proxy near the Boks.
 2.  **Credentials**:
-    * **Master Code (Required)**: The 6-character PIN code you use to open the door (e.g., `1234AB`).
-    * **Credential (Optional)**: To enable advanced features (reading logs, counting codes), you need **ONE** of the following:
-        * **Configuration Key**: 8 hex characters.
-        * **Master Key**: 64 hex characters (Recommended for future-proofing).
-    * *Note: These keys can typically be retrieved from your account data (GDPR request) or during the initial provisioning process.*
+    *   **Master Code (Required)**: The 6-character PIN code you use to open the door (e.g., `1234AB`).
+    *   **Credential (Optional)**: To enable advanced features (reading logs, counting codes), you need **ONE** of the following:
+        *   **Configuration Key**: 8 hex characters.
+        *   **Master Key**: 64 hex characters (Recommended for future-proofing).
+    *   *Note: These keys can typically be retrieved from your account data (GDPR request) or during the initial provisioning process.*
 
 ## Installation
 
@@ -64,9 +76,9 @@ It allows you to open your Boks directly from Home Assistant without needing the
 3.  Search for **Boks**.
 4.  The integration should automatically discover your Boks if it is within range. Click on it.
 5.  **Setup**:
-    * **Master Code**: Enter your unlock code (0-9, A, B).
-    * **Credential (Optional)**: Enter your Config Key OR Master Key if you want to enable logs and admin sensors.
-        * *Tip:* Providing the **Master Key** (64 hex chars) is recommended as it may allow for **offline code generation** in future versions of this integration.
+    *   **Master Code**: Enter your unlock code (0-9, A, B).
+    *   **Credential (Optional)**: Enter your Config Key OR Master Key if you want to enable logs and admin sensors.
+        *   *Tip:* Providing the **Master Key** (64 hex chars) is recommended as it may allow for **offline code generation** in future versions of this integration.
 
 ## Events & Automations
 
@@ -77,11 +89,11 @@ The integration exposes an `event` entity (e.g., `event.boks_logs`) that fires w
 You can use the "Event" trigger in Home Assistant automations to react to specific log events.
 
 **Available Event Types:**
-* `door_opened` / `door_closed`
-* `code_ble_valid` / `code_key_valid`
-* `code_ble_invalid` / `code_key_invalid`
-* `error`
-* ... and more.
+*   `door_opened` / `door_closed`
+*   `code_ble_valid` / `code_key_valid`
+*   `code_ble_invalid` / `code_key_invalid`
+*   `error`
+*   ... and more.
 
 ### Example Automation
 
@@ -115,6 +127,28 @@ logger:
   logs:
     custom_components.boks: debug
 ```
+
+## Detailed Documentation
+
+For comprehensive guides on installation, configuration, features, and troubleshooting, please refer to the dedicated documentation sections:
+
+*   **English Documentation**:
+    *   [Introduction](documentation/EN/introduction.md)
+    *   [Features](documentation/EN/features.md)
+    *   [Prerequisites](documentation/EN/prerequisites.md)
+    *   [Installation](documentation/EN/installation.md)
+    *   [Configuration](documentation/EN/configuration.md)
+    *   [Events & Automations (Usage)](documentation/EN/usage.md)
+    *   [Troubleshooting (Debugging)](documentation/EN/troubleshooting.md)
+
+*   **Documentation Française**:
+    *   [Introduction](documentation/FR/introduction.md)
+    *   [Fonctionnalités](documentation/FR/features.md)
+    *   [Prérequis](documentation/FR/prerequisites.md)
+    *   [Installation](documentation/FR/installation.md)
+    *   [Configuration](documentation/FR/configuration.md)
+    *   [Événements & Automatisations (Utilisation)](documentation/FR/usage.md)
+    *   [Dépannage (Débogage)](documentation/FR/troubleshooting.md)
 
 ## ⚖️ Legal Notice
 

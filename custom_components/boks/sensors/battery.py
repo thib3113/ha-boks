@@ -4,7 +4,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, CONF_MAC
+from homeassistant.const import PERCENTAGE, CONF_ADDRESS
 from homeassistant.config_entries import ConfigEntry
 
 from ..entity import BoksEntity
@@ -22,7 +22,7 @@ class BoksBatterySensor(BoksEntity, SensorEntity):
     def __init__(self, coordinator: BoksDataUpdateCoordinator, entry: ConfigEntry) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, entry)
-        self._attr_unique_id = f"{entry.data[CONF_MAC]}_battery"
+        self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_battery"
 
     @property
     def suggested_object_id(self) -> str | None:

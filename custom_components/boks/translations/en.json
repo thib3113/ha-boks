@@ -46,7 +46,9 @@
       "create_code_failed": "Failed to create code (Device returned error)",
       "change_master_code_failed": "Failed to change master code (Device returned error)",
       "config_key_required_simple": "Configuration Key required",
-      "unknown_code_type": "Unknown code type"
+      "unknown_code_type": "Unknown code type",
+      "unknown_device": "The device is not seen by the Bluetooth adapter.",
+      "not_connectable": "The detected device is not connectable (probably via a passive proxy)."
     },
     "abort": {
       "already_configured": "This Boks is already configured.",
@@ -133,6 +135,23 @@
     }
   },
   "services": {
+    "add_parcel": {
+      "name": "Add Parcel",
+      "description": "Adds a new parcel to the list",
+      "fields": {
+        "description": {
+          "name": "Description",
+          "description": "Adds a description to the parcel",
+          "example": "Book delivery"
+        }
+      },
+      "response": {
+        "code": {
+          "name": "PIN Code",
+          "description": "The PIN code generated for the parcel."
+        }
+      }
+    },
     "add_pin_code": {
       "name": "Add PIN Code",
       "description": "Adds a new PIN code to the Boks. Requires Configuration Key. Returns the created code.",

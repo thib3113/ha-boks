@@ -1,0 +1,28 @@
+FROM python:3.11-slim
+
+# Install system dependencies
+# git: required for some pip packages
+# tzdata: required for timezone handling in tests
+RUN apt-get update && apt-get install -y \
+    git \
+    tzdata \
+    && ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime \
+    && dpkg-reconfigure -f noninteractive tzdata \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the timezone environment variable
+ENV TZ=Europe/Paris
+
+WORKDIR /app
+
+# Copy requirements first to leverage Docker cache
+COPY requirements_test.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements_test.txt
+
+# Set PYTHONPATH so custom_components is importable
+ENV PYTHONPATH=/app
+
+# Default command
+CMD ["pytest", "tests", "-vv"]

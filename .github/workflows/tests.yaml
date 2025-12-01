@@ -32,4 +32,4 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest tests/ -v
+          python -m pytest tests/ -v --cov=custom_components.boks --cov-report=term-missing --cov-report=xml
