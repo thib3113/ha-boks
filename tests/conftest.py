@@ -31,7 +31,7 @@ def mock_homeassistant_core_components(hass):
     # Mark components as loaded so HA doesn't try to setup them
     for component in ["recorder", "bluetooth", "logbook", "file_upload", "image_upload", "frontend", "http", "onboarding", "usb", "system_log", "auth", "api", "config", "lovelace", "search", "analytics", "diagnostics", "device_automation", "repairs", "websocket_api"]:
         hass.config.components.add(component)
-    
+
     with patch("homeassistant.components.bluetooth.async_setup", return_value=True), \
          patch("homeassistant.components.recorder.async_setup", return_value=True), \
          patch("homeassistant.components.file_upload.async_setup", return_value=True), \
