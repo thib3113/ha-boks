@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.const import CONF_ADDRESS, CONF_NAME
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers import device_registry as dr
 
 from .const import DOMAIN, EVENT_LOG
@@ -50,7 +50,6 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
         """Return device info."""
         return {
             "identifiers": {(DOMAIN, self._entry.data[CONF_ADDRESS])},
-            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_ADDRESS]}",
         }
 
     @callback
@@ -61,40 +60,50 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
 
         if latest_logs and last_fetch != self._last_log_timestamp:
             self._last_log_timestamp = last_fetch
-            
+
             # Process new logs
             for i, log in enumerate(latest_logs):
                 # Skip None log entries
                 if log is None:
                     _LOGGER.warning("Skipping None log entry at index %d", i)
                     continue
-                    
+
                 # Debug logging to verify data flow
                 _LOGGER.debug("Processing log entry at index %d: %s (type: %s)", i, log, type(log))
-                
+
                 # Create a clean dictionary for the event data
                 event_type = log.get("event_type", "unknown") if isinstance(log, dict) else getattr(log, "event_type", "unknown")
-                
+
                 # Get device_id for logbook integration
                 device_registry = dr.async_get(self.hass)
                 device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])})
                 device_id = device_entry.id if device_entry else None
-                
+
                 # Safely access log attributes with fallbacks
                 opcode = log.get("opcode", "unknown") if isinstance(log, dict) else getattr(log, "opcode", "unknown")
                 payload = log.get("payload", "") if isinstance(log, dict) else getattr(log, "payload", "")
                 timestamp = log.get("timestamp", None) if isinstance(log, dict) else getattr(log, "timestamp", None)
                 description = log.get("description", "Unknown Event") if isinstance(log, dict) else getattr(log, "description", "Unknown Event")
-                
+
                 # Additional safety check for None values
                 if opcode is None:
                     opcode = "unknown"
                 if payload is None:
                     payload = ""
-                if description is None:
-                    description = "Unknown Event"
                 if event_type is None:
                     event_type = "unknown"
+
+                # Translate description server-side using our manual cache
+                # We use event_type (e.g. 'door_closed') as the key
+                translations = self.hass.data.get(DOMAIN, {}).get("translations", {})
+                
+                # The keys in our manual cache are like 'door_closed', 'code_ble_valid', etc.
+                # event_type holds exactly these keys.
+                # Fallback to the original English description if translation is missing
+                description = translations.get(event_type, description)
+                
+                if description is None:
+                    description = "Unknown Event"
                 
                 data = {
                     "opcode": opcode,
@@ -104,7 +113,6 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
                     "type": event_type,
                     "device_id": device_id,
                 }
-                
                 # Add extra_data if present
                 if isinstance(log, dict):
                     known_fields = {"opcode", "payload", "timestamp", "event_type", "description", "type"}
@@ -121,11 +129,11 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
                         else:
                             # Otherwise, add it as a 'details' field
                             extra_data['details'] = log.details
-                    
+
                 # Additional safety check for extra_data
                 if extra_data is None:
                     extra_data = {}
-                    
+
                 if extra_data:
                     # Ensure all values in extra_data are serializable
                     safe_extra_data = {}
@@ -146,5 +154,5 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
                 _LOGGER.debug("Triggering event: %s with data: %s", event_type, data)
                 self._trigger_event(event_type, data)
                 self.hass.bus.async_fire(EVENT_LOG, data)
-            
+
         super()._handle_coordinator_update()

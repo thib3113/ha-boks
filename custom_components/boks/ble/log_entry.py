@@ -39,7 +39,7 @@ class BoksLogEntry:
             _LOGGER.warning("Unknown log opcode received: 0x%02X", opcode)
             return None
 
-        description = LOG_EVENT_DESCRIPTIONS.get(event_opcode, "log_events.unknown_event")
+        description = LOG_EVENT_DESCRIPTIONS.get(event_opcode, "unknown")
         event_type = LOG_EVENT_TYPES.get(event_opcode, "unknown")
 
         timestamp = int(time.time())

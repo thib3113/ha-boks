@@ -2,6 +2,8 @@
 import importlib
 import logging
 import voluptuous as vol
+import json
+import os
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -17,6 +19,9 @@ from .coordinator import BoksDataUpdateCoordinator
 
 from . import logbook
 
+# Define the CONFIG_SCHEMA as an empty schema for config entries only
+CONFIG_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
+
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.LOCK, Platform.BUTTON, Platform.EVENT, Platform.TODO]
@@ -24,22 +29,20 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.LOCK, Platform.BUTTON, Pl
 # Service Schemas
 SERVICE_ADD_PARCEL_SCHEMA = vol.Schema({
     vol.Optional("description"): cv.string,
-    vol.Optional("entity_id"): cv.entity_id,
-    vol.Optional("device_id"): cv.string,
-})
+}, extra=vol.ALLOW_EXTRA)
 
 SERVICE_ADD_CODE_SCHEMA = vol.Schema({
     vol.Optional("code"): cv.string,
     vol.Optional("type", default="standard"): vol.In(["standard", "master", "single", "multi"]),
     vol.Optional("index", default=0): cv.positive_int,
-})
+}, extra=vol.ALLOW_EXTRA)
 
 SERVICE_DELETE_CODE_SCHEMA = vol.Schema({
     vol.Required("identifier"): cv.string, # Code itself or Index
     vol.Optional("type", default="standard"): vol.In(["standard", "master", "single", "multi"]),
-})
+}, extra=vol.ALLOW_EXTRA)
 
-SERVICE_SYNC_LOGS_SCHEMA = vol.Schema({})
+SERVICE_SYNC_LOGS_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
 
 def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDataUpdateCoordinator:
     """Retrieve the Boks coordinator from a service call target."""
@@ -59,6 +62,9 @@ def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDat
                     if entry_id in hass.data[DOMAIN]:
                         return hass.data[DOMAIN][entry_id]
 
+        # If device_ids were provided but we didn't return above, it means none were Boks devices
+        raise HomeAssistantError(f"Target device(s) {device_ids} are not Boks devices.")
+
     # 2. Try Entity ID
     entity_ids = call.data.get("entity_id")
     if entity_ids:
@@ -74,7 +80,10 @@ def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDat
             if entry and entry.config_entry_id in hass.data[DOMAIN]:
                 return hass.data[DOMAIN][entry.config_entry_id]
 
-    # 3. Fallback: Single Instance
+        # If entity_ids were provided but we didn't return above, none were Boks entities
+        raise HomeAssistantError(f"Target entity(s) {entity_ids} belong to non-Boks devices.")
+
+    # 3. Fallback: Single Instance (Only if NO target was provided)
     if len(hass.data[DOMAIN]) == 1:
         return list(hass.data[DOMAIN].values())[0]
 
@@ -89,88 +98,59 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def handle_add_parcel(call: ServiceCall) -> dict | None:
         """Handle the add parcel service call."""
         description = call.data.get("description", "")
-        entity_registry = er.async_get(hass)
-        
+
         target_entity_id = None
-        
-        # 1. Extract Target (Entity ID)
-        # Can be in call.data directly or nested in target/entity_id
+
+        # 1. Extract Target (Entity ID) from call.data (populated by HA from target)
         if "entity_id" in call.data:
-            target_entity_id = call.data["entity_id"]
-        elif "target" in call.data and "entity_id" in call.data["target"]:
-             target_entity_id = call.data["target"]["entity_id"]
+            entity_ids = call.data["entity_id"]
+            if isinstance(entity_ids, list) and len(entity_ids) > 0:
+                 target_entity_id = entity_ids[0]
+            elif isinstance(entity_ids, str):
+                 target_entity_id = entity_ids
 
-        if isinstance(target_entity_id, list):
-            target_entity_id = target_entity_id[0]
-        
-        # 2. Extract Target (Device ID) -> Convert to Entity ID
-        if not target_entity_id:
-            device_id = None
-            if "device_id" in call.data:
-                device_id = call.data["device_id"]
-            elif "target" in call.data and "device_id" in call.data["target"]:
-                device_id = call.data["target"]["device_id"]
-
-            if isinstance(device_id, list):
-                device_id = device_id[0]
-            
-            if device_id:
-                # Find config entry for device
-                device_registry = dr.async_get(hass)
-                device = device_registry.async_get(device_id)
-                if device:
-                    # Find Boks config entry associated with this device
-                    config_entry_id = next((entry for entry in device.config_entries if entry in hass.data[DOMAIN]), None)
-                    if config_entry_id:
-                        # Find Todo entity for this entry in registry
-                        # Iterate over registry entries values
-                        entries = entity_registry.entities.values()
-                        for entry in entries:
-                            if entry.config_entry_id == config_entry_id and entry.domain == "todo":
-                                target_entity_id = entry.entity_id
-                                break
-        
-        # 3. Fallback (Single Instance)
+        # 2. Fallback (Single Instance)
         if not target_entity_id:
             # Check how many Boks entries are loaded
             boks_entry_ids = list(hass.data[DOMAIN].keys())
             if len(boks_entry_ids) == 1:
                 config_entry_id = boks_entry_ids[0]
                 # Find Todo entity
+                entity_registry = er.async_get(hass)
                 entries = entity_registry.entities.values()
                 for entry in entries:
                     if entry.config_entry_id == config_entry_id and entry.domain == "todo":
                         target_entity_id = entry.entity_id
                         break
             elif len(boks_entry_ids) > 1:
-                 raise HomeAssistantError("Multiple Boks devices found. Please specify an entity_id or device_id.")
+                 raise HomeAssistantError("Multiple Boks devices found. Please specify a target entity.")
             else:
                  raise HomeAssistantError("No Boks devices configured.")
 
         if not target_entity_id:
              raise HomeAssistantError("Could not resolve a target Boks Todo list.")
 
-        # 4. Get Actual Entity Object
+        # 3. Get Actual Entity Object
         component = hass.data.get("entity_components", {}).get("todo")
         if not component:
              raise HomeAssistantError("Todo integration not loaded.")
-             
+
         todo_entity = component.get_entity(target_entity_id)
-        
+
         if not todo_entity:
              raise HomeAssistantError(f"Todo entity '{target_entity_id}' not found or not loaded.")
 
-        # 5. Verify it's a Boks entity
+        # 4. Verify it's a Boks entity
         from .todo import BoksParcelTodoList
         if not isinstance(todo_entity, BoksParcelTodoList):
              raise HomeAssistantError(f"Entity {target_entity_id} is not a Boks Parcel List.")
 
-        # 6. Generate/Parse Code and Create Parcel
+        # 5. Generate/Parse Code and Create Parcel
         from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
 
         # Check if we have a config key for BLE operations
         has_config_key = getattr(todo_entity, "_has_config_key", False)
-        
+
         # Try to extract code immediately if possible, otherwise generate one
         code_in_desc, parsed_description = parse_parcel_string(description)
         generated_code = None
@@ -178,25 +158,25 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
         if not code_in_desc:
             generated_code = generate_random_code()
-                
+
             if has_config_key:
                 # If we have a key, we want to force a sync because we just generated this code
                 # and the user expects it to be created on the device.
                 force_sync = True
-            
+
             formatted_description = format_parcel_item(generated_code, description or "Parcel")
         else:
             formatted_description = description
             generated_code = code_in_desc
-            # If code was provided, we normally track only. 
+            # If code was provided, we normally track only.
             # But if the user explicitly called this service, maybe they want to force sync?
             # For now, stick to "Manual input = Tracking" UNLESS we generated it.
-            force_sync = False 
+            force_sync = False
 
         # Delegate creation to the Todo Entity's specialized method
         # We use force_background_sync=True if we generated the code and want it synced.
         await todo_entity.async_create_parcel(formatted_description, force_background_sync=force_sync)
-        
+
         return {"code": generated_code}
 
     hass.services.async_register(
@@ -293,6 +273,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator
+
+    # Cache translations for Logbook usage (Manual Load)
+    try:
+        lang = hass.config.language
+        # Path to the integration directory
+        integration_path = os.path.dirname(__file__)
+        translation_path = os.path.join(integration_path, "translations", f"{lang}.json")
+
+        # Fallback to English if file doesn't exist
+        if not os.path.exists(translation_path):
+            _LOGGER.warning("Translation file for '%s' not found at %s, falling back to 'en'", lang, translation_path)
+            translation_path = os.path.join(integration_path, "translations", "en.json")
+
+        if os.path.exists(translation_path):
+            def load_json(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+
+            # Execute file I/O in executor to avoid blocking event loop
+            translations_json = await hass.async_add_executor_job(load_json, translation_path)
+
+            # Extract the specific state translations we need
+            # Structure: entity -> sensor -> last_event -> state
+            try:
+                state_translations = translations_json.get("entity", {}).get("sensor", {}).get("last_event", {}).get("state", {})
+                hass.data[DOMAIN]["translations"] = state_translations
+                _LOGGER.debug("Manually loaded translations for Logbook: %s", list(state_translations.keys()))
+            except AttributeError:
+                hass.data[DOMAIN]["translations"] = {}
+                _LOGGER.warning("Could not extract state translations from JSON structure")
+        else:
+             hass.data[DOMAIN]["translations"] = {}
+             _LOGGER.warning("No translation file found at %s (fallback failed)", translation_path)
+
+    except Exception as e:
+        _LOGGER.warning("Failed to manually load translations for Logbook: %s", e)
+        hass.data[DOMAIN]["translations"] = {}
 
     # Pre-import platforms to avoid blocking call in the loop
     for platform in PLATFORMS:

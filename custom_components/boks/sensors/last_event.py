@@ -58,17 +58,12 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
             return "no_events"
 
         # Format the state to be readable
-        description = latest_log.get("description", "Unknown Event")
+        # We use event_type (e.g. 'code_ble_valid') which maps to translation keys
         event_type = latest_log.get("event_type", "unknown")
-
-        # For code-related events, include the code if available
-        if event_type in ["code_valid", "code_invalid"] and "code" in latest_log.get("extra_data", {}):
-            code = latest_log["extra_data"]["code"]
-            return f"{description} ({code})"
-
+        
         # Update restored state with new value
-        self._restored_state = description
-        return description
+        self._restored_state = event_type
+        return event_type
 
     @property
     def extra_state_attributes(self) -> dict[str, any]:

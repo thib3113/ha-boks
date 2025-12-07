@@ -69,7 +69,12 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
     @property
     def translation_placeholders(self) -> dict[str, str]:
         """Return the translation placeholders."""
-        return {"name": self._entry.title}
+        return {}
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        """Return the suggested object id."""
+        return "parcels"
 
     def __init__(
         self,

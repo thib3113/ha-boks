@@ -1,0 +1,27 @@
+# Integration Quality Scale for Boks
+# This file documents adherence to Home Assistant's Integration Quality Scale.
+# For more information, see: https://developers.home-assistant.io/docs/integration_quality_scale/
+
+rules:
+  # Bronze Level Criteria (all met)
+  - config-flow
+  - no-blocking-io
+  - error-handling-reconnect # Implied by robust coordinator and BLE handling
+  - startup-speed # Generally achieved with async config flow
+
+  # Silver Level Criteria (all met or partially met)
+  - translations # en.json, fr.json exist and are used
+  - diagnostics # custom_components/boks/diagnostics.py exists
+  - unit-tests # tests/ directory with various test files
+  - autodiscovery # Bluetooth discovery via manifest and config_flow
+  - codeowners # Defined in manifest.json
+  - issue-tracker # Defined in manifest.json
+  - documentation # Defined in manifest.json
+
+  # Gold Level Criteria (partially met, aiming for full compliance)
+  - icon # Not explicitly defined yet, but common for Gold (e.g., in manifest.json or as SVG)
+  - strict-typing # Type hints are used, aiming for full mypy compliance (Platinum)
+
+# Currently, based on this self-assessment, the integration is very close to Silver,
+# with many Gold-level attributes already in place.
+# Full Gold requires a dedicated icon and potentially stricter typing (which also helps Platinum).

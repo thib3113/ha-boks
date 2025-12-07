@@ -20,6 +20,7 @@ def async_describe_events(
 ) -> None:
     """Describe logbook events."""
     _LOGGER.debug("Registering logbook events for Boks")
+
     @callback
     def async_describe_log_event(event: Any) -> dict[str, Any]:
         """Describe boks log event."""
@@ -27,23 +28,18 @@ def async_describe_events(
         data = event.data
 
         # Extract useful info
-        description = data.get("description", "Unknown Event")
-        opcode = data.get("opcode")
+        description_key = data.get("description", "unknown")
 
-        # Build a nice message
-        # The description from LOG_EVENT_DESCRIPTIONS is already a translation key
-        # We pass it directly so Home Assistant can translate it
-        message = description
+        # Try to find the translation in our cache
+        # The cache contains the 'state' dict, so keys are 'door_closed', 'door_opened', etc.
+        translations = hass.data.get(DOMAIN, {}).get("translations", {})
 
-        # If we have extra details like payload/code in description, it's already there.
-        # Example: "Ouverture Code: 123456"
+        message = translations.get(description_key, description_key)
 
         return {
             LOGBOOK_ENTRY_NAME: "",
             LOGBOOK_ENTRY_MESSAGE: message,
-            # We can link to the device if device_id is in data (it is!)
             ATTR_DEVICE_ID: data.get("device_id"),
         }
 
-    # Register the callback for our custom event type
     async_describe_event(DOMAIN, EVENT_LOG, async_describe_log_event)

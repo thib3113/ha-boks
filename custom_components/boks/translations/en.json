@@ -94,7 +94,24 @@
       "last_event": {
         "name": "Last event",
         "state": {
-          "no_events": "No events"
+          "no_events": "No events",
+          "code_ble_valid": "Valid BLE code used",
+          "code_key_valid": "Valid keypad code used",
+          "code_ble_invalid": "Invalid BLE command",
+          "code_key_invalid": "Invalid keypad code used",
+          "door_closed": "Door closed",
+          "door_opened": "Door opened",
+          "history_erase": "History cleared",
+          "power_off": "Power off",
+          "block_reset": "Block Reset",
+          "power_on": "Power On",
+          "ble_reboot": "BLE Reboot",
+          "scale_measure": "Continuous scale measurement",
+          "nfc_error_transaction": "NFC Transaction Error (0x99)",
+          "error": "Error (Diagnostic)",
+          "nfc_opening": "NFC opening",
+          "nfc_tag_registering": "NFC tag registration scan",
+          "unknown": "Unknown event"
         }
       },
       "master_codes_count": {
@@ -106,7 +123,7 @@
     },
     "todo": {
       "parcels": {
-        "name": "Parcels {name}"
+        "name": "Parcels"
       }
     },
     "event": {
@@ -114,56 +131,37 @@
         "name": "Logs",
         "state_attributes": {
           "event_type": {
-            "name": "Event Type",
-            "state": {
-              "code_ble_valid": "Valid BLE Code Used",
-              "code_key_valid": "Valid Keypad Code Used",
-              "code_ble_invalid": "Invalid BLE Code Used",
-              "code_key_invalid": "Invalid Keypad Code Used",
-              "door_closed": "Door Closed",
-              "door_opened": "Door Opened",
-              "history_erase": "History Erased",
-              "power_off": "Power Off",
-              "block_reset": "Block Reset",
-              "power_on": "Power On",
-              "ble_reboot": "BLE Reboot",
-              "scale_measure": "Scale Continuous Measure",
-              "nfc_error_transaction": "NFC Transaction Error",
-              "error": "Error",
-              "nfc_opening": "NFC Opening",
-              "nfc_tag_registering": "NFC Tag Registering Scan",
-              "unknown": "Unknown Event"
-            }
+            "code_ble_valid": "Valid BLE code used",
+            "code_key_valid": "Valid keypad code used",
+            "code_ble_invalid": "Invalid BLE command",
+            "code_key_invalid": "Invalid keypad code used",
+            "door_closed": "Door closed",
+            "door_opened": "Door opened",
+            "history_erase": "History cleared",
+            "power_off": "Power off",
+            "block_reset": "Block Reset",
+            "power_on": "Power On",
+            "ble_reboot": "BLE Reboot",
+            "scale_measure": "Continuous scale measurement",
+            "nfc_error_transaction": "NFC Transaction Error",
+            "error": "Error (Diagnostic)",
+            "nfc_opening": "NFC opening",
+            "nfc_tag_registering": "NFC tag registration scan",
+            "unknown": "Unknown event"
           }
         }
       }
     }
   },
   "services": {
-    "common": {
-      "fields": {
-        "device": {
-          "description": "The Boks device to perform the action on."
-        }
-      }
-    },
     "add_parcel": {
       "name": "Add Parcel",
       "description": "Adds a new parcel to the list",
       "fields": {
-        "entity_id": {
-          "description": "The Boks Todo list to add the parcel to."
-        },
         "description": {
           "name": "Description",
           "description": "Adds a description to the parcel",
           "example": "Book delivery"
-        }
-      },
-      "response": {
-        "code": {
-          "name": "PIN Code",
-          "description": "The PIN code generated for the parcel."
         }
       }
     },
@@ -199,63 +197,28 @@
         }
       }
     },
-    "create_code": {
-      "name": "Create Code",
-      "description": "Creates a new access code for your Boks.",
-      "fields": {
-        "device_id": {
-          "name": "Boks Device",
-          "description": "The Boks device on which to create the code."
-        },
-        "code_type": {
-          "name": "Code Type",
-          "description": "The type of code to create (standard, master, single, multi)."
-        },
-        "code": {
-          "name": "Code",
-          "description": "The 6-character PIN code (0-9, A, B). If omitted, a random code will be generated."
-        },
-        "name": {
-          "name": "Name",
-          "description": "A name to identify this code (optional)."
-        }
-      }
-    },
-    "export_config": {
-      "name": "Export Configuration Key",
-      "description": "Displays the configuration key for a Boks device in a persistent notification.",
-      "fields": {
-        "device_id": {
-          "name": "Boks Device",
-          "description": "The Boks device for which to export the key."
-        }
-      }
-    },
     "sync_logs": {
       "name": "Sync Logs",
       "description": "Manually retrieve logs from the Boks and trigger associated events."
     }
   },
-  "state": {
-    "log_events": {
-      "code_ble_valid": "Valid BLE code used",
-      "code_key_valid": "Valid keypad code used",
-      "code_ble_invalid": "Invalid BLE command",
-      "code_key_invalid": "Invalid keypad code used",
-      "door_closed": "Door closed",
-      "door_opened": "Door opened",
-      "history_erase": "History cleared",
-      "power_off": "Power off",
-      "block_reset": "Block reset",
-      "power_on": "Power on",
-      "ble_reboot": "BLE reboot",
-      "scale_continuous_measure": "Continuous scale measurement",
-      "nfc_error_99": "NFC Transaction Error (0x99)",
-      "error": "Error (Diagnostic)",
-      "nfc_opening": "NFC opening",
-      "nfc_tag_registering_scan": "NFC tag registration scan",
-      "nfc_error_transaction": "NFC Transaction Error",
-      "unknown_event": "Unknown event (0x{opcode:02X})"
-    }
+  "logbook_entry": {
+    "code_ble_valid": "Valid BLE code used",
+    "code_key_valid": "Valid keypad code used",
+    "code_ble_invalid": "Invalid BLE command",
+    "code_key_invalid": "Invalid keypad code used",
+    "door_closed": "Door closed",
+    "door_opened": "Door opened",
+    "history_erase": "History cleared",
+    "power_off": "Power off",
+    "block_reset": "Block Reset",
+    "power_on": "Power On",
+    "ble_reboot": "BLE Reboot",
+    "scale_measure": "Continuous scale measurement",
+    "nfc_error_99": "NFC Transaction Error",
+    "error": "Error (Diagnostic)",
+    "nfc_opening": "NFC opening",
+    "nfc_tag_registering_scan": "NFC tag registration scan",
+    "unknown": "Unknown event"
   }
 }

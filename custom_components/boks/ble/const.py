@@ -113,22 +113,22 @@ ERROR_DESCRIPTIONS = {
 }
 
 LOG_EVENT_DESCRIPTIONS = {
-    BoksHistoryEvent.CODE_BLE_VALID: "log_events.code_ble_valid",
-    BoksHistoryEvent.CODE_KEY_VALID: "log_events.code_key_valid",
-    BoksHistoryEvent.CODE_BLE_INVALID: "log_events.code_ble_invalid",
-    BoksHistoryEvent.CODE_KEY_INVALID: "log_events.code_key_invalid",
-    BoksHistoryEvent.DOOR_CLOSED: "log_events.door_closed",
-    BoksHistoryEvent.DOOR_OPENED: "log_events.door_opened",
-    BoksHistoryEvent.HISTORY_ERASE: "log_events.history_erase",
-    BoksHistoryEvent.POWER_OFF: "log_events.power_off",
-    BoksHistoryEvent.BLOCK_RESET: "log_events.block_reset",
-    BoksHistoryEvent.POWER_ON: "log_events.power_on",
-    BoksHistoryEvent.BLE_REBOOT: "log_events.ble_reboot",
-    BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "log_events.scale_continuous_measure",
-    BoksHistoryEvent.NFC_ERROR_99: "log_events.nfc_error_99",
-    BoksHistoryEvent.ERROR: "log_events.error",
-    BoksHistoryEvent.NFC_OPENING: "log_events.nfc_opening",
-    BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "log_events.nfc_tag_registering_scan",
+    BoksHistoryEvent.CODE_BLE_VALID: "code_ble_valid",
+    BoksHistoryEvent.CODE_KEY_VALID: "code_key_valid",
+    BoksHistoryEvent.CODE_BLE_INVALID: "code_ble_invalid",
+    BoksHistoryEvent.CODE_KEY_INVALID: "code_key_invalid",
+    BoksHistoryEvent.DOOR_CLOSED: "door_closed",
+    BoksHistoryEvent.DOOR_OPENED: "door_opened",
+    BoksHistoryEvent.HISTORY_ERASE: "history_erase",
+    BoksHistoryEvent.POWER_OFF: "power_off",
+    BoksHistoryEvent.BLOCK_RESET: "block_reset",
+    BoksHistoryEvent.POWER_ON: "power_on",
+    BoksHistoryEvent.BLE_REBOOT: "ble_reboot",
+    BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "scale_measure",
+    BoksHistoryEvent.NFC_ERROR_99: "nfc_error_99",
+    BoksHistoryEvent.ERROR: "error",
+    BoksHistoryEvent.NFC_OPENING: "nfc_opening",
+    BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "nfc_tag_registering_scan",
 }
 
 LOG_EVENT_TYPES = {

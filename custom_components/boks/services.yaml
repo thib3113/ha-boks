@@ -1,81 +1,62 @@
 add_parcel:
   name: translation::services.add_parcel.name
   description: translation::services.add_parcel.description
+  target:
+    entity:
+      domain: todo
+      integration: boks
   fields:
-    entity_id:
-      name: Todo List
-      description: translation::services.add_parcel.fields.entity_id.description
-      required: true
-      selector:
-        entity:
-          domain: todo
-          integration: boks
-          multiple: false
     description:
       name: translation::services.add_parcel.fields.description.name
       description: translation::services.add_parcel.fields.description.description
       required: false
-      example: translation::services.add_parcel.fields.description.example
       selector:
         text:
-  response:
-    code:
-      name: translation::services.add_parcel.response.code.name
-      description: translation::services.add_parcel.response.code.description
 
 add_pin_code:
   name: translation::services.add_pin_code.name
   description: translation::services.add_pin_code.description
+  target:
+    device:
+      integration: boks
   fields:
-    device_id:
-      name: Boks
-      description: translation::services.common.fields.device.description
-      required: true
-      selector:
-        device:
-          integration: boks
-          multiple: false
     code:
       name: translation::services.add_pin_code.fields.code.name
       description: translation::services.add_pin_code.fields.code.description
-      required: false
+      required: true
       selector:
         text:
     type:
       name: translation::services.add_pin_code.fields.type.name
       description: translation::services.add_pin_code.fields.type.description
-      default: standard
+      required: true
       selector:
         select:
           options:
-            - master
             - single
             - multi
+            - master
+          mode: dropdown
+    # valid_from et valid_until sont supprimés
+    # index est déplacé ici si c'est pour master codes
     index:
       name: translation::services.add_pin_code.fields.index.name
       description: translation::services.add_pin_code.fields.index.description
-      default: 0
+      required: false
       selector:
         number:
           min: 0
           max: 255
-  response:
-    code:
-      name: translation::services.add_parcel.response.code.name
-      description: translation::services.add_parcel.response.code.description
+          step: 1
+          mode: box
 
 delete_pin_code:
   name: translation::services.delete_pin_code.name
   description: translation::services.delete_pin_code.description
+  target:
+    device:
+      integration: boks
   fields:
-    device_id:
-      name: Boks
-      description: translation::services.common.fields.device.description
-      required: true
-      selector:
-        device:
-          integration: boks
-          multiple: false
     identifier:
       name: translation::services.delete_pin_code.fields.identifier.name
       description: translation::services.delete_pin_code.fields.identifier.description
@@ -85,24 +66,18 @@ delete_pin_code:
     type:
       name: translation::services.delete_pin_code.fields.type.name
       description: translation::services.delete_pin_code.fields.type.description
-      default: standard
+      required: true
       selector:
         select:
           options:
-            - standard
-            - master
             - single
             - multi
+            - master
+          mode: dropdown
 
 sync_logs:
   name: translation::services.sync_logs.name
   description: translation::services.sync_logs.description
-  fields:
-    device_id:
-      name: Boks
-      description: translation::services.common.fields.device.description
-      required: true
-      selector:
-        device:
-          integration: boks
-          multiple: false
+  target:
+    device:
+      integration: boks
