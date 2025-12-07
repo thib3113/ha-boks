@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, CONF_MASTER_CODE
 from .coordinator import BoksDataUpdateCoordinator
 from .ble import BoksBluetoothDevice
+from .ble.const import BoksHistoryEvent, LOG_EVENT_TYPES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -80,12 +81,33 @@ class BoksLock(CoordinatorEntity, LockEntity):
         """Return true if the lock is locked."""
         # Boks is a latch, it's technically always "locked" until opened.
         # If door is open, it's 'unlocked'.
+        # Determine door state based on the latest relevant log entry
+        latest_logs = self.coordinator.data.get("latest_logs", [])
+        if latest_logs:
+            # Find the most recent door state log entry
+            for log_entry in reversed(latest_logs):
+                event_type = log_entry.get("event_type")
+                if event_type == LOG_EVENT_TYPES[BoksHistoryEvent.DOOR_OPENED]:
+                    return False  # Door is open, so lock is unlocked
+                elif event_type == LOG_EVENT_TYPES[BoksHistoryEvent.DOOR_CLOSED]:
+                    return True   # Door is closed, so lock is locked
+
+        # Fallback to real-time status if no relevant logs found
         return not self.coordinator.data.get("door_open", False)
 
     async def async_unlock(self, **kwargs: Any) -> None:
         """Unlock the device."""
         # Not supported for Boks, use open()
         await self.async_open(**kwargs)
+
+    async def async_lock(self, **kwargs: Any) -> None:
+        """Lock the device.
+
+        The Boks device is a latch that automatically locks when the door closes.
+        There is no explicit lock command needed, so this method is a no-op.
+        """
+        # Boks auto-locks when door closes, so no action needed
+        _LOGGER.debug("Boks device auto-locks when door closes, no explicit lock command needed")
 
     async def async_open(self, **kwargs: Any) -> None:
         """Open the door."""

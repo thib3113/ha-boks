@@ -10,6 +10,7 @@ from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN, CONF_CONFIG_KEY
 from .coordinator import BoksDataUpdateCoordinator
@@ -23,6 +24,8 @@ PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.LOCK, Platform.BUTTON, Pl
 # Service Schemas
 SERVICE_ADD_PARCEL_SCHEMA = vol.Schema({
     vol.Optional("description"): cv.string,
+    vol.Optional("entity_id"): cv.entity_id,
+    vol.Optional("device_id"): cv.string,
 })
 
 SERVICE_ADD_CODE_SCHEMA = vol.Schema({
@@ -86,59 +89,115 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def handle_add_parcel(call: ServiceCall) -> dict | None:
         """Handle the add parcel service call."""
         description = call.data.get("description", "")
-
-        # Use helper to find coordinator, but for add_parcel we prefer finding the TodoEntity specifically
-        # Reuse logic from previous step or adapt get_coordinator?
-        # For add_parcel, it specifically needs the TodoEntity to create the item.
-
-        entity_ids = call.data.get("entity_id")
-
+        entity_registry = er.async_get(hass)
+        
         target_entity_id = None
-        if isinstance(entity_ids, list) and len(entity_ids) > 0:
-             target_entity_id = entity_ids[0]
-        elif isinstance(entity_ids, str):
-             target_entity_id = entity_ids
+        
+        # 1. Extract Target (Entity ID)
+        # Can be in call.data directly or nested in target/entity_id
+        if "entity_id" in call.data:
+            target_entity_id = call.data["entity_id"]
+        elif "target" in call.data and "entity_id" in call.data["target"]:
+             target_entity_id = call.data["target"]["entity_id"]
 
+        if isinstance(target_entity_id, list):
+            target_entity_id = target_entity_id[0]
+        
+        # 2. Extract Target (Device ID) -> Convert to Entity ID
+        if not target_entity_id:
+            device_id = None
+            if "device_id" in call.data:
+                device_id = call.data["device_id"]
+            elif "target" in call.data and "device_id" in call.data["target"]:
+                device_id = call.data["target"]["device_id"]
+
+            if isinstance(device_id, list):
+                device_id = device_id[0]
+            
+            if device_id:
+                # Find config entry for device
+                device_registry = dr.async_get(hass)
+                device = device_registry.async_get(device_id)
+                if device:
+                    # Find Boks config entry associated with this device
+                    config_entry_id = next((entry for entry in device.config_entries if entry in hass.data[DOMAIN]), None)
+                    if config_entry_id:
+                        # Find Todo entity for this entry in registry
+                        # Iterate over registry entries values
+                        entries = entity_registry.entities.values()
+                        for entry in entries:
+                            if entry.config_entry_id == config_entry_id and entry.domain == "todo":
+                                target_entity_id = entry.entity_id
+                                break
+        
+        # 3. Fallback (Single Instance)
+        if not target_entity_id:
+            # Check how many Boks entries are loaded
+            boks_entry_ids = list(hass.data[DOMAIN].keys())
+            if len(boks_entry_ids) == 1:
+                config_entry_id = boks_entry_ids[0]
+                # Find Todo entity
+                entries = entity_registry.entities.values()
+                for entry in entries:
+                    if entry.config_entry_id == config_entry_id and entry.domain == "todo":
+                        target_entity_id = entry.entity_id
+                        break
+            elif len(boks_entry_ids) > 1:
+                 raise HomeAssistantError("Multiple Boks devices found. Please specify an entity_id or device_id.")
+            else:
+                 raise HomeAssistantError("No Boks devices configured.")
+
+        if not target_entity_id:
+             raise HomeAssistantError("Could not resolve a target Boks Todo list.")
+
+        # 4. Get Actual Entity Object
         component = hass.data.get("entity_components", {}).get("todo")
         if not component:
-            raise HomeAssistantError("Todo integration not loaded")
-
+             raise HomeAssistantError("Todo integration not loaded.")
+             
         todo_entity = component.get_entity(target_entity_id)
-
+        
         if not todo_entity:
-            # Try to find ANY Boks todo list if not specified (Single device mode)
-            if not target_entity_id:
-                for entity in component.entities:
-                    if hasattr(entity, "platform") and entity.platform.platform_name == DOMAIN:
-                        todo_entity = entity
-                        break
+             raise HomeAssistantError(f"Todo entity '{target_entity_id}' not found or not loaded.")
 
-            if not todo_entity:
-                raise HomeAssistantError(f"Target Todo List not found or not specified.")
-
-        # Verify it's a Boks entity
-        if not hasattr(todo_entity, "_entry"):
+        # 5. Verify it's a Boks entity
+        from .todo import BoksParcelTodoList
+        if not isinstance(todo_entity, BoksParcelTodoList):
              raise HomeAssistantError(f"Entity {target_entity_id} is not a Boks Parcel List.")
 
-        from homeassistant.components.todo import TodoItem, TodoItemStatus
-        import uuid
+        # 6. Generate/Parse Code and Create Parcel
+        from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
 
-        new_item = TodoItem(
-            uid=uuid.uuid4().hex,
-            summary=description,
-            status=TodoItemStatus.NEEDS_ACTION,
-        )
+        # Check if we have a config key for BLE operations
+        has_config_key = getattr(todo_entity, "_has_config_key", False)
+        
+        # Try to extract code immediately if possible, otherwise generate one
+        code_in_desc, parsed_description = parse_parcel_string(description)
+        generated_code = None
+        force_sync = False
 
-        await todo_entity.async_create_todo_item(new_item)
+        if not code_in_desc:
+            generated_code = generate_random_code()
+                
+            if has_config_key:
+                # If we have a key, we want to force a sync because we just generated this code
+                # and the user expects it to be created on the device.
+                force_sync = True
+            
+            formatted_description = format_parcel_item(generated_code, description or "Parcel")
+        else:
+            formatted_description = description
+            generated_code = code_in_desc
+            # If code was provided, we normally track only. 
+            # But if the user explicitly called this service, maybe they want to force sync?
+            # For now, stick to "Manual input = Tracking" UNLESS we generated it.
+            force_sync = False 
 
-        # Try to extract code immediately if possible
-        from .parcels.utils import parse_parcel_string
-        code_in_desc, _ = parse_parcel_string(description)
-
-        if code_in_desc:
-            return {"code": code_in_desc}
-
-        return {"message": "Parcel added, code generation in progress."}
+        # Delegate creation to the Todo Entity's specialized method
+        # We use force_background_sync=True if we generated the code and want it synced.
+        await todo_entity.async_create_parcel(formatted_description, force_background_sync=force_sync)
+        
+        return {"code": generated_code}
 
     hass.services.async_register(
         DOMAIN,

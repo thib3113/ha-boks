@@ -1,10 +1,16 @@
 add_parcel:
   name: translation::services.add_parcel.name
   description: translation::services.add_parcel.description
-  target:
-    entity:
-      domain: todo
   fields:
+    entity_id:
+      name: Todo List
+      description: translation::services.add_parcel.fields.entity_id.description
+      required: true
+      selector:
+        entity:
+          domain: todo
+          integration: boks
+          multiple: false
     description:
       name: translation::services.add_parcel.fields.description.name
       description: translation::services.add_parcel.fields.description.description
@@ -20,10 +26,15 @@ add_parcel:
 add_pin_code:
   name: translation::services.add_pin_code.name
   description: translation::services.add_pin_code.description
-  target:
-    device:
-      integration: boks
   fields:
+    device_id:
+      name: Boks
+      description: translation::services.common.fields.device.description
+      required: true
+      selector:
+        device:
+          integration: boks
+          multiple: false
     code:
       name: translation::services.add_pin_code.fields.code.name
       description: translation::services.add_pin_code.fields.code.description
@@ -56,10 +67,15 @@ add_pin_code:
 delete_pin_code:
   name: translation::services.delete_pin_code.name
   description: translation::services.delete_pin_code.description
-  target:
-    device:
-      integration: boks
   fields:
+    device_id:
+      name: Boks
+      description: translation::services.common.fields.device.description
+      required: true
+      selector:
+        device:
+          integration: boks
+          multiple: false
     identifier:
       name: translation::services.delete_pin_code.fields.identifier.name
       description: translation::services.delete_pin_code.fields.identifier.description
@@ -81,6 +97,12 @@ delete_pin_code:
 sync_logs:
   name: translation::services.sync_logs.name
   description: translation::services.sync_logs.description
-  target:
-    device:
-      integration: boks
+  fields:
+    device_id:
+      name: Boks
+      description: translation::services.common.fields.device.description
+      required: true
+      selector:
+        device:
+          integration: boks
+          multiple: false

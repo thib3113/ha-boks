@@ -13,9 +13,11 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.components import bluetooth
 from homeassistant.const import CONF_ADDRESS
+from homeassistant.helpers import translation # Import translation helper
 
 from .ble import BoksBluetoothDevice, BoksError
-from .const import DOMAIN, CONF_CONFIG_KEY
+from .ble.log_entry import BoksLogEntry # Import BoksLogEntry
+from .const import DOMAIN, CONF_CONFIG_KEY # Import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,11 +31,16 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             address=entry.data[CONF_ADDRESS],
             config_key=entry.data.get(CONF_CONFIG_KEY)
         )
+        # Register callback for push updates (door status, battery info)
+        self.ble_device.register_status_callback(self._handle_status_update)
+        
         self.entry = entry
         _LOGGER.debug("BoksDataUpdateCoordinator initialized with Address: %s, Config Key Present: %s",
                        entry.data[CONF_ADDRESS], bool(entry.data.get(CONF_CONFIG_KEY)))
         self._last_battery_update = None
         self.full_refresh_interval_hours = entry.options.get("full_refresh_interval", 12)
+        # Set the full refresh interval on the BLE device
+        self.ble_device.set_full_refresh_interval(self.full_refresh_interval_hours)
 
         # Get scan interval from options, default to 1 minute
         scan_interval_minutes = entry.options.get("scan_interval", 1)
@@ -73,16 +80,26 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             log_count = await self.ble_device.get_logs_count()
             if log_count > 0:
                 _LOGGER.info(f"Found {log_count} logs. Downloading...")
-                logs = await self.ble_device.get_logs(log_count)
-                _LOGGER.debug(f"Raw logs response from device: {logs}")
-                _LOGGER.debug(f"Logs content before processing: {logs}")
+                logs_from_device: List[BoksLogEntry] = await self.ble_device.get_logs(log_count)
+                _LOGGER.debug(f"Raw logs response from device: {logs_from_device}")
 
-                if logs:
-                    _LOGGER.info(f"Retrieved {len(logs)} logs.")
+                if logs_from_device:
+                    _LOGGER.info(f"Retrieved {len(logs_from_device)} logs.")
                     # Filter out None log entries
-                    valid_logs = [log for log in logs if log is not None]
-                    if len(valid_logs) != len(logs):
-                        _LOGGER.warning(f"Filtered out {len(logs) - len(valid_logs)} None log entries")
+                    valid_logs = [log for log in logs_from_device if log is not None]
+                    if len(valid_logs) != len(logs_from_device):
+                        _LOGGER.warning(f"Filtered out {len(logs_from_device) - len(valid_logs)} None log entries")
+
+                    # Load translations once
+                    # Use the helper function, not a method on hass
+                    try:
+                        # Attempt to fetch translations. Category None fetches all? Or we try 'state'.
+                        # 'log_events' is custom, so it might be under a generic category or merged.
+                        # Let's try without category (None) or fallback to empty dict if it fails.
+                        translations = await translation.async_get_translations(self.hass, self.hass.config.language, "state", {DOMAIN})
+                    except Exception as e:
+                        _LOGGER.warning(f"Failed to load translations: {e}")
+                        translations = {}
 
                     event_data = {
                         "device_id": self.entry.entry_id,
@@ -96,12 +113,24 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         # Additional safety check for None log objects
                         if log is not None:
                             try:
+                                # Construct the full translation key expected by HA
+                                # Our keys in en.json/fr.json are now under "state": { "log_events": { ... } }
+                                # This maps to component.boks.state.log_events.KEY
+                                
+                                # log.description is e.g. "log_events.code_ble_valid"
+                                # So we just need to prepend component.boks.state.
+                                
+                                key = f"component.{DOMAIN}.state.{log.description}"
+                                translated_description = translations.get(key, log.description)
+                                
+                                # If simple lookup failed, fallback to original behavior (key)
+                                
                                 log_entry = {
                                     "opcode": getattr(log, "opcode", "unknown"),
                                     "payload": getattr(log, "payload", b"").hex() if getattr(log, "payload", None) is not None else "",
                                     "timestamp": getattr(log, "timestamp", 0),
                                     "event_type": getattr(log, "event_type", "unknown"),
-                                    "description": getattr(log, "description", "Unknown Event"),
+                                    "description": translated_description, # Use translated description
                                     **(getattr(log, "extra_data", {}) or {}),
                                 }
                                 event_data["logs"].append(log_entry)
@@ -187,6 +216,15 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             _LOGGER.debug(f"Battery level fetched: {battery_level}")
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery level: %s", e)
+                        
+                        # Fetch battery temperature
+                        _LOGGER.debug("Fetching battery temperature...")
+                        try:
+                            battery_temperature = await self.ble_device.get_battery_temperature()
+                            data["battery_temperature"] = battery_temperature
+                            _LOGGER.debug(f"Battery temperature fetched: {battery_temperature}°C")
+                        except Exception as e:
+                            _LOGGER.warning("Failed to fetch battery temperature: %s", e)
                     else:
                         _LOGGER.debug("Battery fetch skipped.")
 

@@ -20,7 +20,6 @@ def async_describe_events(
 ) -> None:
     """Describe logbook events."""
     _LOGGER.debug("Registering logbook events for Boks")
-    # https://updatesdl.autodesk.com/updates/files/autocad_mep_2009_update2_deu_fra_win_32bit.exe
     @callback
     def async_describe_log_event(event: Any) -> dict[str, Any]:
         """Describe boks log event."""
@@ -32,7 +31,9 @@ def async_describe_events(
         opcode = data.get("opcode")
 
         # Build a nice message
-        message = f"{description}"
+        # The description from LOG_EVENT_DESCRIPTIONS is already a translation key
+        # We pass it directly so Home Assistant can translate it
+        message = description
 
         # If we have extra details like payload/code in description, it's already there.
         # Example: "Ouverture Code: 123456"

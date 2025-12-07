@@ -33,22 +33,13 @@ class BoksLogEntry:
 
         _LOGGER.debug("Parsing log entry - Opcode: 0x%02X, Payload: %s", opcode, payload.hex() if payload else "None")
 
-        # Payload structure: [Age (3 bytes), Data...]
-        # The timestamp is 'elapsed time' in seconds since the event occurred.
-
         try:
             event_opcode = BoksHistoryEvent(opcode)
         except ValueError:
-            # If opcode is not in our Enum, we might want to handle it gracefully or return None
-            # For now, let's treat it as unknown but keep the int value if possible,
-            # or just return None if strict typing is required.
-            # Given the type hint says opcode: BoksHistoryEvent, we should probably return None
-            # or have a fallback 'UNKNOWN' enum member.
-            # But to match previous behavior, let's try to proceed if we can,
-            # or just return None to be safe.
+            _LOGGER.warning("Unknown log opcode received: 0x%02X", opcode)
             return None
 
-        description = LOG_EVENT_DESCRIPTIONS.get(event_opcode, f"Événement inconnu (0x{opcode:02X})")
+        description = LOG_EVENT_DESCRIPTIONS.get(event_opcode, "log_events.unknown_event")
         event_type = LOG_EVENT_TYPES.get(event_opcode, "unknown")
 
         timestamp = int(time.time())
@@ -96,7 +87,6 @@ class BoksLogEntry:
                     # If decoding fails completely, store as hex
                     extra_data["code_hex"] = code_bytes.hex()
 
-            # Debug logging to verify extra_data parsing
             _LOGGER.debug("Parsed log entry - Opcode: %s, Extra data: %s", event_opcode, extra_data)
 
         # Power Off
@@ -114,37 +104,55 @@ class BoksLogEntry:
         elif event_opcode == BoksHistoryEvent.ERROR:
             from .const import ERROR_DESCRIPTIONS, BoksDiagnosticErrorCode
 
-            if len(stored_payload) >= 1:
-                # Firmware Analysis: [Subtype:1] [Error:4]
-                # Example: A0 08 ... BC 00 ...
-                # stored_payload here starts AFTER the timestamp, so index 0 is the subtype/param
-                subtype = stored_payload[0]
-                extra_data["error_subtype"] = subtype
-                
-                error_desc = ERROR_DESCRIPTIONS.get("UNKNOWN_ERROR")
+            # Default values
+            error_subtype = 0
+            error_code = 1
+            error_internal_code = 0
 
-                # If payload has enough bytes for an error code (assuming it follows subtype)
-                if len(stored_payload) >= 2:
-                    # Check for specific error codes at offset 1
-                    error_code_byte = stored_payload[1]
-                    extra_data["error_code"] = error_code_byte
-                    
-                    if error_code_byte in list(BoksDiagnosticErrorCode):
-                         error_desc = ERROR_DESCRIPTIONS.get(BoksDiagnosticErrorCode(error_code_byte))
-                    
-                    extra_data["error_data"] = stored_payload.hex()
-                
-                extra_data["error_description"] = error_desc
-                _LOGGER.warning(
-                    "Boks reported a diagnostic error: Subtype=0x%02X, Data=%s, Desc=%s",
-                    subtype, stored_payload.hex(), error_desc
-                )
+            # Payload structure after Age (3 bytes): [Subtype:1][Code:1][Internal:1 or 4][...]
+            # stored_payload starts at index 0 (which was index 3 of full payload)
+
+            if len(stored_payload) >= 1:
+                error_subtype = stored_payload[0]
+                extra_data["error_subtype"] = error_subtype
+
+            if len(stored_payload) >= 2:
+                error_code = stored_payload[1]
+                extra_data["error_code"] = error_code
+
+            if len(stored_payload) >= 3:
+                # Determine if internal code is 1 byte or 4 bytes
+                # Based on legacy logic, it seemed flexible.
+                # Assuming 1 byte for most NFC errors unless payload is long enough
+                if len(stored_payload) >= 6:
+                     # 4 bytes internal code? [0:Sub][1:Code][2:IntMSB][3][4][5:IntLSB]
+                     # Let's stick to 1 byte at index 2 for now as per MFRC630 specs usually
+                     error_internal_code = stored_payload[2]
+                else:
+                     error_internal_code = stored_payload[2]
+
+                extra_data["error_internal_code"] = error_internal_code
+
+            error_desc = ERROR_DESCRIPTIONS.get("UNKNOWN_ERROR")
+
+            # Try to resolve description
+            try:
+                # Check against BoksDiagnosticErrorCode enum
+                if error_code in list(BoksDiagnosticErrorCode):
+                    error_desc = ERROR_DESCRIPTIONS.get(BoksDiagnosticErrorCode(error_code))
+            except Exception:
+                pass
+
+            extra_data["error_description"] = error_desc
+            extra_data["error_data"] = stored_payload.hex()
+
+            _LOGGER.warning(
+                "Boks reported a diagnostic error: Subtype=0x%02X, ErrorCode=0x%02X, InternalCode=%s, Data=%s, Desc=%s",
+                error_subtype, error_code, extra_data.get("error_internal_code", "N/A"), stored_payload.hex(), error_desc
+            )
 
         # NFC
         elif event_opcode == BoksHistoryEvent.NFC_OPENING:
-            # stored_payload: [UID...] or [TYPE][UID...] ?
-            # Based on firmware analysis, it seems variable.
-            # Safest approach is to store the whole payload as hex for now until confirmed.
             if len(stored_payload) >= 1:
                 extra_data["tag_uid"] = stored_payload.hex()
 
@@ -155,14 +163,14 @@ class BoksLogEntry:
 
         # Door Events
         elif event_opcode in (BoksHistoryEvent.DOOR_OPENED, BoksHistoryEvent.DOOR_CLOSED):
-            pass # No specific payload expected, description is sufficient
+            pass
 
         # System Events
         elif event_opcode == BoksHistoryEvent.POWER_ON:
-             pass # Often empty or generic
+             pass
 
         elif event_opcode == BoksHistoryEvent.BLE_REBOOT:
-             pass # Often empty or generic
+             pass
 
         elif event_opcode == BoksHistoryEvent.BLOCK_RESET:
              if len(stored_payload) >= 1:

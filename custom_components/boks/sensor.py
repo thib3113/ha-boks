@@ -5,6 +5,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .sensors.battery import BoksBatterySensor
+from .sensors.battery_temperature import BoksBatteryTemperatureSensor
 from .sensors.last_event import BoksLastEventSensor
 from .sensors.codes import BoksCodeCountSensor
 
@@ -19,6 +20,7 @@ async def async_setup_entry(
 
     entities = [
         BoksBatterySensor(coordinator, entry),
+        BoksBatteryTemperatureSensor(coordinator, entry),
         BoksLastEventSensor(coordinator, entry),
         BoksCodeCountSensor(coordinator, entry, "master"),
         BoksCodeCountSensor(coordinator, entry, "single_use")

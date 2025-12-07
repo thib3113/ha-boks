@@ -1,4 +1,5 @@
-"""Todo platform for Boks."""
+from datetime import timedelta
+from homeassistant.helpers.event import async_track_time_interval
 import logging
 import uuid
 
@@ -25,6 +26,9 @@ _LOGGER = logging.getLogger(__name__)
 
 STORAGE_VERSION = 1
 STORAGE_KEY_TEMPLATE = "boks_parcels_{}"
+
+# Sync interval for pending codes
+SYNC_INTERVAL = timedelta(minutes=1)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -54,12 +58,18 @@ async def async_setup_entry(
 class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
     """A Boks Todo List to manage Parcels and Codes."""
 
-    _attr_has_entity_name = False # Disable auto-naming to enforce our custom name
+    _attr_has_entity_name = True  # Use entity name directly without device prefix
+    _attr_translation_key = "parcels"  # Use translation key for entity name
     _attr_supported_features = (
         TodoListEntityFeature.CREATE_TODO_ITEM
         | TodoListEntityFeature.UPDATE_TODO_ITEM
         | TodoListEntityFeature.DELETE_TODO_ITEM
     )
+
+    @property
+    def translation_placeholders(self) -> dict[str, str]:
+        """Return the translation placeholders."""
+        return {"name": self._entry.title}
 
     def __init__(
         self,
@@ -72,11 +82,11 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         super().__init__(coordinator)
         self._entry = entry
         self._store = store
-        self._attr_name = f"Colis {entry.title}" # Explicit name based on Entry Title
-        self._attr_unique_id = f"{entry.entry_id}_parcels"
+        self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_parcels"
         self._items: list[TodoItem] = []
         self._raw_data = []
         self._has_config_key = has_config_key
+        self._unsub_timer = None
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -119,14 +129,74 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         """Handle entity which will be added."""
         await super().async_added_to_hass()
 
-        # Recovery mechanism: Iterate through self._items
-        # If any item has generation_status="pending", re-queue the _async_create_code_background task for it
+        # Start periodic task to check for pending codes
         if self._has_config_key:
-            for item in self._items:
-                metadata = self._get_item_metadata(item.uid)
-                if metadata.get("generation_status") == "pending":
-                    _LOGGER.info(f"Re-queuing code generation for pending item UID: {item.uid}")
-                    self.hass.async_create_task(self._async_create_code_background(item.uid))
+            self._unsub_timer = async_track_time_interval(
+                self.hass, self._check_pending_codes, SYNC_INTERVAL
+            )
+            # Run once immediately to clear any backlog
+            self.hass.async_create_task(self._check_pending_codes())
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Handle entity removal."""
+        if self._unsub_timer:
+            self._unsub_timer()
+            self._unsub_timer = None
+        await super().async_will_remove_from_hass()
+
+    async def _check_pending_codes(self, now=None) -> None:
+        """Periodic task to sync pending codes to Boks."""
+        pending_items = []
+        for raw_item in self._raw_data:
+            pending_code = raw_item.get("pending_sync_code")
+            if pending_code:
+                # Double check that the item exists in _items
+                if any(x.uid == raw_item["uid"] for x in self._items):
+                    pending_items.append((raw_item["uid"], pending_code))
+        
+        if not pending_items:
+            return
+
+        _LOGGER.debug(f"Found {len(pending_items)} items with pending codes to sync.")
+        
+        # Process pending items
+        # We process one by one to keep connection logic simple
+        for uid, code in pending_items:
+            try:
+                _LOGGER.debug(f"Attempting to sync pending code {code} for item {uid}")
+                await self.coordinator.ble_device.connect()
+                
+                # Check if we are still connected
+                if not self.coordinator.ble_device.is_connected:
+                     _LOGGER.warning("BLE connection failed, skipping sync for this run.")
+                     break 
+
+                await self.coordinator.ble_device.create_pin_code(code, "single")
+                _LOGGER.info(f"Successfully synced pending code {code} to Boks.")
+                
+                # Update metadata to remove pending status
+                await self._update_todo_item_metadata_remove_pending(uid)
+                
+            except Exception as e:
+                _LOGGER.error(f"Failed to sync pending code {code}: {e}")
+                # We leave it pending, will retry next interval
+            finally:
+                await self.coordinator.ble_device.disconnect()
+
+    async def _update_todo_item_metadata_remove_pending(self, item_uid: str) -> None:
+        """Remove the pending_sync_code from metadata."""
+        try:
+            for item in self._raw_data:
+                if item["uid"] == item_uid:
+                    item.pop("pending_sync_code", None)
+                    # Legacy cleanup
+                    item.pop("generation_status", None)
+                    break
+            
+            await self._async_save()
+            self.async_write_ha_state()
+        except Exception as e:
+            _LOGGER.error(f"Failed to update metadata after sync: {e}")
 
     async def _async_save(self) -> None:
         """Save items to storage."""
@@ -155,137 +225,106 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
 
     async def async_create_todo_item(self, item: TodoItem) -> None:
         """Add an item to the list."""
-        _LOGGER.debug("User requested creation of todo item: %s", item.summary)
-        _LOGGER.debug("Config key available: %s", self._has_config_key)
+        await self.async_create_parcel(item.summary, force_background_sync=False)
+
+    async def async_create_parcel(self, description: str, force_background_sync: bool = False) -> str | None:
+        """
+        Create a parcel item.
+        
+        Args:
+            description: The text description (may include code).
+            force_background_sync: If True, forces the item to be queued for background Boks sync
+                                   even if a code is manually provided.
+        
+        Returns:
+            The code associated with the parcel (if available/generated), or None if pending background generation.
+        """
+        _LOGGER.debug("Creating parcel. Description: %s, Force Sync: %s", description, force_background_sync)
+        
         # 1. Parse input
-        user_input_original = item.summary # Keep original input for degraded mode logging
-        code, description = parse_parcel_string(user_input_original)
+        code, clean_desc = parse_parcel_string(description)
+        
+        final_code = code
+        sync_required = False
+        
+        # 2. Handle Code / Generation Logic
+        if final_code:
+            if self._has_config_key and force_background_sync:
+                 # Code provided, but sync requested (e.g. from service call)
+                 _LOGGER.debug(f"Code '{final_code}' provided with force_sync. Queuing background sync.")
+                 sync_required = True
+                 final_summary = format_parcel_item(final_code, clean_desc)
+            
+            elif self._has_config_key:
+                # Code manually provided - Tracking only (Manual input = No BLE Sync)
+                _LOGGER.debug(f"Code '{final_code}' manually provided. Item tracking only (No BLE sync).")
+                final_summary = format_parcel_item(final_code, clean_desc)
+            
+            else: # No key
+                 final_summary = format_parcel_item(final_code, clean_desc)
+            
+        else: # No code provided
+            if not self._has_config_key:
+                # Degraded: Generate for tracking only
+                final_code = generate_random_code()
+                final_summary = format_parcel_item(final_code, clean_desc)
+                _LOGGER.info(f"Degraded Mode: No Config Key. Generated code '{final_code}' for tracking only.")
+            
+            else: # Has key, need generation
+                # Asynchronous Generation (UI Call)
+                # Generate the code NOW, but sync it LATER
+                final_code = generate_random_code()
+                
+                # Check uniqueness (best effort before sync)
+                existing_codes = set()
+                for item in self._items:
+                    c, _ = parse_parcel_string(item.summary)
+                    if c:
+                        existing_codes.add(c)
+                
+                for _ in range(10):
+                    if final_code not in existing_codes:
+                        break
+                    final_code = generate_random_code()
 
-        _LOGGER.debug("Parsed input - Code: %s, Description: %s", code, description)
+                final_summary = format_parcel_item(final_code, clean_desc)
+                sync_required = True
 
-        # Build a set of existing active codes for uniqueness check
-        existing_active_codes = set()
-        for existing in self._items:
-             if existing.status == TodoItemStatus.NEEDS_ACTION:
-                 c, _ = parse_parcel_string(existing.summary)
-                 if c:
-                     existing_active_codes.add(c)
-
-        # 2. Logic: Generate code if missing AND we have a config key
-        if not code and self._has_config_key:
-            _LOGGER.debug("No code provided, will generate one in background")
-            # We'll generate the code in the background task
-            pass
-        elif code and code in existing_active_codes: # Manual code check
-            raise HomeAssistantError(f"Code {code} is already used by another active parcel.")
-        elif not code and not self._has_config_key:
-            _LOGGER.info(f"Degraded Mode: No code provided for '{user_input_original}' and no Config Key available. Item will be for manual tracking.")
-        # If code is provided and is unique, we'll use it
-
-        # Determine final summary - store as summary="toto" with metadata generation_status="pending"
-        # For async implementation, we store the clean summary and use metadata for status
-        final_summary = user_input_original  # Store original text as summary
-        _LOGGER.debug("Final summary: %s", final_summary)
-
-        # 5. Update local list immediately (don't wait for BLE)
+        # 3. Create and Save Item
+        new_uid = uuid.uuid4().hex
         new_item = TodoItem(
-            uid=uuid.uuid4().hex,
-            summary=final_summary,  # Store original text as summary
+            uid=new_uid,
+            summary=final_summary,
             status=TodoItemStatus.NEEDS_ACTION,
         )
+        
         self._items.append(new_item)
-
-        # Add metadata for generation status
+        
         raw_item = {
             "uid": new_item.uid,
             "summary": final_summary,
             "status": new_item.status,
         }
-        if self._has_config_key:
-            raw_item["generation_status"] = "pending"
+        
+        if sync_required:
+            raw_item["pending_sync_code"] = final_code
+            
         self._raw_data.append(raw_item)
-
-        _LOGGER.debug("Added new todo item with UID: %s, Summary: %s", new_item.uid, new_item.summary)
+        
         await self._async_save()
         self.async_write_ha_state()
-
-        # 4. BLE Action: Add Code to Boks (Only if Config Key is present)
-        # This is now done asynchronously in the background
-        if self._has_config_key:
-            self.hass.async_create_task(self._async_create_code_background(new_item.uid))
-        elif code and not self._has_config_key:
-             _LOGGER.warning(f"Degraded Mode: Code '{code}' parsed from '{user_input_original}' but NOT synced to Boks (No Config Key).")
-        elif not code and not self._has_config_key:
-             _LOGGER.info(f"Degraded Mode: No code generated or parsed for '{user_input_original}'. Item will be for manual tracking.")
-        # if not code and self._has_config_key, this branch should mean no code was provided by user, and generation will happen in background.
-
-    async def _async_create_code_background(self, item_uid: str) -> None:
-        """Background task to create the PIN code on the Boks device."""
-        try:
-            # Retrieve the item by UID
-            existing_item = next(x for x in self._items if x.uid == item_uid)
-            original_text = existing_item.summary
-
-            # Check if the text already contains a code (using regex)
-            code, description = parse_parcel_string(original_text)
-
-            # If no code, generate one
-            if not code:
-                # Build a set of existing active codes for uniqueness check
-                existing_active_codes = set()
-                for item in self._items:
-                    if item.status == TodoItemStatus.NEEDS_ACTION and item.uid != item_uid:
-                        c, _ = parse_parcel_string(item.summary)
-                        if c:
-                            existing_active_codes.add(c)
-
-                # Generate a unique code
-                attempts = 0
-                while attempts < 10:
-                    code = generate_random_code()
-                    _LOGGER.debug("Generated code attempt %d: %s", attempts, code)
-                    if code not in existing_active_codes:
-                        break
-                    attempts += 1
-                if code in existing_active_codes:
-                    _LOGGER.error("Failed to generate a unique code after multiple attempts.")
-                    raise HomeAssistantError("Failed to generate a unique code after multiple attempts.")
-                _LOGGER.debug("Successfully generated unique code: %s", code)
-
-            # Connect and send code to Boks
-            await self.coordinator.ble_device.connect()
-            _LOGGER.debug(f"Attempting to create parcel code {code} on Boks (background task).")
-            await self.coordinator.ble_device.create_pin_code(code, "single")
-            _LOGGER.info(f"Created parcel code {code} on Boks (background task).")
-
-            # Update the item's summary to include the generated code
-            # Format: "{code} - {original_summary}"
-            existing_item = next(x for x in self._items if x.uid == item_uid)
-            original_summary = existing_item.summary
-            new_summary = f"{code} - {original_summary}"
-            await self._update_todo_item_description_and_metadata(item_uid, new_summary, None)
-        except Exception as e:
-            _LOGGER.error(f"Failed to create code on Boks (background task): {e}")
-            # Leave the status as "pending" so it gets retried on the next startup
-            # Do NOT change the text to indicate error
-            pass
-        finally:
-            await self.coordinator.ble_device.disconnect()
+        
+        # We rely on the periodic task to pick this up. 
+        # But for UX responsiveness, we can trigger a check immediately (non-blocking)
+        if sync_required:
+             self.hass.async_create_task(self._check_pending_codes())
+            
+        return final_code
 
     async def _update_todo_item_metadata(self, item_uid: str, generation_status: str) -> None:
         """Update a todo item's metadata and save."""
-        try:
-            # Find the item in raw data
-            for item in self._raw_data:
-                if item["uid"] == item_uid:
-                    item["generation_status"] = generation_status
-                    break
-
-            await self._async_save()
-            self.async_write_ha_state()
-        except Exception as e:
-            _LOGGER.error(f"Failed to update todo item metadata: {e}")
-
+        # Deprecated / Legacy support if needed
+        pass
 
     async def _update_todo_item_description(self, item_uid: str, new_description: str) -> None:
         """Update a todo item's description and save."""
@@ -332,8 +371,6 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         existing_item = self._items[existing_index]
 
         # Case 1: Status Change (Completion)
-        # We just update the status locally. We DO NOT delete the code from Boks.
-        # User is responsible for code lifecycle.
         if item.status is not None:
             existing_item.status = item.status
 
@@ -342,34 +379,20 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
              old_code, _ = parse_parcel_string(existing_item.summary)
              new_code, new_desc = parse_parcel_string(item.summary)
 
-             if old_code != new_code: # Code has changed (or was added/removed)
-                 # Check collision for new code only if it exists
-                 if new_code:
-                     for existing in self._items:
-                         if existing.uid != item.uid and existing.status == TodoItemStatus.NEEDS_ACTION:
-                             c, _ = parse_parcel_string(existing.summary)
-                             if c == new_code:
-                                 raise HomeAssistantError(f"Code {new_code} is already used by another active parcel.")
+             # If the code changed, we should check if there was a pending sync
+             # If user manually changed code, abort pending sync for the old code
+             if old_code != new_code:
+                  for raw_item in self._raw_data:
+                        if raw_item["uid"] == existing_item.uid:
+                            if "pending_sync_code" in raw_item:
+                                _LOGGER.info(f"Code changed manually from {old_code} to {new_code}. Removing pending sync for {old_code}.")
+                                raw_item.pop("pending_sync_code", None)
+                            break
+                  
+                  if new_code and self._has_config_key:
+                       _LOGGER.debug(f"Code changed to '{new_code}' in '{item.summary}'. Item tracking updated (No BLE sync for manual update).")
 
-                 # BLE Sync: Only ADD new code if present and we have key.
-                 # We DO NOT delete the old code.
-                 if new_code and self._has_config_key:
-                     try:
-                        await self.coordinator.ble_device.connect()
-                        # Add new code
-                        _LOGGER.debug(f"Attempting to create new code {new_code} on Boks (Renamed item).")
-                        await self.coordinator.ble_device.create_pin_code(new_code, "single")
-                        _LOGGER.info(f"Created new code {new_code} on Boks (Renamed item).")
-
-                     except Exception as e:
-                         raise HomeAssistantError(f"Failed to update code on Boks: {e}")
-                     finally:
-                        await self.coordinator.ble_device.disconnect()
-                 elif new_code and not self._has_config_key:
-                      _LOGGER.warning(f"Degraded Mode: Code change to '{new_code}' for '{item.summary}' not synced to Boks (No Config Key).")
-
-
-             existing_item.summary = format_parcel_item(new_code, new_desc) # Use description even if no code
+             existing_item.summary = format_parcel_item(new_code, new_desc) 
 
         # Update raw data to match the updated item
         for raw_item in self._raw_data:

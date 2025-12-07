@@ -4,6 +4,7 @@ import asyncio
 import logging
 import time
 import random
+from datetime import datetime, timedelta
 from typing import Callable, Any, List, Optional, Dict
 
 from bleak import BleakClient
@@ -63,10 +64,58 @@ class BoksBluetoothDevice:
         self._connection_users = 0
         self._notifications_subscribed = False
         self._response_callbacks: dict[int, Callable[[bytearray], None]] = {}
+        self._last_battery_update: Optional[datetime] = None
+        self._full_refresh_interval_hours: int = 12  # Default value, will be updated by coordinator
 
     def register_status_callback(self, callback: Callable[[dict], None]) -> None:
         """Register a callback for status updates."""
         self._status_callback = callback
+
+    def set_full_refresh_interval(self, hours: int) -> None:
+        """Set the full refresh interval in hours."""
+        self._full_refresh_interval_hours = hours
+
+    def _should_update_battery_info(self) -> bool:
+        """Check if battery info should be updated based on the full refresh interval."""
+        if self._last_battery_update is None:
+            return True
+        
+        now = datetime.now()
+        return (now - self._last_battery_update) >= timedelta(hours=self._full_refresh_interval_hours)
+
+    async def _update_battery_info_after_delay(self) -> None:
+        """Update battery information after a short delay to avoid blocking notification handling."""
+        try:
+            # Small delay to ensure the door closing operation is complete
+            await asyncio.sleep(1.0)
+            
+            # Ensure we have a connection session for this background task
+            await self.connect()
+            
+            update_data = {}
+
+            # Update battery level
+            battery_level = await self.get_battery_level()
+            if battery_level > 0:
+                self._last_battery_update = datetime.now()
+                update_data["battery_level"] = battery_level
+                _LOGGER.debug("Battery level updated after door closing: %d%%", battery_level)
+            
+            # Update battery temperature
+            battery_temperature = await self.get_battery_temperature()
+            if battery_temperature is not None:
+                update_data["battery_temperature"] = battery_temperature
+                _LOGGER.debug("Battery temperature updated after door closing: %d°C", battery_temperature)
+            
+            # Propagate updates to coordinator
+            if update_data and self._status_callback:
+                self._status_callback(update_data)
+
+        except Exception as e:
+            _LOGGER.warning("Failed to update battery info after door closing: %s", e)
+        finally:
+            # Always disconnect to release our reference to the connection
+            await self.disconnect()
 
     @property
     def is_connected(self) -> bool:
@@ -273,6 +322,12 @@ class BoksBluetoothDevice:
             if self._status_callback:
                 self._status_callback({"door_open": self._door_status})
 
+            # Check if this is a door closing event and if we should update battery info
+            if (not self._door_status and opcode == BoksHistoryEvent.DOOR_CLOSED):
+                if self._should_update_battery_info():
+                    # Schedule battery info update asynchronously to avoid blocking notification handling
+                    self.hass.async_create_task(self._update_battery_info_after_delay())
+
         # Handle response futures for commands waiting for specific opcodes
         futures_processed = 0
         for key, future in list(self._response_futures.items()):
@@ -391,6 +446,43 @@ class BoksBluetoothDevice:
         except Exception as e:
              _LOGGER.warning("Failed to read battery: %s", e)
         return 0
+
+    async def get_battery_temperature(self) -> int | None:
+        """Get battery temperature.
+
+        Reads from characteristic 0004 which returns 6 bytes:
+        [level_first, level_min, level_mean, level_max, level_last, temperature]
+        Temperature is byte 5, converted using formula: value - 25
+        """
+        if not self.is_connected:
+            await self.connect()
+
+        # Safety check for None client
+        if self._client is None:
+            _LOGGER.warning("BLE client is None, cannot read battery temperature")
+            return None
+
+        try:
+            # Read from characteristic 0004 using the main service UUID
+            # Using bleak's read_gatt_char with UUIDs instead of integer handle
+            payload = await self._client.read_gatt_char(BoksServiceUUID.BATTERY_CHARACTERISTIC)
+            if len(payload) >= 6:
+                # Temperature is the 6th byte (index 5), converted using formula: value - 25
+                raw_temp = payload[5]
+                
+                if raw_temp == 255:
+                    _LOGGER.debug("Battery temperature raw value is 255 (Invalid/Unknown).")
+                    return None
+
+                temperature = raw_temp - 25
+                _LOGGER.debug("Battery temperature raw data: %s, raw_temp: %d, temperature: %d°C", payload.hex(), raw_temp, temperature)
+                return temperature
+            else:
+                _LOGGER.warning("Unexpected payload length for battery temperature: %d bytes", len(payload))
+                return None
+        except Exception as e:
+            _LOGGER.warning("Failed to read battery temperature: %s", e)
+            return None
 
     async def get_internal_firmware_revision(self) -> str | None:
         """Get internal firmware revision (e.g. 10/125)."""
@@ -634,24 +726,24 @@ class BoksBluetoothDevice:
             logs = []
 
             if not self.is_connected:
-                # We need to connect. Since we hold the lock, we can't call self.connect() directly 
+                # We need to connect. Since we hold the lock, we can't call self.connect() directly
                 # if self.connect() also acquires the lock.
-                # Looking at connect(), it acquires the lock. Ideally, we should check connection 
+                # Looking at connect(), it acquires the lock. Ideally, we should check connection
                 # before acquiring lock, OR refactor connect to have an internal version without lock.
-                # However, since lock is reentrant only for same task but here we are in async... 
+                # However, since lock is reentrant only for same task but here we are in async...
                 # asyncio.Lock is NOT reentrant.
-                
+
                 # QUICK FIX: Release lock, connect, re-acquire.
                 pass
-            
+
         # REFACTOR STRATEGY:
         # The _send_command method also acquires the lock. Calling _send_command inside a lock block
         # will cause a DEADLOCK.
-        
+
         # To fix this properly without rewriting everything:
         # 1. We must ensure we are the only one setting _notify_callback.
         # 2. We must NOT hold the lock while calling methods that also acquire the lock (like _send_command).
-        
+
         # Alternative: Use a separate lock for the callback mechanism, OR simple check.
         if self._notify_callback is not None:
              raise BoksError("Busy: Another operation is already listening for notifications.")
@@ -659,7 +751,7 @@ class BoksBluetoothDevice:
         try:
             # We set the callback. Since we are in async, we are not interrupted until await.
             # But _send_command awaits.
-            
+
             # 1. Get Count first (this calls _send_command, which locks)
             if count is None:
                 count = await self.get_logs_count()
@@ -700,7 +792,7 @@ class BoksBluetoothDevice:
         # But we can't hold self._lock because _send_command needs it.
         # We rely on the fact that this is the only method setting _notify_callback for LOGS.
         # Ideally, _send_command shouldn't touch _notify_callback, only _notification_handler reads it.
-        
+
         self._notify_callback = log_callback
 
         try:

@@ -2,8 +2,8 @@
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![GitHub License](https://img.shields.io/github/license/thib3113/ha-boks?color=blue)](LICENSE)
-[![Validate Integration](https://img.shields.io/github/workflow/status/thib3113/ha-boks/Validate%20Integration?label=Validate%20Integration)](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml)
-[![Validate HACS](https://img.shields.io/github/workflow/status/thib3113/ha-boks/hacs.yaml/badge.svg)](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml)
+[![Validate Integration](https://img.shields.io/github/actions/workflow/status/thib3113/ha-boks/hassfest.yaml)](https://github.com/thib3113/ha-boks/actions/workflows/hassfest.yaml)
+[![Validate HACS](https://img.shields.io/github/actions/workflow/status/thib3113/ha-boks/hacs.yaml)](https://github.com/thib3113/ha-boks/actions/workflows/hacs.yaml)
 
 ## Table of Contents
 

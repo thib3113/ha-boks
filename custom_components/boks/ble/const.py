@@ -6,6 +6,7 @@ class BoksServiceUUID(StrEnum):
     SERVICE = "a7630001-f491-4f21-95ea-846ba586e361"
     WRITE_CHARACTERISTIC = "a7630002-f491-4f21-95ea-846ba586e361"
     NOTIFY_CHARACTERISTIC = "a7630003-f491-4f21-95ea-846ba586e361"
+    BATTERY_CHARACTERISTIC = "00000004-0000-1000-8000-00805f9b34fb"
 
     BATTERY_SERVICE = "0000180f-0000-1000-8000-00805f9b34fb"
     BATTERY_LEVEL_CHARACTERISTIC = "00002a19-0000-1000-8000-00805f9b34fb"
@@ -112,22 +113,22 @@ ERROR_DESCRIPTIONS = {
 }
 
 LOG_EVENT_DESCRIPTIONS = {
-    BoksHistoryEvent.CODE_BLE_VALID: "Code BLE valide utilisé",
-    BoksHistoryEvent.CODE_KEY_VALID: "Code clavier valide utilisé",
-    BoksHistoryEvent.CODE_BLE_INVALID: "Commande BLE invalide",
-    BoksHistoryEvent.CODE_KEY_INVALID: "Code clavier invalide utilisé",
-    BoksHistoryEvent.DOOR_CLOSED: "Porte fermée",
-    BoksHistoryEvent.DOOR_OPENED: "Porte ouverte",
-    BoksHistoryEvent.HISTORY_ERASE: "Historique effacé",
-    BoksHistoryEvent.POWER_OFF: "Extinction",
-    BoksHistoryEvent.BLOCK_RESET: "Réinitialisation du bloc",
-    BoksHistoryEvent.POWER_ON: "Allumage",
-    BoksHistoryEvent.BLE_REBOOT: "Redémarrage BLE",
-    BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "Mesure continue de la balance",
-    BoksHistoryEvent.NFC_ERROR_99: "Erreur Transaction NFC (0x99)",
-    BoksHistoryEvent.ERROR: "Erreur (Diagnostic)",
-    BoksHistoryEvent.NFC_OPENING: "Ouverture NFC",
-    BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "Scan d'enregistrement de tag NFC",
+    BoksHistoryEvent.CODE_BLE_VALID: "log_events.code_ble_valid",
+    BoksHistoryEvent.CODE_KEY_VALID: "log_events.code_key_valid",
+    BoksHistoryEvent.CODE_BLE_INVALID: "log_events.code_ble_invalid",
+    BoksHistoryEvent.CODE_KEY_INVALID: "log_events.code_key_invalid",
+    BoksHistoryEvent.DOOR_CLOSED: "log_events.door_closed",
+    BoksHistoryEvent.DOOR_OPENED: "log_events.door_opened",
+    BoksHistoryEvent.HISTORY_ERASE: "log_events.history_erase",
+    BoksHistoryEvent.POWER_OFF: "log_events.power_off",
+    BoksHistoryEvent.BLOCK_RESET: "log_events.block_reset",
+    BoksHistoryEvent.POWER_ON: "log_events.power_on",
+    BoksHistoryEvent.BLE_REBOOT: "log_events.ble_reboot",
+    BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "log_events.scale_continuous_measure",
+    BoksHistoryEvent.NFC_ERROR_99: "log_events.nfc_error_99",
+    BoksHistoryEvent.ERROR: "log_events.error",
+    BoksHistoryEvent.NFC_OPENING: "log_events.nfc_opening",
+    BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "log_events.nfc_tag_registering_scan",
 }
 
 LOG_EVENT_TYPES = {

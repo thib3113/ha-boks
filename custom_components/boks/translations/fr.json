@@ -35,7 +35,7 @@
       "device_not_in_cache": "Appareil non trouvé dans le cache Bluetooth. Aucun chemin connectable disponible.",
       "no_devices_found": "Aucun appareil Boks trouvé sur ce compte.",
       "connection_error": "Erreur de connexion lors de la récupération des appareils.",
-      "invalid_credential_format": "Format d'identifiant invalide. Doit être 64/16 car. hex ou code à 6 chiffres.",
+      "invalid_credential_format": "Format d'identifiant invalide. Doit être 8/64 car. hex ou code à 6 chiffres.",
       "invalid_master_code_format": "Format de code permanent invalide. Doit être un code à 6 chiffres (0-9, A, B).",
       "unknown": "Une erreur inconnue est survenue.",
       "pin_code_invalid_length": "Le code PIN doit comporter 6 caractères",
@@ -104,6 +104,11 @@
         "name": "Codes à usage unique"
       }
     },
+    "todo": {
+      "parcels": {
+        "name": "Colis {name}"
+      }
+    },
     "event": {
       "logs": {
         "name": "Journaux",
@@ -123,7 +128,7 @@
               "power_on": "Allumage",
               "ble_reboot": "Redémarrage BLE",
               "scale_measure": "Mesure continue de la balance",
-              "key_opening": "Ouverture par clé",
+              "nfc_error_transaction": "Erreur Transaction NFC",
               "error": "Erreur",
               "nfc_opening": "Ouverture NFC",
               "nfc_tag_registering": "Scan d'enregistrement de tag NFC",
@@ -135,10 +140,20 @@
     }
   },
   "services": {
+    "common": {
+      "fields": {
+        "device": {
+          "description": "L'appareil Boks sur lequel effectuer l'action."
+        }
+      }
+    },
     "add_parcel": {
       "name": "Ajouter un colis",
       "description": "Ajoute un nouveau colis dans la liste",
       "fields": {
+        "entity_id": {
+          "description": "La liste de tâches Boks où ajouter le colis."
+        },
         "description": {
           "name": "Description",
           "description": "Ajoute une description au colis",
@@ -219,6 +234,28 @@
     "sync_logs": {
       "name": "Synchroniser les journaux",
       "description": "Récupère manuellement les journaux de la Boks et déclenche les événements associés."
+    }
+  },
+  "state": {
+    "log_events": {
+      "code_ble_valid": "Code BLE valide utilisé",
+      "code_key_valid": "Code clavier valide utilisé",
+      "code_ble_invalid": "Code BLE invalide utilisé",
+      "code_key_invalid": "Code clavier invalide utilisé",
+      "door_closed": "Porte fermée",
+      "door_opened": "Porte ouverte",
+      "history_erase": "Historique effacé",
+      "power_off": "Extinction",
+      "block_reset": "Réinitialisation du bloc",
+      "power_on": "Allumage",
+      "ble_reboot": "Redémarrage BLE",
+      "scale_continuous_measure": "Mesure continue de la balance",
+      "nfc_error_99": "Erreur Transaction NFC (0x99)",
+      "error": "Erreur (Diagnostic)",
+      "nfc_opening": "Ouverture NFC",
+      "nfc_tag_registering_scan": "Scan d'enregistrement de tag NFC",
+      "nfc_error_transaction": "Erreur Transaction NFC",
+      "unknown_event": "Événement inconnu (0x{opcode:02X})"
     }
   }
 }

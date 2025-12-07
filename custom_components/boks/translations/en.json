@@ -35,7 +35,7 @@
       "device_not_in_cache": "Device not found in Bluetooth cache. No connectable path available.",
       "no_devices_found": "No Boks devices found on this account.",
       "connection_error": "Connection error while fetching devices.",
-      "invalid_credential_format": "Invalid credential format. Must be 64/16 hex chars or 6-digit code.",
+      "invalid_credential_format": "Invalid credential format. Must be 8/64 hex chars",
       "invalid_master_code_format": "Invalid master code format. Must be a 6-digit code (0-9, A, B).",
       "unknown": "An unknown error occurred.",
       "pin_code_invalid_length": "PIN code must be 6 characters",
@@ -104,6 +104,11 @@
         "name": "Single use codes"
       }
     },
+    "todo": {
+      "parcels": {
+        "name": "Parcels {name}"
+      }
+    },
     "event": {
       "logs": {
         "name": "Logs",
@@ -123,7 +128,7 @@
               "power_on": "Power On",
               "ble_reboot": "BLE Reboot",
               "scale_measure": "Scale Continuous Measure",
-              "key_opening": "Key Opening",
+              "nfc_error_transaction": "NFC Transaction Error",
               "error": "Error",
               "nfc_opening": "NFC Opening",
               "nfc_tag_registering": "NFC Tag Registering Scan",
@@ -135,10 +140,20 @@
     }
   },
   "services": {
+    "common": {
+      "fields": {
+        "device": {
+          "description": "The Boks device to perform the action on."
+        }
+      }
+    },
     "add_parcel": {
       "name": "Add Parcel",
       "description": "Adds a new parcel to the list",
       "fields": {
+        "entity_id": {
+          "description": "The Boks Todo list to add the parcel to."
+        },
         "description": {
           "name": "Description",
           "description": "Adds a description to the parcel",
@@ -219,6 +234,28 @@
     "sync_logs": {
       "name": "Sync Logs",
       "description": "Manually retrieve logs from the Boks and trigger associated events."
+    }
+  },
+  "state": {
+    "log_events": {
+      "code_ble_valid": "Valid BLE code used",
+      "code_key_valid": "Valid keypad code used",
+      "code_ble_invalid": "Invalid BLE command",
+      "code_key_invalid": "Invalid keypad code used",
+      "door_closed": "Door closed",
+      "door_opened": "Door opened",
+      "history_erase": "History cleared",
+      "power_off": "Power off",
+      "block_reset": "Block reset",
+      "power_on": "Power on",
+      "ble_reboot": "BLE reboot",
+      "scale_continuous_measure": "Continuous scale measurement",
+      "nfc_error_99": "NFC Transaction Error (0x99)",
+      "error": "Error (Diagnostic)",
+      "nfc_opening": "NFC opening",
+      "nfc_tag_registering_scan": "NFC tag registration scan",
+      "nfc_error_transaction": "NFC Transaction Error",
+      "unknown_event": "Unknown event (0x{opcode:02X})"
     }
   }
 }
