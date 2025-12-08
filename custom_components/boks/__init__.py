@@ -295,11 +295,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             translations_json = await hass.async_add_executor_job(load_json, translation_path)
 
             # Extract the specific state translations we need
-            # Structure: entity -> sensor -> last_event -> state
+            # Structure: entity -> event -> logs -> state
             try:
-                state_translations = translations_json.get("entity", {}).get("sensor", {}).get("last_event", {}).get("state", {})
+                state_translations = translations_json.get("entity", {}).get("event", {}).get("logs", {}).get("state", {})
                 hass.data[DOMAIN]["translations"] = state_translations
-                _LOGGER.debug("Manually loaded translations for Logbook: %s", list(state_translations.keys()))
             except AttributeError:
                 hass.data[DOMAIN]["translations"] = {}
                 _LOGGER.warning("Could not extract state translations from JSON structure")

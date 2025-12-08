@@ -31,7 +31,7 @@ def async_describe_events(
         description_key = data.get("description", "unknown")
 
         # Try to find the translation in our cache
-        # The cache contains the 'state' dict, so keys are 'door_closed', 'door_opened', etc.
+        # The cache contains the 'state' dict from entity.event.logs, so keys are 'door_closed', 'door_opened', etc.
         translations = hass.data.get(DOMAIN, {}).get("translations", {})
 
         message = translations.get(description_key, description_key)

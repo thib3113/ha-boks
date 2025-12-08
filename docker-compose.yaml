@@ -4,7 +4,7 @@ services:
     container_name: homeassistant
     image: "ghcr.io/home-assistant/home-assistant:stable"
     volumes:
-      - ./config:/config
+      - ./dev_env/config:/config
       - /etc/localtime:/etc/localtime:ro
       # Mount the local custom_components directory into the container
       - ./custom_components:/config/custom_components

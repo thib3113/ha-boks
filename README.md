@@ -1,4 +1,10 @@
+<p align="center">
+  <img src="images/icon.png" width="200" alt="Boks Logo">
+</p>
+
 # Home Assistant Boks Integration
+
+> 🇫🇷 **[Lire la documentation en Français](documentation/FR/introduction.md)**
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![GitHub License](https://img.shields.io/github/license/thib3113/ha-boks?color=blue)](LICENSE)
@@ -26,25 +32,23 @@ It allows you to open your Boks directly from Home Assistant without needing the
 ## Features
 
 *   **Lock Entity**: Unlock your Boks directly from the dashboard.
-    *   Uses your stored **Master Code** by default.
-    *   *Smart Fallback*: If you provided a Credential but no Master Code, it attempts to generate a temporary single-use code on the fly.
-*   **Sensors**:
-    *   **Battery Level**: Monitors the device battery.
-    *   **Code Counts** *(Admin only)*: Tracks the number of Master, Standard, and Multi-use codes stored on the device (requires Credential).
-*   **Events**:
-    *   Exposes an `event` entity (e.g., `event.boks_logs`) that reports history logs (openings, errors, etc.) retrieved from the device.
+*   **Sensors**: Battery Level, Code Counts.
+*   **Logs & History**: View openings, errors, and delivery history.
+*   **Smart Parcel Tracking (To-Do List)**:
+    *   **Auto-Generation (Requires Config Key)**: Automatically creates a PIN code for each delivery added to the list.
+    *   **Auto-Completion**: Marks tasks as done when the code is used.
+    *   **Web Extension**: Compatible with the **[Boks Web Extension](https://github.com/thib3113/ha-boks-webextension)**.
 
 ## Prerequisites
 
 1.  **Hardware**:
     *   A Boks device.
-    *   A Home Assistant server with a working Bluetooth adapter **OR** an ESPHome Bluetooth Proxy near the Boks.
+    *   A Bluetooth Adapter (Local) OR ESPHome Proxy (**Active Mode** required).
+    *   *Note: Most Shelly devices do not support active connections.*
 2.  **Credentials**:
-    *   **Master Code (Required)**: The 6-character PIN code you use to open the door (e.g., `1234AB`).
-    *   **Credential (Optional)**: To enable advanced features (reading logs, counting codes), you need **ONE** of the following:
-        *   **Configuration Key**: 8 hex characters.
-        *   **Master Key**: 64 hex characters (Recommended for future-proofing).
-    *   *Note: These keys can typically be retrieved from your account data (GDPR request) or during the initial provisioning process.*
+    *   **Master Code (Required)**: The 6-character PIN code (e.g., `1234AB`).
+    *   **Configuration Key (Recommended)**: Required for **Automatic Code Generation**.
+        *   [How to retrieve your Configuration Key](documentation/EN/RETRIEVE_KEYS.md).
 
 ## Installation
 
@@ -53,55 +57,32 @@ It allows you to open your Boks directly from Home Assistant without needing the
 
 ### Option 1: via HACS (Recommended)
 
-1.  Open HACS in Home Assistant.
-2.  Go to "Integrations".
-3.  Click the 3 dots in the top right corner -> "Custom repositories".
-4.  Add the URL of this repository.
-5.  Select "Integration" as the category.
-6.  Click "Add".
-7.  Search for "Boks" and click "Download".
-8.  Restart Home Assistant.
+1.  Open HACS -> Integrations.
+2.  Add Custom Repository: `thib3113/ha-boks` (Category: Integration).
+3.  Search for "Boks" and Download.
+4.  Restart Home Assistant.
 
 ### Option 2: Manual
 
-1.  Download the `boks.zip` file from the latest release.
-2.  Unzip it.
-3.  Copy the `boks` folder into your Home Assistant `custom_components/` directory.
-4.  Restart Home Assistant.
+1.  Download `boks.zip` from the latest release.
+2.  Unzip into `custom_components/boks`.
+3.  Restart Home Assistant.
 
 ## Configuration
 
-1.  Go to **Settings** -> **Devices & Services**.
-2.  Click **Add Integration**.
-3.  Search for **Boks**.
-4.  The integration should automatically discover your Boks if it is within range. Click on it.
-5.  **Setup**:
-    *   **Master Code**: Enter your unlock code (0-9, A, B).
-    *   **Credential (Optional)**: Enter your Config Key OR Master Key if you want to enable logs and admin sensors.
-        *   *Tip:* Providing the **Master Key** (64 hex chars) is recommended as it may allow for **offline code generation** in future versions of this integration.
+1.  **Settings** -> **Devices & Services** -> **Add Integration** -> **Boks**.
+2.  **Setup**:
+    *   **Master Code**: Your unlock code.
+    *   **Credential**: Your Configuration Key (for auto-code generation).
 
 ## Events & Automations
 
-The integration exposes an `event` entity (e.g., `event.boks_logs`) that fires when new logs are retrieved from the Boks device.
-
-### Automation Trigger
-
-You can use the "Event" trigger in Home Assistant automations to react to specific log events.
-
-**Available Event Types:**
-*   `door_opened` / `door_closed`
-*   `code_ble_valid` / `code_key_valid`
-*   `code_ble_invalid` / `code_key_invalid`
-*   `error`
-*   ... and more.
+The integration exposes `event.boks_logs` for automations.
 
 ### Example Automation
 
-This automation notifies you every time the door is opened.
-
 ```yaml
-alias: Notify when Boks door is opened
-description: ""
+alias: Notify when Boks opened
 trigger:
   - platform: state
     entity_id: event.boks_logs
@@ -111,15 +92,32 @@ condition:
     attribute: event_type
     state: door_opened
 action:
-  - action: notify.mobile_app_iphone
+  - action: notify.mobile_app
     data:
-      message: "Your Boks has been opened!"
-mode: queued
+      message: "Boks opened!"
 ```
+
+## 📦 Smart Parcel Tracking
+
+The integration creates a **To-Do List** entity.
+
+### How it works (with Config Key)
+
+1.  **Add a Task**: "Amazon Delivery".
+2.  **Auto-Generation**: The integration creates a PIN code on the Boks and adds it to the task description.
+3.  **Delivery**: Give this code to the carrier.
+4.  **Auto-Completion**: When the code is used, the task is marked as done.
+
+### 🧩 Browser Extension
+
+Use the **[Home Assistant Boks Extension](https://github.com/thib3113/ha-boks-webextension)** to add parcels directly from merchant sites!
+*   **Right-click** on any delivery instruction field -> **"Generate a Boks Code"**.
+*   It automatically creates the code in Home Assistant and fills the field for you.
+
 
 ## Debugging
 
-To enable debug logging, add the following to your `configuration.yaml`:
+To enable debug logging:
 
 ```yaml
 logger:
@@ -130,25 +128,15 @@ logger:
 
 ## Detailed Documentation
 
-For comprehensive guides on installation, configuration, features, and troubleshooting, please refer to the dedicated documentation sections:
+For comprehensive guides, please refer to:
 
-*   **English Documentation**:
-    *   [Introduction](documentation/EN/introduction.md)
-    *   [Features](documentation/EN/features.md)
-    *   [Prerequisites](documentation/EN/prerequisites.md)
-    *   [Installation](documentation/EN/installation.md)
-    *   [Configuration](documentation/EN/configuration.md)
-    *   [Events & Automations (Usage)](documentation/EN/usage.md)
-    *   [Troubleshooting (Debugging)](documentation/EN/troubleshooting.md)
-
-*   **Documentation Française**:
-    *   [Introduction](documentation/FR/introduction.md)
-    *   [Fonctionnalités](documentation/FR/features.md)
-    *   [Prérequis](documentation/FR/prerequisites.md)
-    *   [Installation](documentation/FR/installation.md)
-    *   [Configuration](documentation/FR/configuration.md)
-    *   [Événements & Automatisations (Utilisation)](documentation/FR/usage.md)
-    *   [Dépannage (Débogage)](documentation/FR/troubleshooting.md)
+*   [Introduction](documentation/EN/introduction.md)
+*   [Features](documentation/EN/features.md)
+*   [Prerequisites](documentation/EN/prerequisites.md)
+*   [Installation](documentation/EN/installation.md)
+*   [Configuration](documentation/EN/configuration.md)
+*   [Events & Automations (Usage)](documentation/EN/usage.md)
+*   [Troubleshooting (Debugging)](documentation/EN/troubleshooting.md)
 
 ## ⚖️ Legal Notice
 

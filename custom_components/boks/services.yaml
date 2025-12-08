@@ -3,8 +3,6 @@ add_parcel:
   description: translation::services.add_parcel.description
   target:
     entity:
-      domain: todo
-      integration: boks
   fields:
     description:
       name: translation::services.add_parcel.fields.description.name
@@ -18,7 +16,6 @@ add_pin_code:
   description: translation::services.add_pin_code.description
   target:
     device:
-      integration: boks
   fields:
     code:
       name: translation::services.add_pin_code.fields.code.name
@@ -55,7 +52,6 @@ delete_pin_code:
   description: translation::services.delete_pin_code.description
   target:
     device:
-      integration: boks
   fields:
     identifier:
       name: translation::services.delete_pin_code.fields.identifier.name
@@ -80,4 +76,3 @@ sync_logs:
   description: translation::services.sync_logs.description
   target:
     device:
-      integration: boks

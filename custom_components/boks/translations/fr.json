@@ -129,26 +129,24 @@
     "event": {
       "logs": {
         "name": "Journaux",
-        "state_attributes": {
-          "event_type": {
-            "code_ble_valid": "Code BLE valide utilisé",
-            "code_key_valid": "Code clavier valide utilisé",
-            "code_ble_invalid": "Code BLE invalide utilisé",
-            "code_key_invalid": "Code clavier invalide utilisé",
-            "door_closed": "Porte fermée",
-            "door_opened": "Porte ouverte",
-            "history_erase": "Historique effacé",
-            "power_off": "Extinction",
-            "block_reset": "Réinitialisation du bloc",
-            "power_on": "Allumage",
-            "ble_reboot": "Redémarrage BLE",
-            "scale_measure": "Mesure continue de la balance",
-            "nfc_error_transaction": "Erreur Transaction NFC",
-            "error": "Erreur",
-            "nfc_opening": "Ouverture NFC",
-            "nfc_tag_registering": "Scan d'enregistrement de tag NFC",
-            "unknown": "Événement inconnu"
-          }
+        "state": {
+          "code_ble_valid": "Code BLE valide utilisé",
+          "code_key_valid": "Code clavier valide utilisé",
+          "code_ble_invalid": "Code BLE invalide utilisé",
+          "code_key_invalid": "Code clavier invalide utilisé",
+          "door_closed": "Porte fermée",
+          "door_opened": "Porte ouverte",
+          "history_erase": "Historique effacé",
+          "power_off": "Extinction",
+          "block_reset": "Réinitialisation du bloc",
+          "power_on": "Allumage",
+          "ble_reboot": "Redémarrage BLE",
+          "scale_measure": "Mesure continue de la balance",
+          "nfc_error_transaction": "Erreur Transaction NFC",
+          "error": "Erreur",
+          "nfc_opening": "Ouverture NFC",
+          "nfc_tag_registering": "Scan d'enregistrement de tag NFC",
+          "unknown": "Événement inconnu"
         }
       }
     }
@@ -201,24 +199,5 @@
       "name": "Synchroniser les journaux",
       "description": "Récupère manuellement les journaux de la Boks et déclenche les événements associés."
     }
-  },
-  "logbook_entry": {
-    "code_ble_valid": "Code BLE valide utilisé",
-    "code_key_valid": "Code clavier valide utilisé",
-    "code_ble_invalid": "Code BLE invalide utilisé",
-    "code_key_invalid": "Code clavier invalide utilisé",
-    "door_closed": "Porte fermée",
-    "door_opened": "Porte ouverte",
-    "history_erase": "Historique effacé",
-    "power_off": "Extinction",
-    "block_reset": "Réinitialisation du bloc",
-    "power_on": "Allumage",
-    "ble_reboot": "Redémarrage BLE",
-    "scale_measure": "Mesure continue de la balance",
-    "nfc_error_99": "Erreur Transaction NFC",
-    "error": "Erreur",
-    "nfc_opening": "Ouverture NFC",
-    "nfc_tag_registering_scan": "Scan d'enregistrement de tag NFC",
-    "unknown": "Événement inconnu"
   }
 }
