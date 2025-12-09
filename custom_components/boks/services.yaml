@@ -17,8 +17,6 @@ add_pin_code:
   name: translation::services.add_pin_code.name
   description: translation::services.add_pin_code.description
   target:
-    device:
-      integration: boks
     entity:
       integration: boks
       domain: lock

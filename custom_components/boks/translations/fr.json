@@ -56,7 +56,7 @@
       "no_devices_configured": "Aucun appareil Boks configuré.",
       "cannot_resolve_todo": "Impossible de résoudre une liste de tâches Boks cible.",
       "todo_integration_not_loaded": "L'intégration Todo n'est pas chargée.",
-      "todo_entity_not_found": "Entité Todo '{target_entity_id}' introuvable ou non chargée.",
+      "todo_entity_not_found": "Entité Todo {target_entity_id} introuvable ou non chargée.",
       "config_key_invalid_length": "La clé de configuration doit comporter exactement 8 caractères.",
       "ble_client_none": "Le client BLE est nul, impossible d'envoyer la commande",
       "timeout_waiting_response": "Délai d'attente dépassé pour la réponse à l'opcode {opcode}",

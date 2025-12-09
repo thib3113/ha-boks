@@ -55,7 +55,7 @@
       "no_devices_configured": "No Boks devices configured.",
       "cannot_resolve_todo": "Could not resolve a target Boks Todo list.",
       "todo_integration_not_loaded": "Todo integration not loaded.",
-      "todo_entity_not_found": "Todo entity '{target_entity_id}' not found or not loaded.",
+      "todo_entity_not_found": "Todo entity {target_entity_id} not found or not loaded.",
       "config_key_invalid_length": "Config key must be exactly 8 characters long.",
       "ble_client_none": "BLE client is None, cannot send command",
       "timeout_waiting_response": "Timeout waiting for response to opcode {opcode}",
