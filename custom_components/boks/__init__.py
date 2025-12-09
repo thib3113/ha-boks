@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import UpdateFailed
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from .ble import BoksError
 from .const import DOMAIN, CONF_CONFIG_KEY
 from .coordinator import BoksDataUpdateCoordinator
 
@@ -63,7 +64,11 @@ def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDat
                         return hass.data[DOMAIN][entry_id]
 
         # If device_ids were provided but we didn't return above, it means none were Boks devices
-        raise HomeAssistantError(f"Target device(s) {device_ids} are not Boks devices.")
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="target_devices_not_boks",
+            translation_placeholders={"device_ids": str(device_ids)}
+        )
 
     # 2. Try Entity ID
     entity_ids = call.data.get("entity_id")
@@ -81,14 +86,21 @@ def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDat
                 return hass.data[DOMAIN][entry.config_entry_id]
 
         # If entity_ids were provided but we didn't return above, none were Boks entities
-        raise HomeAssistantError(f"Target entity(s) {entity_ids} belong to non-Boks devices.")
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="target_entities_not_boks",
+            translation_placeholders={"entity_ids": str(entity_ids)}
+        )
 
     # 3. Fallback: Single Instance (Only if NO target was provided)
     if len(hass.data[DOMAIN]) == 1:
         return list(hass.data[DOMAIN].values())[0]
 
     # 4. Fail
-    raise HomeAssistantError("Target Boks device not found or not specified. Please specify a device_id or entity_id.")
+    raise HomeAssistantError(
+        translation_domain=DOMAIN,
+        translation_key="target_device_missing"
+    )
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
@@ -101,7 +113,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
         target_entity_id = None
 
-        # 1. Extract Target (Entity ID) from call.data (populated by HA from target)
+        # 1. Try to get entity_id directly
         if "entity_id" in call.data:
             entity_ids = call.data["entity_id"]
             if isinstance(entity_ids, list) and len(entity_ids) > 0:
@@ -109,10 +121,38 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             elif isinstance(entity_ids, str):
                  target_entity_id = entity_ids
 
-        # 2. Fallback (Single Instance)
+        # 2. If no entity_id, try to resolve from device_id
+        if not target_entity_id and "device_id" in call.data:
+            device_ids = call.data["device_id"]
+            if isinstance(device_ids, str):
+                device_ids = [device_ids]
+
+            if device_ids:
+                # Use the first device found
+                target_device_id = device_ids[0]
+
+                # Find the Todo entity associated with this device
+                entity_registry = er.async_get(hass)
+                entries = entity_registry.entities.values()
+                for entry in entries:
+                    if entry.device_id == target_device_id and entry.domain == "todo":
+                        target_entity_id = entry.entity_id
+                        break
+
+                if not target_entity_id:
+                     raise HomeAssistantError(
+                         translation_domain=DOMAIN,
+                         translation_key="todo_entity_not_found_for_device",
+                         translation_placeholders={"target_device_id": target_device_id}
+                     )
+
+        # 3. Fallback (Single Instance) - Only if NO target was provided at all
         if not target_entity_id:
             # Check how many Boks entries are loaded
             boks_entry_ids = list(hass.data[DOMAIN].keys())
+            # Filter out "translations" key if present
+            boks_entry_ids = [k for k in boks_entry_ids if k != "translations"]
+
             if len(boks_entry_ids) == 1:
                 config_entry_id = boks_entry_ids[0]
                 # Find Todo entity
@@ -123,27 +163,47 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                         target_entity_id = entry.entity_id
                         break
             elif len(boks_entry_ids) > 1:
-                 raise HomeAssistantError("Multiple Boks devices found. Please specify a target entity.")
+                 raise HomeAssistantError(
+                     translation_domain=DOMAIN,
+                     translation_key="multiple_devices_found"
+                 )
             else:
-                 raise HomeAssistantError("No Boks devices configured.")
+                 raise HomeAssistantError(
+                     translation_domain=DOMAIN,
+                     translation_key="no_devices_configured"
+                 )
 
         if not target_entity_id:
-             raise HomeAssistantError("Could not resolve a target Boks Todo list.")
+             raise HomeAssistantError(
+                 translation_domain=DOMAIN,
+                 translation_key="cannot_resolve_todo"
+             )
 
         # 3. Get Actual Entity Object
         component = hass.data.get("entity_components", {}).get("todo")
         if not component:
-             raise HomeAssistantError("Todo integration not loaded.")
+             raise HomeAssistantError(
+                 translation_domain=DOMAIN,
+                 translation_key="todo_integration_not_loaded"
+             )
 
         todo_entity = component.get_entity(target_entity_id)
 
         if not todo_entity:
-             raise HomeAssistantError(f"Todo entity '{target_entity_id}' not found or not loaded.")
+             raise HomeAssistantError(
+                 translation_domain=DOMAIN,
+                 translation_key="todo_entity_not_found",
+                 translation_placeholders={"target_entity_id": target_entity_id}
+             )
 
         # 4. Verify it's a Boks entity
         from .todo import BoksParcelTodoList
         if not isinstance(todo_entity, BoksParcelTodoList):
-             raise HomeAssistantError(f"Entity {target_entity_id} is not a Boks Parcel List.")
+             raise HomeAssistantError(
+                 translation_domain=DOMAIN,
+                 translation_key="entity_not_parcel_list",
+                 translation_placeholders={"target_entity_id": target_entity_id}
+             )
 
         # 5. Generate/Parse Code and Create Parcel
         from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
@@ -204,6 +264,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             _LOGGER.info(f"Code {created_code} ({code_type}) added successfully.")
             await coordinator.async_request_refresh()
             return {"code": created_code}
+        except BoksError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=e.translation_key,
+                translation_placeholders=e.translation_placeholders
+            ) from e
         finally:
             await coordinator.ble_device.disconnect()
 
@@ -230,6 +296,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             await coordinator.ble_device.delete_pin_code(code_type, identifier)
             _LOGGER.info(f"Code {identifier} ({code_type}) deleted successfully.")
             await coordinator.async_request_refresh()
+        except BoksError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=e.translation_key,
+                translation_placeholders=e.translation_placeholders
+            ) from e
         finally:
             await coordinator.ble_device.disconnect()
 

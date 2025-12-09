@@ -19,17 +19,17 @@ The Boks integration offers a tiered approach to functionality based on the cred
     *   **Features Enabled**:
         *   **Boks Unlock**: Control the `lock` entity to open your Boks.
         *   **Battery Level Sensor**: Monitor your Boks device's battery status.
-        *   **Event Logging**: Receive basic operational events from your Boks (e.g., door opened/closed, valid/invalid code attempts) via the `event.boks_logs` entity.
-        *   **Todo List (Basic Functionality)**: A `todo.suivi_boks` entity will be created. You can use it to track parcels, but you will need to manually manage (create and associate) any PIN codes. The integration will still attempt to validate and mark tasks as complete if it detects a manually associated code in its logs and emit `boks_parcel_completed` events.
+        *   **Code Counts Sensor**: Monitor the number of Master, Standard, and Multi-use codes stored on your device.
+        *   **Event Logging**: Receive basic operational events from your Boks (e.g., door opened/closed, valid/invalid code attempts) via the `event.<name>_logs` entity.
+        *   **Todo List (Basic Functionality)**: A `todo.<name>_parcels` entity will be created. You can use it to track parcels (with descriptions), but you will need to manually manage (create and associate) any PIN codes. The integration will still attempt to validate and mark tasks as complete if it detects a manually associated code in its logs and emit `boks_parcel_completed` events.
 
 *   **2. Config Key or Master Key (Optional, Recommended for Advanced Features)**
     *   **Input**: In addition to your "Master Code," enter your **Configuration Key** (8 hex characters) or **Master Key** (64 hex characters) into the "Credential" field.
         *   *Tip:* Providing the **Master Key** is recommended as it offers more capabilities and may support future features such as offline code generation. Currently, both Config Key and Master Key enable the same set of advanced features.
     *   **Features Enabled**:
         *   **All Master Code Only Features**
-        *   **Code Counts Sensor**: Monitor the number of Master, Standard, and Multi-use codes stored on your device.
-        *   **Enhanced Todo List Integration (Parcel Management)**: The `todo.suivi_boks` entity provides full functionality.
-            *   **Automatic PIN Generation**: When you add an item to the `todo.suivi_boks` list with a description (e.g., "Package from Amazon"), the integration will automatically generate a unique PIN code associated with that parcel entry.
+        *   **Enhanced Todo List Integration (Parcel Management)**: The `todo.<name>_parcels` entity provides full functionality.
+            *   **Automatic PIN Generation**: When you add an item to the `todo.<name>_parcels` list with a description (e.g., "Package from Amazon"), the integration will automatically generate a unique PIN code associated with that parcel entry.
             *   **Description Support**: You can add meaningful descriptions to your todo items, which are linked to the generated PINs.
             *   **User Responsibility for Modified PINs**: If you manually change an automatically generated PIN for a todo item, the integration will recognize the change but will no longer automatically manage that specific PIN. You become responsible for its management.
             *   **Automatic Task Completion & Event Emission**: The integration will automatically mark tasks as complete when it detects the associated code being used in its logs and will emit `boks_parcel_completed` events.

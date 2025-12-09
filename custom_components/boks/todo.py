@@ -134,6 +134,11 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         """Handle entity which will be added."""
         await super().async_added_to_hass()
 
+        # Subscribe to log events to process them only when they are retrieved (once)
+        self.async_on_remove(
+            self.hass.bus.async_listen(f"{DOMAIN}_logs_retrieved", self._handle_log_event)
+        )
+
         # Start periodic task to check for pending codes
         if self._has_config_key:
             self._unsub_timer = async_track_time_interval(
@@ -149,6 +154,54 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
             self._unsub_timer = None
         await super().async_will_remove_from_hass()
 
+    @callback
+    def _handle_log_event(self, event) -> None:
+        """Handle new logs received from the device via event bus."""
+        # Ensure we only process logs for this specific device
+        if event.data.get("device_id") != self._entry.entry_id:
+            return
+
+        latest_logs = event.data.get("logs", [])
+        _LOGGER.debug("Log event received, checking for parcel deliveries in %d logs.", len(latest_logs))
+
+        if latest_logs:
+            changed = False
+            for log in latest_logs:
+                # Check if this is a code usage event
+                event_type = log.get("event_type", "")
+                if event_type in ("code_ble_valid", "code_key_valid"):
+                    used_code = log.get("code")
+                    if used_code:
+                        # Check all pending items for a matching code
+                        for item in self._items:
+                            if item.status == TodoItemStatus.NEEDS_ACTION:
+                                item_code, description = parse_parcel_string(item.summary)
+                                if item_code and item_code == used_code:
+                                    _LOGGER.info(f"Parcel {used_code} delivered! Marking as completed.")
+                                    item.status = TodoItemStatus.COMPLETED
+                                    # Update raw data
+                                    for raw_item in self._raw_data:
+                                        if raw_item["uid"] == item.uid:
+                                            raw_item["status"] = item.status
+                                            break
+                                    changed = True
+
+                                    _LOGGER.debug("Fire %s event : %s %s", EVENT_PARCEL_COMPLETED, item_code, description)
+                                    from datetime import datetime
+                                    self.hass.bus.async_fire(EVENT_PARCEL_COMPLETED, {
+                                        "code": item_code,
+                                        "description": description,
+                                        "timestamp": datetime.now().isoformat()
+                                    })
+            
+            if changed:
+                self.hass.async_create_task(self._async_save())
+                _LOGGER.debug("Auto-completed todo items based on log event")
+                self.async_write_ha_state()
+
+    # NOTE: _handle_coordinator_update is removed/reverted to default because
+    # we now handle logs via the event bus to avoid duplicate processing.
+    # The default behavior (updating state) is sufficient for other data.
     async def _check_pending_codes(self, now=None) -> None:
         """Periodic task to sync pending codes to Boks."""
         pending_items = []
@@ -157,7 +210,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
             if pending_code:
                 # Double check that the item exists in _items
                 if any(x.uid == raw_item["uid"] for x in self._items):
-                    pending_items.append((raw_item["uid"], pending_code))
+                    pending_items.append(raw_item)
         
         if not pending_items:
             return
@@ -166,9 +219,19 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         
         # Process pending items
         # We process one by one to keep connection logic simple
-        for uid, code in pending_items:
+        for raw_item in pending_items:
+            uid = raw_item["uid"]
+            code = raw_item["pending_sync_code"]
+            retry_count = raw_item.get("sync_retry_count", 0)
+            
+            if retry_count >= 5:
+                _LOGGER.warning(f"Aborting sync for code {code} (Item {uid}) after {retry_count} failed attempts.")
+                # Remove pending status to stop retry loop
+                await self._update_todo_item_metadata_remove_pending(uid)
+                continue
+
             try:
-                _LOGGER.debug(f"Attempting to sync pending code {code} for item {uid}")
+                _LOGGER.debug(f"Attempting to sync pending code {code} for item {uid} (Attempt {retry_count + 1})")
                 await self.coordinator.ble_device.connect()
                 
                 # Check if we are still connected
@@ -184,7 +247,9 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
                 
             except Exception as e:
                 _LOGGER.error(f"Failed to sync pending code {code}: {e}")
-                # We leave it pending, will retry next interval
+                # Increment retry count
+                raw_item["sync_retry_count"] = retry_count + 1
+                await self._async_save()
             finally:
                 await self.coordinator.ble_device.disconnect()
 
@@ -194,6 +259,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
             for item in self._raw_data:
                 if item["uid"] == item_uid:
                     item.pop("pending_sync_code", None)
+                    item.pop("sync_retry_count", None)
                     # Legacy cleanup
                     item.pop("generation_status", None)
                     break
@@ -455,71 +521,3 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
 
         await self._async_save()
         self.async_write_ha_state()
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated logs to auto-complete items."""
-        _LOGGER.debug("Coordinator update received, checking for parcel deliveries in latest logs.")
-        latest_logs = self.coordinator.data.get("latest_logs")
-        _LOGGER.debug("Latest logs content: %s", latest_logs)
-
-        if latest_logs:
-            changed = False
-            _LOGGER.debug("Processing %d log entries", len(latest_logs))
-            for log in latest_logs:
-                _LOGGER.debug("Processing log entry: %s", log)
-                # Check if this is a code usage event
-                event_type = log.get("event_type", "")
-                _LOGGER.debug("Log event type: %s", event_type)
-                if event_type in ("code_ble_valid", "code_key_valid"):
-                    # Get the code from the log entry (now at top level, not in extra_data)
-                    used_code = log.get("code")
-                    _LOGGER.debug("Found valid code event. Used code: %s", used_code)
-
-                    if used_code:
-                        _LOGGER.debug("Checking %d todo items for matching code", len(self._items))
-                        # Check all pending items for a matching code
-                        for item in self._items:
-                            _LOGGER.debug("Checking item UID: %s, Summary: %s, Status: %s", item.uid, item.summary, item.status)
-                            if item.status == TodoItemStatus.NEEDS_ACTION:
-                                # Parse the code from the item's summary
-                                item_code, description = parse_parcel_string(item.summary)
-                                _LOGGER.debug("Item code: %s, Used code: %s", item_code, used_code)
-
-                                if item_code and item_code == used_code:
-                                    _LOGGER.info(f"Parcel {used_code} delivered! Marking as completed.")
-                                    item.status = TodoItemStatus.COMPLETED
-                                    # Update raw data to match the updated item
-                                    for raw_item in self._raw_data:
-                                        if raw_item["uid"] == item.uid:
-                                            raw_item["status"] = item.status
-                                            break
-                                    changed = True
-
-                                    _LOGGER.debug("Fire %s event : %s %s",EVENT_PARCEL_COMPLETED, item_code, description)
-                                    # Fire a Home Assistant event
-                                    from datetime import datetime
-                                    self.hass.bus.async_fire(EVENT_PARCEL_COMPLETED, {
-                                        "code": item_code,
-                                        "description": description,
-                                        "timestamp": datetime.now().isoformat()
-                                    })
-                                else:
-                                    _LOGGER.debug("No match for item. Item code: %s, Used code: %s", item_code, used_code)
-                            else:
-                                _LOGGER.debug("Item status is not NEEDS_ACTION, skipping. Status: %s", item.status)
-                    else:
-                        _LOGGER.debug("No used code found in log entry")
-                else:
-                    _LOGGER.debug("Log event type is not code_ble_valid or code_key_valid, skipping")
-
-            if changed:
-                self.hass.async_create_task(self._async_save())
-                _LOGGER.debug("Auto-completed todo items based on log entries")
-                self.async_write_ha_state()
-            else:
-                _LOGGER.debug("No items were changed based on log entries")
-        else:
-            _LOGGER.debug("No latest logs found in coordinator data")
-
-        super()._handle_coordinator_update()

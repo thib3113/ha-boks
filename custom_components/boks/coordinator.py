@@ -199,16 +199,12 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                 try:
                     now = datetime.now()
 
-                    should_fetch_battery = True
-                    _LOGGER.debug(f"should_fetch_battery initial: {should_fetch_battery}")
-
-                    if self._last_battery_update and "battery_level" in data:
-                        if (now - self._last_battery_update) < timedelta(hours=self.full_refresh_interval_hours):
-                            should_fetch_battery = False
-                            _LOGGER.debug(f"Skipping battery update (last update < {self.full_refresh_interval_hours}h ago)")
-
+                    # Only fetch battery if we don't have it yet (first run)
+                    # Afterwards, battery is updated only via door events (see device.py)
+                    should_fetch_battery = "battery_level" not in data
+                    
                     if should_fetch_battery:
-                        _LOGGER.debug("Fetching battery level...")
+                        _LOGGER.debug("Fetching battery level (Initial)...")
                         try:
                             battery_level = await self.ble_device.get_battery_level()
                             data["battery_level"] = battery_level
@@ -226,7 +222,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery temperature: %s", e)
                     else:
-                        _LOGGER.debug("Battery fetch skipped.")
+                        _LOGGER.debug("Battery fetch skipped (handled by door events).")
 
                     # 2. Get Code Counts (Always fetch as it doesn't require config key)
                     _LOGGER.debug("Fetching code counts...")

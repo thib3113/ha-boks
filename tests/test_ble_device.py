@@ -3,7 +3,7 @@ import pytest
 import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
 from homeassistant.core import HomeAssistant
-from custom_components.boks.ble.device import BoksBluetoothDevice, BoksError
+from custom_components.boks.ble.device import BoksBluetoothDevice, BoksError, BoksAuthError
 from custom_components.boks.ble.const import BoksCommandOpcode, BoksNotificationOpcode, BoksServiceUUID
 
 async def test_device_init_valid_key(hass: HomeAssistant):
@@ -18,12 +18,12 @@ async def test_device_init_no_key(hass: HomeAssistant):
 
 async def test_device_init_invalid_key_length_short(hass: HomeAssistant):
     """Test initialization with a key that is too short."""
-    with pytest.raises(ValueError, match="Config key must be exactly 8 characters long"):
+    with pytest.raises(BoksAuthError, match="config_key_invalid_length"):
         BoksBluetoothDevice(hass, "AA:BB:CC:DD:EE:FF", "1234567")
 
 async def test_device_init_invalid_key_length_long(hass: HomeAssistant):
     """Test initialization with a key that is too long."""
-    with pytest.raises(ValueError, match="Config key must be exactly 8 characters long"):
+    with pytest.raises(BoksAuthError, match="config_key_invalid_length"):
         BoksBluetoothDevice(hass, "AA:BB:CC:DD:EE:FF", "123456789")
 
 async def test_device_connect_success(hass: HomeAssistant):

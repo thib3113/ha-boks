@@ -28,6 +28,10 @@ _LOGGER = logging.getLogger(__name__)
 
 class BoksError(Exception):
     """Base class for Boks errors."""
+    def __init__(self, translation_key: str, translation_placeholders: Dict[str, str] | None = None):
+        super().__init__(translation_key) # For generic Exception message if not translated by HA
+        self.translation_key = translation_key
+        self.translation_placeholders = translation_placeholders or {}
 
 class BoksAuthError(BoksError):
     """Authentication error (Unauthorized)."""
@@ -47,7 +51,7 @@ class BoksBluetoothDevice:
         # Old installations might have stored master key in config key (e.g., 64 chars),
         # which were previously truncated. Now we enforce the length.
         if config_key and len(config_key) != 8:
-            raise ValueError("Config key must be exactly 8 characters long.")
+            raise BoksAuthError("config_key_invalid_length")
 
         self._config_key_str = config_key
 
@@ -397,7 +401,7 @@ class BoksBluetoothDevice:
 
         # Safety check for None client
         if self._client is None:
-            raise BoksError("BLE client is None, cannot send command")
+            raise BoksError("ble_client_none")
 
         packet = self._build_packet(opcode, payload)
 
@@ -420,14 +424,14 @@ class BoksBluetoothDevice:
         except asyncio.TimeoutError:
             if future_key in self._response_futures:
                 del self._response_futures[future_key]
-            raise BoksError(f"Timeout waiting for response to opcode 0x{opcode:02X}")
+            raise BoksError("timeout_waiting_response", {"opcode": f"0x{opcode:02X}"})
         except BleakError as e:
-            raise BoksError(f"BLE Error: {e}")
+            raise BoksError("ble_error", {"error": str(e)})
         except AttributeError as e:
             # Handle specific bleak internal error: 'NoneType' object has no attribute 'details'
             _LOGGER.warning(f"BLE Internal Error during write (forcing disconnect): {e}")
             await self.force_disconnect()
-            raise BoksError(f"BLE Internal Error: {e}")
+            raise BoksError("ble_internal_error", {"error": str(e)})
 
     async def get_battery_level(self) -> int:
         """Get battery level."""
@@ -570,7 +574,7 @@ class BoksBluetoothDevice:
         pin_code = pin_code.strip().upper()
 
         if len(pin_code) != 6:
-            raise ValueError("pin_code_invalid_length")
+            raise BoksError("pin_code_invalid_length")
 
         payload = pin_code.encode('ascii')
         _LOGGER.warning(f"Sending PIN code: {pin_code}") # Temporary log
@@ -619,7 +623,7 @@ class BoksBluetoothDevice:
             code = code.strip().upper()
 
         if not self._validate_pin(code):
-            raise ValueError("invalid_code_format")
+            raise BoksError("invalid_code_format")
 
         opcode = 0
         payload = bytearray(self._config_key_str.encode('ascii'))
@@ -633,7 +637,7 @@ class BoksBluetoothDevice:
         elif code_type == "multi":
             opcode = BoksCommandOpcode.CREATE_MULTI_USE_CODE
         else:
-            raise ValueError("Unknown code type")
+            raise BoksError("unknown_code_type")
 
         resp = await self._send_command(
             opcode,
@@ -661,7 +665,7 @@ class BoksBluetoothDevice:
         new_code = new_code.strip().upper()
 
         if not self._validate_pin(new_code):
-            raise ValueError("invalid_code_format")
+            raise BoksError("invalid_code_format")
 
         # Packet: [0x09][Len][ConfigKey(8)][Index(1)][NewCode(6)][Checksum]
         payload = bytearray(self._config_key_str.encode('ascii'))
@@ -687,7 +691,7 @@ class BoksBluetoothDevice:
         Delete a PIN code.
         """
         if not self._config_key_str:
-            raise BoksAuthError("config_key_required_simple")
+            raise BoksAuthError("config_key_required")
 
         opcode = 0
         payload = bytearray(self._config_key_str.encode('ascii'))
@@ -708,7 +712,7 @@ class BoksBluetoothDevice:
                 index_or_code = index_or_code.strip().upper()
             payload.extend(str(index_or_code).encode('ascii'))
         else:
-            raise ValueError("unknown_code_type")
+            raise BoksError("unknown_code_type")
 
         resp = await self._send_command(
             opcode,

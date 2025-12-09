@@ -45,10 +45,24 @@
       "invalid_code_format": "Format de code invalide (doit être de 6 caractères compris entre 0-9, A, B)",
       "create_code_failed": "Échec de la création du code (l'appareil a renvoyé une erreur)",
       "change_master_code_failed": "Échec du changement de code permanent (l'appareil a renvoyé une erreur)",
-      "config_key_required_simple": "Clé de configuration requise",
       "unknown_code_type": "Type de code inconnu",
       "unknown_device": "L'appareil n'est pas vu par l'adaptateur Bluetooth.",
-      "not_connectable": "L'appareil détecté n'est pas connectable (probablement via un proxy passif)."
+      "not_connectable": "L'appareil détecté n'est pas connectable (probablement via un proxy passif).",
+      "todo_entity_not_found_for_device": "Aucune entité de type 'Todo' trouvée pour l'appareil {target_device_id}",
+      "target_devices_not_boks": "Les appareils cibles {device_ids} ne sont pas des appareils Boks.",
+      "target_entities_not_boks": "Les entités cibles {entity_ids} n'appartiennent pas à des appareils Boks.",
+      "target_device_missing": "Appareil Boks cible introuvable ou non spécifié. Veuillez spécifier un device_id ou un entity_id.",
+      "multiple_devices_found": "Plusieurs appareils Boks trouvés. Veuillez spécifier une entité ou un appareil cible.",
+      "no_devices_configured": "Aucun appareil Boks configuré.",
+      "cannot_resolve_todo": "Impossible de résoudre une liste de tâches Boks cible.",
+      "todo_integration_not_loaded": "L'intégration Todo n'est pas chargée.",
+      "todo_entity_not_found": "Entité Todo '{target_entity_id}' introuvable ou non chargée.",
+      "config_key_invalid_length": "La clé de configuration doit comporter exactement 8 caractères.",
+      "ble_client_none": "Le client BLE est nul, impossible d'envoyer la commande",
+      "timeout_waiting_response": "Délai d'attente dépassé pour la réponse à l'opcode {opcode}",
+      "ble_error": "Erreur BLE : {error}",
+      "ble_internal_error": "Erreur interne BLE : {error}",
+      "entity_not_parcel_list": "L'entité {target_entity_id} n'est pas une liste de colis Boks."
     },
     "abort": {
       "already_configured": "Cette Boks est déjà configurée.",
@@ -187,7 +201,7 @@
       "fields": {
         "identifier": {
           "name": "Identifiant",
-          "description": "Le code PIN lui-même (pour Standard/Unique/Multiple) ou l'Index (pour Maître)."
+          "description": "Le code PIN lui-même (pour Unique/Multiple/Permanent) ou l'Index (pour Permanent)."
         },
         "code_type": {
           "name": "Type",

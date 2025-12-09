@@ -45,10 +45,23 @@
       "invalid_code_format": "Invalid Code format (must be 6 chars from 0-9, A, B)",
       "create_code_failed": "Failed to create code (Device returned error)",
       "change_master_code_failed": "Failed to change master code (Device returned error)",
-      "config_key_required_simple": "Configuration Key required",
       "unknown_code_type": "Unknown code type",
-      "unknown_device": "The device is not seen by the Bluetooth adapter.",
-      "not_connectable": "The detected device is not connectable (probably via a passive proxy)."
+      "not_connectable": "The detected device is not connectable (probably via a passive proxy).",
+      "todo_entity_not_found_for_device": "No Todo entity found for device {target_device_id}",
+      "target_devices_not_boks": "Target device(s) {device_ids} are not Boks devices.",
+      "target_entities_not_boks": "Target entity(s) {entity_ids} belong to non-Boks devices.",
+      "target_device_missing": "Target Boks device not found or not specified. Please specify a device_id or entity_id.",
+      "multiple_devices_found": "Multiple Boks devices found. Please specify a target entity or device.",
+      "no_devices_configured": "No Boks devices configured.",
+      "cannot_resolve_todo": "Could not resolve a target Boks Todo list.",
+      "todo_integration_not_loaded": "Todo integration not loaded.",
+      "todo_entity_not_found": "Todo entity '{target_entity_id}' not found or not loaded.",
+      "config_key_invalid_length": "Config key must be exactly 8 characters long.",
+      "ble_client_none": "BLE client is None, cannot send command",
+      "timeout_waiting_response": "Timeout waiting for response to opcode {opcode}",
+      "ble_error": "BLE Error: {error}",
+      "ble_internal_error": "BLE Internal Error: {error}",
+      "entity_not_parcel_list": "Entity {target_entity_id} is not a Boks Parcel List."
     },
     "abort": {
       "already_configured": "This Boks is already configured.",
@@ -187,7 +200,7 @@
       "fields": {
         "identifier": {
           "name": "Identifier",
-          "description": "The PIN Code itself (for Standard/Single/Multi) or the Index (for Master)."
+          "description": "The PIN Code itself (for Single/Multi/Master) or the Index (for Master)."
         },
         "type": {
           "name": "Type",
