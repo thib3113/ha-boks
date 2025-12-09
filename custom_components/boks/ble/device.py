@@ -83,7 +83,7 @@ class BoksBluetoothDevice:
         """Check if battery info should be updated based on the full refresh interval."""
         if self._last_battery_update is None:
             return True
-        
+
         now = datetime.now()
         return (now - self._last_battery_update) >= timedelta(hours=self._full_refresh_interval_hours)
 
@@ -92,10 +92,19 @@ class BoksBluetoothDevice:
         try:
             # Small delay to ensure the door closing operation is complete
             await asyncio.sleep(1.0)
-            
+
             # Ensure we have a connection session for this background task
-            await self.connect()
-            
+            # Try to get the BLEDevice from HA's cache to avoid warning
+            device = bluetooth.async_ble_device_from_address(
+                self.hass, self.address, connectable=True
+            )
+            if not device:
+                device = bluetooth.async_ble_device_from_address(
+                    self.hass, self.address, connectable=False
+                )
+
+            await self.connect(device=device)
+
             update_data = {}
 
             # Update battery level
@@ -104,13 +113,14 @@ class BoksBluetoothDevice:
                 self._last_battery_update = datetime.now()
                 update_data["battery_level"] = battery_level
                 _LOGGER.debug("Battery level updated after door closing: %d%%", battery_level)
-            
-            # Update battery temperature
-            battery_temperature = await self.get_battery_temperature()
-            if battery_temperature is not None:
-                update_data["battery_temperature"] = battery_temperature
-                _LOGGER.debug("Battery temperature updated after door closing: %d°C", battery_temperature)
-            
+
+            # Update battery temperature and stats
+            battery_stats = await self.get_battery_stats()
+            if battery_stats is not None:
+                update_data["battery_stats"] = battery_stats
+                update_data["battery_temperature"] = battery_stats["temperature"]
+                _LOGGER.debug("Battery stats updated after door closing: %s", battery_stats)
+
             # Propagate updates to coordinator
             if update_data and self._status_callback:
                 self._status_callback(update_data)
@@ -451,42 +461,81 @@ class BoksBluetoothDevice:
              _LOGGER.warning("Failed to read battery: %s", e)
         return 0
 
-    async def get_battery_temperature(self) -> int | None:
-        """Get battery temperature.
+    async def get_battery_stats(self) -> dict | None:
+        """Get battery statistics and format.
 
-        Reads from characteristic 0004 which returns 6 bytes:
-        [level_first, level_min, level_mean, level_max, level_last, temperature]
-        Temperature is byte 5, converted using formula: value - 25
+        Supports 3 formats:
+        1. measures-first-min-mean-max-last (6 bytes custom char)
+        2. measures-t1-t5-t10 (4 bytes custom char)
+        3. measure-single (1 byte standard char)
+
+        NOTE: For custom formats, values are in decivolts (e.g. 42 = 4.2V).
         """
         if not self.is_connected:
             await self.connect()
 
         # Safety check for None client
         if self._client is None:
-            _LOGGER.warning("BLE client is None, cannot read battery temperature")
+            _LOGGER.warning("BLE client is None, cannot read battery stats")
             return None
 
+        stats = {"format": "unknown", "temperature": None}
+
+        # 1. Try Custom Characteristic (0004)
         try:
-            # Read from characteristic 0004 using the main service UUID
-            # Using bleak's read_gatt_char with UUIDs instead of integer handle
             payload = await self._client.read_gatt_char(BoksServiceUUID.BATTERY_CHARACTERISTIC)
-            if len(payload) >= 6:
-                # Temperature is the 6th byte (index 5), converted using formula: value - 25
+            if len(payload) == 6:
+                stats["format"] = "measures-first-min-mean-max-last"
                 raw_temp = payload[5]
-                
-                if raw_temp == 255:
-                    _LOGGER.debug("Battery temperature raw value is 255 (Invalid/Unknown).")
-                    return None
+                temperature = raw_temp - 25 if raw_temp != 255 else None
 
-                temperature = raw_temp - 25
-                _LOGGER.debug("Battery temperature raw data: %s, raw_temp: %d, temperature: %d°C", payload.hex(), raw_temp, temperature)
-                return temperature
-            else:
-                _LOGGER.warning("Unexpected payload length for battery temperature: %d bytes", len(payload))
-                return None
+                stats.update({
+                    "level_first": payload[0],
+                    "level_min": payload[1],
+                    "level_mean": payload[2],
+                    "level_max": payload[3],
+                    "level_last": payload[4],
+                    "temperature": temperature
+                })
+                _LOGGER.debug(f"Battery stats (6-byte): {stats}")
+                return stats
+            elif len(payload) == 4:
+                stats["format"] = "measures-t1-t5-t10"
+                raw_temp = payload[3]
+                temperature = raw_temp - 25 if raw_temp != 255 else None
+
+                stats.update({
+                    "level_t1": payload[0],
+                    "level_t5": payload[1] if payload[1] != 255 else None,
+                    "level_t10": payload[2] if payload[2] != 255 else None,
+                    "temperature": temperature
+                })
+                _LOGGER.debug(f"Battery stats (4-byte): {stats}")
+                return stats
         except Exception as e:
-            _LOGGER.warning("Failed to read battery temperature: %s", e)
-            return None
+            # Not necessarily an error, might just be an older device or different firmware
+            _LOGGER.debug("Custom battery char read failed or unavailable: %s", e)
+
+        # 2. Try Standard Battery Service (2A19)
+        try:
+            payload = await self._client.read_gatt_char(BoksServiceUUID.BATTERY_LEVEL_CHARACTERISTIC)
+            if len(payload) == 1:
+                stats["format"] = "measure-single"
+                stats["level_single"] = payload[0]
+                # Single format usually doesn't have temperature
+                _LOGGER.debug(f"Battery stats (Standard): {stats}")
+                return stats
+        except Exception as e:
+             _LOGGER.warning("Failed to read standard battery level: %s", e)
+
+        return None
+
+    async def get_battery_temperature(self) -> int | None:
+        """Get battery temperature. (Deprecated, use get_battery_stats)"""
+        stats = await self.get_battery_stats()
+        if stats:
+            return stats.get("temperature")
+        return None
 
     async def get_internal_firmware_revision(self) -> str | None:
         """Get internal firmware revision (e.g. 10/125)."""
@@ -607,12 +656,12 @@ class BoksBluetoothDevice:
         """Validate PIN format."""
         return len(code) == 6 and all(c in BOKS_CHAR_MAP for c in code)
 
-    async def create_pin_code(self, code: str = None, code_type: str = "standard", index: int = 0) -> str:
+    async def create_pin_code(self, code: str = None, type: str = "standard", index: int = 0) -> str:
         """
         Create a PIN code. Returns the created code.
-        code_type: 'master', 'single', 'multi'
+        type: 'master', 'single', 'multi'
         """
-        _LOGGER.debug("Creating PIN code: code=%s, code_type=%s, index=%d", code, code_type, index)
+        _LOGGER.debug("Creating PIN code: code=%s, type=%s, index=%d", code, type, index)
         if not self._config_key_str:
             _LOGGER.error("Config key required but not present")
             raise BoksAuthError("config_key_required")
@@ -629,7 +678,17 @@ class BoksBluetoothDevice:
         payload = bytearray(self._config_key_str.encode('ascii'))
         payload.extend(code.encode('ascii'))
 
-        if code_type == "master":
+        if type == "master":
+            # Boks requires the slot to be empty before creating a new Master Code at a specific index.
+            # We attempt to delete any existing code at this index first.
+            _LOGGER.debug(f"Attempting to clear Master Code slot {index} before writing...")
+            try:
+                await self.delete_pin_code(type="master", index_or_code=index)
+                _LOGGER.debug(f"Slot {index} cleared successfully.")
+            except Exception as e:
+                # 0x78 Error usually means slot was already empty, which is fine.
+                _LOGGER.debug(f"Clear slot {index} result (ignored): {e}")
+
             opcode = BoksCommandOpcode.CREATE_MASTER_CODE
             payload.append(index)
         elif code_type == "single":
@@ -686,31 +745,66 @@ class BoksBluetoothDevice:
         else:
             raise BoksCommandError("change_master_code_failed")
 
-    async def delete_pin_code(self, code_type: str, index_or_code: Any) -> bool:
+    async def delete_pin_code(self, type: str, index_or_code: Any) -> bool:
         """
         Delete a PIN code.
+        For Master Codes, this performs a 'Deep Delete' to remove stacked/duplicate entries on the same index.
         """
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
 
         opcode = 0
-        payload = bytearray(self._config_key_str.encode('ascii'))
+        base_payload = bytearray(self._config_key_str.encode('ascii'))
 
-        if code_type == "master":
+        if type == "master":
             opcode = BoksCommandOpcode.DELETE_MASTER_CODE
-            payload.append(int(index_or_code))
-        elif code_type == "single":
+            payload = base_payload + bytearray([int(index_or_code)])
+            
+            # Deep Delete Strategy for Master Codes
+            success_count = 0
+            max_retries = 10 # Safety limit
+            
+            for i in range(max_retries):
+                _LOGGER.debug(f"Deep Delete Master Code Index {index_or_code}, Attempt {i+1}")
+                resp = await self._send_command(
+                    opcode,
+                    payload,
+                    wait_for_opcodes=[
+                        BoksNotificationOpcode.CODE_OPERATION_SUCCESS,
+                        BoksNotificationOpcode.CODE_OPERATION_ERROR
+                    ]
+                )
+                
+                if resp[0] == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
+                    success_count += 1
+                    _LOGGER.info(f"Successfully deleted a Master Code at index {index_or_code} (Count: {success_count})")
+                    # If success, we continue to check for ghosts
+                    await asyncio.sleep(0.5) # Small pause between deletions
+                elif resp[0] == BoksNotificationOpcode.CODE_OPERATION_ERROR:
+                    _LOGGER.debug(f"No more Master Codes at index {index_or_code} (Error 0x78 received). Deep Delete finished.")
+                    break
+                else:
+                    _LOGGER.warning(f"Unknown response during delete: 0x{resp[0]:02X}")
+                    break
+            
+            if success_count > 0:
+                if success_count > 1:
+                    _LOGGER.warning(f"Deep Delete cleaned {success_count} stacked codes on index {index_or_code}. This indicates previous unclean writes.")
+                return True
+            return False
+
+        elif type == "single":
             opcode = BoksCommandOpcode.DELETE_SINGLE_USE_CODE
             # For single-use codes, the identifier is the code itself
             if isinstance(index_or_code, str):
                 index_or_code = index_or_code.strip().upper()
-            payload.extend(str(index_or_code).encode('ascii'))
-        elif code_type == "multi":
+            payload = base_payload + str(index_or_code).encode('ascii')
+        elif type == "multi":
             opcode = BoksCommandOpcode.DELETE_MULTI_USE_CODE
             # For multi-use codes, the identifier is the code itself
             if isinstance(index_or_code, str):
                 index_or_code = index_or_code.strip().upper()
-            payload.extend(str(index_or_code).encode('ascii'))
+            payload = base_payload + str(index_or_code).encode('ascii')
         else:
             raise BoksError("unknown_code_type")
 

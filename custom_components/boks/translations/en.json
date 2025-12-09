@@ -132,6 +132,33 @@
       },
       "single_use_codes_count": {
         "name": "Single use codes"
+      },
+      "battery_format": {
+        "name": "Battery Format"
+      },
+      "battery_level_first": {
+        "name": "Battery Voltage (First)"
+      },
+      "battery_level_min": {
+        "name": "Battery Voltage (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Battery Voltage (Mean)"
+      },
+      "battery_level_max": {
+        "name": "Battery Voltage (Max)"
+      },
+      "battery_level_last": {
+        "name": "Battery Voltage (Last)"
+      },
+      "battery_level_t1": {
+        "name": "Battery Voltage (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Battery Voltage (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Battery Voltage (T10)"
       }
     },
     "todo": {
@@ -178,7 +205,7 @@
     },
     "add_pin_code": {
       "name": "Add PIN Code",
-      "description": "Adds a new PIN code to the Boks. Requires Configuration Key. Returns the created code.",
+      "description": "Adds a new PIN code to the Boks. Requires Configuration Key. If a master code already exists at the specified index, it will be overwritten. Returns the created code.",
       "fields": {
         "code": {
           "name": "PIN Code",
@@ -190,7 +217,7 @@
         },
         "index": {
           "name": "Index",
-          "description": "The index for the code (only for Master codes, 0-255)."
+          "description": "The index for the code (only for master codes, 0-255). WARNING: Any existing code at this index will be deleted before creation."
         }
       }
     },

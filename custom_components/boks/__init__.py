@@ -256,6 +256,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         code_type = call.data.get("type")
         index = call.data.get("index")
 
+        # Audit Log
+        masked_code = "***" + code[-2:] if code and len(code) > 2 else "***"
+        _LOGGER.info(f"User requested Add PIN Code: Code={masked_code}, Type={code_type}, Index={index}")
+
         coordinator = get_coordinator_from_call(hass, call)
 
         await coordinator.ble_device.connect()
@@ -288,6 +292,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         if identifier:
             identifier = identifier.strip().upper()
         code_type = call.data.get("type")
+
+        # Audit Log
+        _LOGGER.info(f"User requested Delete PIN Code: Identifier={identifier}, Type={code_type}")
 
         coordinator = get_coordinator_from_call(hass, call)
 

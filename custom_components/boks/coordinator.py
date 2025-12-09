@@ -74,8 +74,21 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         """
         result = {}
         try:
-            # Connect to increment reference counter
-            await self.ble_device.connect()
+            # Try to get the BLEDevice from HA's cache to avoid warning
+            ble_device_struct = bluetooth.async_ble_device_from_address(
+                self.hass, self.entry.data[CONF_ADDRESS], connectable=True
+            )
+            if not ble_device_struct:
+                ble_device_struct = bluetooth.async_ble_device_from_address(
+                    self.hass, self.entry.data[CONF_ADDRESS], connectable=False
+                )
+
+            # Connect to increment reference counter, passing the device if found
+            if ble_device_struct:
+                await self.ble_device.connect(device=ble_device_struct)
+            else:
+                _LOGGER.warning("Could not find BLE device for log sync, attempting connection by address only")
+                await self.ble_device.connect()
 
             log_count = await self.ble_device.get_logs_count()
             if log_count > 0:
@@ -93,10 +106,8 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     # Load translations once
                     # Use the helper function, not a method on hass
                     try:
-                        # Attempt to fetch translations. Category None fetches all? Or we try 'state'.
-                        # 'log_events' is custom, so it might be under a generic category or merged.
-                        # Let's try without category (None) or fallback to empty dict if it fails.
-                        translations = await translation.async_get_translations(self.hass, self.hass.config.language, "state", {DOMAIN})
+                        # Fetch translations for the 'entity' category to get sensor state translations
+                        translations = await translation.async_get_translations(self.hass, self.hass.config.language, "entity", {DOMAIN})
                     except Exception as e:
                         _LOGGER.warning(f"Failed to load translations: {e}")
                         translations = {}
@@ -113,23 +124,20 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         # Additional safety check for None log objects
                         if log is not None:
                             try:
-                                # Construct the full translation key expected by HA
-                                # Our keys in en.json/fr.json are now under "state": { "log_events": { ... } }
-                                # This maps to component.boks.state.log_events.KEY
+                                # Construct the translation key.
+                                # The keys in translations/fr.json under "entity" -> "sensor" -> "last_event" -> "state"
+                                # map to: component.boks.entity.sensor.last_event.state.{event_type}
+                                event_type = getattr(log, "event_type", "unknown")
+                                key = f"component.{DOMAIN}.entity.sensor.last_event.state.{event_type}"
                                 
-                                # log.description is e.g. "log_events.code_ble_valid"
-                                # So we just need to prepend component.boks.state.
-                                
-                                key = f"component.{DOMAIN}.state.{log.description}"
+                                # Use translated description if available, otherwise fallback to existing description
                                 translated_description = translations.get(key, log.description)
-                                
-                                # If simple lookup failed, fallback to original behavior (key)
                                 
                                 log_entry = {
                                     "opcode": getattr(log, "opcode", "unknown"),
                                     "payload": getattr(log, "payload", b"").hex() if getattr(log, "payload", None) is not None else "",
                                     "timestamp": getattr(log, "timestamp", 0),
-                                    "event_type": getattr(log, "event_type", "unknown"),
+                                    "event_type": event_type,
                                     "description": translated_description, # Use translated description
                                     **(getattr(log, "extra_data", {}) or {}),
                                 }
@@ -213,14 +221,16 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery level: %s", e)
                         
-                        # Fetch battery temperature
-                        _LOGGER.debug("Fetching battery temperature...")
+                        # Fetch battery stats (including temperature)
+                        _LOGGER.debug("Fetching battery stats...")
                         try:
-                            battery_temperature = await self.ble_device.get_battery_temperature()
-                            data["battery_temperature"] = battery_temperature
-                            _LOGGER.debug(f"Battery temperature fetched: {battery_temperature}°C")
+                            battery_stats = await self.ble_device.get_battery_stats()
+                            if battery_stats:
+                                data["battery_stats"] = battery_stats
+                                data["battery_temperature"] = battery_stats["temperature"]
+                                _LOGGER.debug(f"Battery stats fetched: {battery_stats}")
                         except Exception as e:
-                            _LOGGER.warning("Failed to fetch battery temperature: %s", e)
+                            _LOGGER.warning("Failed to fetch battery stats: %s", e)
                     else:
                         _LOGGER.debug("Battery fetch skipped (handled by door events).")
 

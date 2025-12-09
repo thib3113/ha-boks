@@ -8,6 +8,7 @@ from .sensors.battery import BoksBatterySensor
 from .sensors.battery_temperature import BoksBatteryTemperatureSensor
 from .sensors.last_event import BoksLastEventSensor
 from .sensors.codes import BoksCodeCountSensor
+from .sensors.battery_diagnostics import BoksBatteryDiagnosticSensor, BoksBatteryFormatSensor
 
 
 async def async_setup_entry(
@@ -23,7 +24,30 @@ async def async_setup_entry(
         BoksBatteryTemperatureSensor(coordinator, entry),
         BoksLastEventSensor(coordinator, entry),
         BoksCodeCountSensor(coordinator, entry, "master"),
-        BoksCodeCountSensor(coordinator, entry, "single_use")
+        BoksCodeCountSensor(coordinator, entry, "single_use"),
+        BoksBatteryFormatSensor(coordinator, entry),
     ]
+
+    # Check for battery format in coordinator data to selectively add diagnostic sensors
+    battery_stats = coordinator.data.get("battery_stats", {})
+    battery_format = battery_stats.get("format")
+
+    if battery_format == "measures-first-min-mean-max-last":
+        entities.extend([
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_first"),
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_min"),
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_mean"),
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_max"),
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_last"),
+        ])
+    elif battery_format == "measures-t1-t5-t10":
+        entities.extend([
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_t1"),
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_t5"),
+            BoksBatteryDiagnosticSensor(coordinator, entry, "level_t10"),
+        ])
+    
+    # If "measure-single" or unknown, we don't add extra diagnostic sensors, 
+    # as the main BoksBatterySensor covers the single level.
 
     async_add_entities(entities)

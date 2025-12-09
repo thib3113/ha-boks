@@ -133,6 +133,33 @@
       },
       "single_use_codes_count": {
         "name": "Codes à usage unique"
+      },
+      "battery_format": {
+        "name": "Format Batterie"
+      },
+      "battery_level_first": {
+        "name": "Tension Batterie (Première)"
+      },
+      "battery_level_min": {
+        "name": "Tension Batterie (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Tension Batterie (Moy)"
+      },
+      "battery_level_max": {
+        "name": "Tension Batterie (Max)"
+      },
+      "battery_level_last": {
+        "name": "Tension Batterie (Dernière)"
+      },
+      "battery_level_t1": {
+        "name": "Tension Batterie (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Tension Batterie (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Tension Batterie (T10)"
       }
     },
     "todo": {
@@ -179,7 +206,7 @@
     },
     "add_pin_code": {
       "name": "Ajouter un code PIN",
-      "description": "Ajoute un nouveau code PIN à la Boks. Nécessite une clé de configuration. Retourne le code créé.",
+      "description": "Ajoute un nouveau code PIN à la Boks. Nécessite une clé de configuration. Si un code permanent existe déjà à l'index spécifié, il sera écrasé. Retourne le code créé.",
       "fields": {
         "code": {
           "name": "Code PIN",
@@ -187,11 +214,11 @@
         },
         "code_type": {
           "name": "Type",
-          "description": "Le type de code à créer."
+          "description": "Le type de code : master (Code permanent), single (Code à usage unique), ou multi (Code à usage multiple)."
         },
         "index": {
           "name": "Index",
-          "description": "L'index pour le code (uniquement pour les codes permanents, 0-255)."
+          "description": "L'index pour le code (uniquement pour les codes permanents, 0-255). ATTENTION : Tout code existant à cet index sera supprimé avant l'ajout."
         }
       }
     },
@@ -205,7 +232,7 @@
         },
         "code_type": {
           "name": "Type",
-          "description": "Le type de code à supprimer."
+          "description": "Le type de code : master (Code permanent), single (Code à usage unique), ou multi (Code à usage multiple)."
         }
       }
     },

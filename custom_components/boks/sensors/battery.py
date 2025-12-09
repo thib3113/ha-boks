@@ -32,4 +32,6 @@ class BoksBatterySensor(BoksEntity, SensorEntity):
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
+        # We strictly use the standard BLE battery level (percentage) here.
+        # Custom characteristics return voltage (e.g. 42 for 4.2V), which is incompatible with this sensor.
         return self.coordinator.data.get("battery_level", 0)

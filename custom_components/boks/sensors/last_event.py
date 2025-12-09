@@ -6,6 +6,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers.restore_state import RestoreEntity
 
+from homeassistant.util import dt as dt_util
+
 from ..entity import BoksEntity
 from ..coordinator import BoksDataUpdateCoordinator
 
@@ -72,38 +74,68 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
         if not logs:
             return {}
 
-        # Get the most recent log (logs are sorted with oldest first, so newest is last)
+        # Get the most recent log
         latest_log = logs[-1] if isinstance(logs, list) and len(logs) > 0 else None
         if not latest_log:
             return {}
 
+        # Process timestamp
+        timestamp_val = latest_log.get("timestamp")
+        formatted_timestamp = None
+        if timestamp_val:
+            try:
+                # Assuming timestamp is a unix timestamp (seconds)
+                dt_obj = dt_util.utc_from_timestamp(timestamp_val)
+                # Convert to local time and format as readable string
+                formatted_timestamp = dt_util.as_local(dt_obj).strftime("%Y-%m-%d %H:%M:%S")
+            except Exception:
+                formatted_timestamp = str(timestamp_val)
+
+        # Keys that are handled explicitly and should not be duplicated in extras
+        standard_keys = {"timestamp", "event_type", "description", "opcode", "payload"}
+
         # Return detailed information about the last event
         attributes = {
-            "timestamp": latest_log.get("timestamp"),
+            "timestamp": formatted_timestamp,
             "event_type": latest_log.get("event_type"),
-            "description": latest_log.get("description"),
+            "description": latest_log.get("description"), # Description handled by coordinator
             "opcode": latest_log.get("opcode"),
         }
 
-        # Add extra data if available
-        if "extra_data" in latest_log and latest_log["extra_data"]:
-            attributes.update(latest_log["extra_data"])
+        # Add all other keys from the log as extras (e.g., 'code', 'error_code', etc.)
+        extras = {k: v for k, v in latest_log.items() if k not in standard_keys}
+        attributes.update(extras)
 
-        # Add last 10 events to attributes
+        # Add last 10 events to attributes (Newest First)
         if isinstance(logs, list):
-            # Get last 10 events, or all if less than 10
-            last_10_events = logs[-10:] if len(logs) >= 10 else logs
+            # Get last 10 events
+            last_events_chunk = logs[-10:] if len(logs) >= 10 else logs
+            # Reverse them to have Newest -> Oldest
+            last_events_reversed = reversed(last_events_chunk)
+            
             # Format events for display
             formatted_events = []
-            for log in last_10_events:
+            for log in last_events_reversed:
+                # Format timestamp for history
+                ts_val = log.get("timestamp")
+                ts_str = str(ts_val)
+                if ts_val:
+                    try:
+                        dt_obj = dt_util.utc_from_timestamp(ts_val)
+                        ts_str = dt_util.as_local(dt_obj).strftime("%Y-%m-%d %H:%M:%S")
+                    except Exception:
+                        pass
+                
                 formatted_event = {
-                    "timestamp": log.get("timestamp"),
+                    "timestamp": ts_str,
                     "description": log.get("description"),
                     "event_type": log.get("event_type"),
                 }
-                # Add extra data if available
-                if "extra_data" in log and log["extra_data"]:
-                    formatted_event.update(log["extra_data"])
+                
+                # Add extras for this history item
+                log_extras = {k: v for k, v in log.items() if k not in standard_keys}
+                formatted_event.update(log_extras)
+                
                 formatted_events.append(formatted_event)
             attributes["last_10_events"] = formatted_events
 
