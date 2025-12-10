@@ -61,7 +61,8 @@
       "timeout_waiting_response": "Timeout waiting for response to opcode {opcode}",
       "ble_error": "BLE Error: {error}",
       "ble_internal_error": "BLE Internal Error: {error}",
-      "entity_not_parcel_list": "Entity {target_entity_id} is not a Boks Parcel List."
+      "entity_not_parcel_list": "Entity {target_entity_id} is not a Boks Parcel List.",
+      "maintenance_already_running": "A maintenance task is already in progress. Please wait for it to finish."
     },
     "abort": {
       "already_configured": "This Boks is already configured.",
@@ -136,6 +137,9 @@
       "battery_format": {
         "name": "Battery Format"
       },
+      "battery_type": {
+        "name": "Battery Type"
+      },
       "battery_level_first": {
         "name": "Battery Voltage (First)"
       },
@@ -159,6 +163,13 @@
       },
       "battery_level_t10": {
         "name": "Battery Voltage (T10)"
+      },
+      "maintenance_status": {
+        "name": "Maintenance Status",
+        "state": {
+          "idle": "Idle",
+          "cleaning": "Cleaning Master Codes"
+        }
       }
     },
     "todo": {
@@ -232,6 +243,20 @@
         "type": {
           "name": "Type",
           "description": "The type of code to delete."
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "Clean Master Codes",
+      "description": "Scans and deletes Master Codes in a specified index range to remove ghosts. Limit: 100 indices per run.",
+      "fields": {
+        "start_index": {
+          "name": "Start Index",
+          "description": "The index to start cleaning from (0-255)."
+        },
+        "range": {
+          "name": "Range",
+          "description": "Number of indices to scan (Max 100)."
         }
       }
     },

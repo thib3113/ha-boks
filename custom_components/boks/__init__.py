@@ -4,6 +4,7 @@ import logging
 import voluptuous as vol
 import json
 import os
+import asyncio
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -44,6 +45,11 @@ SERVICE_DELETE_CODE_SCHEMA = vol.Schema({
 }, extra=vol.ALLOW_EXTRA)
 
 SERVICE_SYNC_LOGS_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
+
+SERVICE_CLEAN_MASTER_CODES_SCHEMA = vol.Schema({
+    vol.Optional("start_index", default=0): cv.positive_int,
+    vol.Optional("range", default=100): cv.positive_int,
+}, extra=vol.ALLOW_EXTRA)
 
 def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDataUpdateCoordinator:
     """Retrieve the Boks coordinator from a service call target."""
@@ -110,6 +116,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     async def handle_add_parcel(call: ServiceCall) -> dict | None:
         """Handle the add parcel service call."""
         description = call.data.get("description", "")
+
+        _LOGGER.info(f"User requested Add Parcel PIN Code: description={description}")
 
         target_entity_id = None
 
@@ -264,7 +272,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
         await coordinator.ble_device.connect()
         try:
-            created_code = await coordinator.ble_device.create_pin_code(code, code_type, index)
+            created_code = await coordinator.ble_device.create_pin_code(code, code_type=code_type, index=index)
             _LOGGER.info(f"Code {created_code} ({code_type}) added successfully.")
             await coordinator.async_request_refresh()
             return {"code": created_code}
@@ -338,10 +346,165 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         schema=SERVICE_SYNC_LOGS_SCHEMA
     )
 
+    # --- Service: Clean Master Codes ---
+    async def handle_clean_master_codes(call: ServiceCall):
+        """Handle the clean master codes service call."""
+        _LOGGER.info("Starting clean_master_codes action")
+        start_index = call.data.get("start_index", 0)
+        range_val = call.data.get("range", 100)
+
+        # Enforce hard limit of 100 to prevent long-running blocking/battery drain
+        if range_val > 100:
+            _LOGGER.warning(f"Requested range {range_val} exceeds limit. Capping at 100.")
+            range_val = 100
+
+        coordinator = get_coordinator_from_call(hass, call)
+
+        # Check if maintenance is already running
+        current_status = getattr(coordinator, "maintenance_status", {})
+        if current_status.get("running", False):
+            _LOGGER.warning("Clean Master Codes requested but a maintenance task is already running.")
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="maintenance_already_running"
+            )
+
+        _LOGGER.info(f"Clean Master Codes requested: Start={start_index}, Range={range_val}")
+
+        # This operation is long, so we run it in a background task
+        # and update the coordinator state to reflect progress.
+
+        async def _background_clean():
+            total_to_clean = range_val
+            current_idx = start_index
+
+            # Initialize Status
+            coordinator.set_maintenance_status(
+                running=True,
+                current_index=current_idx,
+                total_to_clean=total_to_clean,
+                message="Starting..."
+            )
+
+            cleaned_count = 0
+
+            try:
+                # Initial Connection
+                if not coordinator.ble_device.is_connected:
+                    await coordinator.ble_device.connect()
+
+                for i in range(range_val):
+                    target_index = start_index + i
+                    current_progress_msg = f"Cleaning index {target_index}..."
+
+                    coordinator.set_maintenance_status(
+                        running=True,
+                        current_index=i + 1, # 1-based progress for user
+                        total_to_clean=total_to_clean,
+                        message=current_progress_msg
+                    )
+
+                    retry_count = 0
+                    max_retries = 3
+                    success = False
+
+                    while retry_count < max_retries and not success:
+                        try:
+                             # Ensure connected before command
+                            if not coordinator.ble_device.is_connected:
+                                _LOGGER.debug(f"Reconnecting for index {target_index}...")
+                                await coordinator.ble_device.connect()
+
+                            # delete_pin_code with type='master' handles the "deep delete" loop internally
+                            # until it receives 0x78 (not found)
+                            await coordinator.ble_device.delete_pin_code(type="master", index_or_code=target_index)
+                            cleaned_count += 1
+                            # Small pause to let the device breathe
+                            await asyncio.sleep(0.2)
+                            success = True
+
+                        except Exception as e:
+                            retry_count += 1
+                            _LOGGER.warning(f"Error cleaning index {target_index} (Attempt {retry_count}/{max_retries}): {e}")
+                            await asyncio.sleep(1.0) # Wait a bit before retry
+
+                    if not success:
+                        _LOGGER.error(f"Failed to clean index {target_index} after {max_retries} attempts. Aborting.")
+                        raise Exception("Connection lost or device unresponsive")
+
+
+                # Finished
+                coordinator.set_maintenance_status(
+                    running=False,
+                    current_index=total_to_clean,
+                    total_to_clean=total_to_clean,
+                    message="Finished"
+                )
+
+                # Send Notification
+                await hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "message": f"Master Code Cleaning Completed.\nScanned {range_val} indices starting from {start_index}.",
+                        "title": "Boks Maintenance",
+                        "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
+                    }
+                )
+
+            except Exception as e:
+                _LOGGER.error(f"Maintenance task failed: {e}")
+                coordinator.set_maintenance_status(
+                    running=False,
+                    message=f"Failed: {e}"
+                )
+
+                await hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "message": f"Master Code Cleaning Failed at index {current_idx}.\nError: {e}",
+                        "title": "Boks Maintenance Error",
+                        "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
+                    }
+                )
+
+            finally:
+                 await coordinator.ble_device.disconnect()
+                 # Reset status after a delay so the user can see "Finished"
+                 await asyncio.sleep(60)
+                 coordinator.set_maintenance_status(running=False, message="")
+
+        # Fire and forget (task is tracked by HA loop)
+        hass.async_create_task(_background_clean())
+
+    hass.services.async_register(
+        DOMAIN,
+        "clean_master_codes",
+        handle_clean_master_codes,
+        schema=SERVICE_CLEAN_MASTER_CODES_SCHEMA
+    )
+
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Boks from a config entry."""
+
+    # Ensure options are populated with defaults if missing
+    # This addresses cases where the options flow was never opened/saved
+    # and ensures the user sees the active values in the options dialog.
+    from .const import DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL
+
+    options_update = {}
+    if "scan_interval" not in entry.options:
+        options_update["scan_interval"] = DEFAULT_SCAN_INTERVAL
+    if "full_refresh_interval" not in entry.options:
+        options_update["full_refresh_interval"] = DEFAULT_FULL_REFRESH_INTERVAL
+
+    if options_update:
+        new_options = {**entry.options, **options_update}
+        hass.config_entries.async_update_entry(entry, options=new_options)
+        _LOGGER.debug(f"Updated config entry options with defaults: {options_update}")
 
     coordinator = BoksDataUpdateCoordinator(hass, entry)
 

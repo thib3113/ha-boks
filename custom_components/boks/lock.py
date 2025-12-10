@@ -122,11 +122,6 @@ class BoksLock(CoordinatorEntity, LockEntity):
             self.hass, self._entry.data[CONF_ADDRESS], connectable=True
         )
         if not device:
-            # If not found with connectable=True, try with connectable=False
-            device = bluetooth.async_ble_device_from_address(
-                self.hass, self._entry.data[CONF_ADDRESS], connectable=False
-            )
-        if not device:
             raise ValueError(f"Device {self._entry.data[CONF_ADDRESS]} not found in Bluetooth cache. No connectable path available.")
         await ble_device.connect(device)
 
@@ -139,7 +134,7 @@ class BoksLock(CoordinatorEntity, LockEntity):
                     _LOGGER.info("Using stored Master Code for opening.")
 
             # 2. Fallback: Try to generate a single-use code if no master code and we have the key
-            if not code and ble_device._config_key_str:
+            if not code and ble_device.config_key_str:
                 for attempt in range(2): # Try twice
                     try:
                         _LOGGER.debug(f"Attempting to generate single-use code (Attempt {attempt+1})...")
@@ -154,7 +149,7 @@ class BoksLock(CoordinatorEntity, LockEntity):
             if not code:
                 # Detailed error message for user
                 msg = "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN."
-                if not ble_device._config_key_str:
+                if not ble_device.config_key_str:
                      msg += " (No Config Key available)"
                 raise ValueError(msg)
 

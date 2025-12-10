@@ -77,6 +77,37 @@ delete_pin_code:
             - master
           mode: dropdown
 
+clean_master_codes:
+  name: translation::services.clean_master_codes.name
+  description: translation::services.clean_master_codes.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    start_index:
+      name: translation::services.clean_master_codes.fields.start_index.name
+      description: translation::services.clean_master_codes.fields.start_index.description
+      required: false
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 255
+          step: 1
+          mode: box
+    range:
+      name: translation::services.clean_master_codes.fields.range.name
+      description: translation::services.clean_master_codes.fields.range.description
+      required: false
+      default: 100
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          mode: box
+
 sync_logs:
   name: translation::services.sync_logs.name
   description: translation::services.sync_logs.description

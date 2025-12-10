@@ -17,7 +17,8 @@ from homeassistant.helpers import translation # Import translation helper
 
 from .ble import BoksBluetoothDevice, BoksError
 from .ble.log_entry import BoksLogEntry # Import BoksLogEntry
-from .const import DOMAIN, CONF_CONFIG_KEY # Import DOMAIN
+from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL # Import DOMAIN and defaults
+from .util import process_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,12 +39,12 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         _LOGGER.debug("BoksDataUpdateCoordinator initialized with Address: %s, Config Key Present: %s",
                        entry.data[CONF_ADDRESS], bool(entry.data.get(CONF_CONFIG_KEY)))
         self._last_battery_update = None
-        self.full_refresh_interval_hours = entry.options.get("full_refresh_interval", 12)
+        self.full_refresh_interval_hours = entry.options.get("full_refresh_interval", DEFAULT_FULL_REFRESH_INTERVAL)
         # Set the full refresh interval on the BLE device
         self.ble_device.set_full_refresh_interval(self.full_refresh_interval_hours)
 
-        # Get scan interval from options, default to 1 minute
-        scan_interval_minutes = entry.options.get("scan_interval", 1)
+        # Get scan interval from options, default to constant
+        scan_interval_minutes = entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
         if scan_interval_minutes == 0:
             update_interval = None
         else:
@@ -56,6 +57,23 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=update_interval,
         )
         self.data = {} # Initialize data to an empty dictionary after super init
+        self._maintenance_status = {"running": False}
+
+    @property
+    def maintenance_status(self):
+        return self._maintenance_status
+
+    def set_maintenance_status(self, running: bool, current_index: int = 0, total_to_clean: int = 0, message: str = ""):
+        """Update the maintenance status and notify listeners."""
+        self._maintenance_status = {
+            "running": running,
+            "current_index": current_index,
+            "total_to_clean": total_to_clean,
+            "progress": int((current_index / total_to_clean * 100)) if total_to_clean > 0 else 0,
+            "last_cleaned": current_index - 1 if current_index > 0 else 0,
+            "message": message
+        }
+        self.async_set_updated_data(self.data)
 
     def _handle_status_update(self, status_data: dict):
         """Handle push updates from the device."""
@@ -221,16 +239,8 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery level: %s", e)
                         
-                        # Fetch battery stats (including temperature)
-                        _LOGGER.debug("Fetching battery stats...")
-                        try:
-                            battery_stats = await self.ble_device.get_battery_stats()
-                            if battery_stats:
-                                data["battery_stats"] = battery_stats
-                                data["battery_temperature"] = battery_stats["temperature"]
-                                _LOGGER.debug(f"Battery stats fetched: {battery_stats}")
-                        except Exception as e:
-                            _LOGGER.warning("Failed to fetch battery stats: %s", e)
+                        # Battery stats (including temperature) are now only fetched via door events
+                        _LOGGER.debug("Battery stats fetching is now handled by door events.")
                     else:
                         _LOGGER.debug("Battery fetch skipped (handled by door events).")
 
@@ -242,6 +252,12 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         _LOGGER.debug(f"Code counts fetched: {counts}")
                     except BoksError as e:
                         _LOGGER.warning("Could not fetch code counts: %s", e)
+                        # Even if we fail to fetch code counts, we should continue with other operations
+                        # The connection reference count should be properly managed by the finally block
+                    except asyncio.TimeoutError:
+                        _LOGGER.warning("Timeout while fetching code counts")
+                        # Even if we timeout, we should continue with other operations
+                        # The connection reference count should be properly managed by the finally block
 
                     # 4. Get Device Information (Always update on poll, or maybe throttle?)
                     # Since these don't change often, we could throttle, but for now let's fetch to ensure we have them.
@@ -274,15 +290,20 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             )
 
                             if device_entry:
+                                # Process info to get standardized fields (sw_version, hw_version, etc.)
+                                processed_info = process_device_info(self.entry.data, device_info)
+                                
+                                # Filter out keys that are not updateable or not needed for update
+                                # async_update_device expects specific kwargs like sw_version, hw_version, etc.
                                 update_kwargs = {}
-                                if device_info.get("software_revision"):
-                                    update_kwargs["sw_version"] = device_info["software_revision"]
-                                if device_info.get("hardware_revision"):
-                                    update_kwargs["hw_version"] = device_info["hardware_revision"]
-                                if device_info.get("manufacturer_name"):
-                                    update_kwargs["manufacturer"] = device_info["manufacturer_name"]
-                                if device_info.get("model_number"):
-                                    update_kwargs["model"] = device_info["model_number"]
+                                if "sw_version" in processed_info:
+                                    update_kwargs["sw_version"] = processed_info["sw_version"]
+                                if "hw_version" in processed_info:
+                                    update_kwargs["hw_version"] = processed_info["hw_version"]
+                                if "manufacturer" in processed_info:
+                                    update_kwargs["manufacturer"] = processed_info["manufacturer"]
+                                if "model" in processed_info:
+                                    update_kwargs["model"] = processed_info["model"]
 
                                 if update_kwargs:
                                     device_registry.async_update_device(

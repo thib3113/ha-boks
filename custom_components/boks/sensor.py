@@ -8,7 +8,8 @@ from .sensors.battery import BoksBatterySensor
 from .sensors.battery_temperature import BoksBatteryTemperatureSensor
 from .sensors.last_event import BoksLastEventSensor
 from .sensors.codes import BoksCodeCountSensor
-from .sensors.battery_diagnostics import BoksBatteryDiagnosticSensor, BoksBatteryFormatSensor
+from .sensors.battery_diagnostics import BoksBatteryDiagnosticSensor, BoksBatteryFormatSensor, BoksBatteryTypeSensor
+from .sensors.maintenance import BoksMaintenanceSensor
 
 
 async def async_setup_entry(
@@ -26,6 +27,8 @@ async def async_setup_entry(
         BoksCodeCountSensor(coordinator, entry, "master"),
         BoksCodeCountSensor(coordinator, entry, "single_use"),
         BoksBatteryFormatSensor(coordinator, entry),
+        BoksBatteryTypeSensor(coordinator, entry),
+        BoksMaintenanceSensor(coordinator, entry),
     ]
 
     # Check for battery format in coordinator data to selectively add diagnostic sensors

@@ -62,7 +62,8 @@
       "timeout_waiting_response": "Délai d'attente dépassé pour la réponse à l'opcode {opcode}",
       "ble_error": "Erreur BLE : {error}",
       "ble_internal_error": "Erreur interne BLE : {error}",
-      "entity_not_parcel_list": "L'entité {target_entity_id} n'est pas une liste de colis Boks."
+      "entity_not_parcel_list": "L'entité {target_entity_id} n'est pas une liste de colis Boks.",
+      "maintenance_already_running": "Une tâche de maintenance est déjà en cours. Veuillez attendre qu'elle se termine."
     },
     "abort": {
       "already_configured": "Cette Boks est déjà configurée.",
@@ -137,6 +138,9 @@
       "battery_format": {
         "name": "Format Batterie"
       },
+      "battery_type": {
+        "name": "Type de Batterie"
+      },
       "battery_level_first": {
         "name": "Tension Batterie (Première)"
       },
@@ -160,6 +164,13 @@
       },
       "battery_level_t10": {
         "name": "Tension Batterie (T10)"
+      },
+      "maintenance_status": {
+        "name": "Statut Maintenance",
+        "state": {
+          "idle": "Inactif",
+          "cleaning": "Nettoyage Codes Permanents"
+        }
       }
     },
     "todo": {
@@ -233,6 +244,20 @@
         "code_type": {
           "name": "Type",
           "description": "Le type de code : master (Code permanent), single (Code à usage unique), ou multi (Code à usage multiple)."
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "Nettoyer les Codes Permanents",
+      "description": "Scanne et supprime les codes permanents dans une plage d'index donnée pour éliminer les fantômes. Limite : 100 index par exécution.",
+      "fields": {
+        "start_index": {
+          "name": "Index de début",
+          "description": "L'index à partir duquel commencer le nettoyage (0-255)."
+        },
+        "range": {
+          "name": "Plage",
+          "description": "Nombre d'index à scanner (Max 100)."
         }
       }
     },

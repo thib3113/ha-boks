@@ -11,7 +11,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.core import callback
 from homeassistant.components import bluetooth
 
-from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, BOKS_CHAR_MAP, CONF_MASTER_KEY
+from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, BOKS_CHAR_MAP, CONF_MASTER_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,6 +121,10 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(
                     title=data[CONF_NAME],
                     data=data,
+                    options={
+                        "scan_interval": DEFAULT_SCAN_INTERVAL,
+                        "full_refresh_interval": DEFAULT_FULL_REFRESH_INTERVAL,
+                    }
                 )
 
         # Form Schema
@@ -165,11 +169,11 @@ class BoksOptionsFlowHandler(config_entries.OptionsFlow):
                 {
                     vol.Optional(
                         "scan_interval",
-                        default=self.config_entry.options.get("scan_interval", 60),
+                        default=self.config_entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL),
                     ): int,
                     vol.Optional(
                         "full_refresh_interval",
-                        default=self.config_entry.options.get("full_refresh_interval", 12),
+                        default=self.config_entry.options.get("full_refresh_interval", DEFAULT_FULL_REFRESH_INTERVAL),
                     ): int,
                     vol.Optional(
                         CONF_MASTER_CODE,

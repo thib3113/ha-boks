@@ -434,6 +434,8 @@ class BoksBluetoothDevice:
         except asyncio.TimeoutError:
             if future_key in self._response_futures:
                 del self._response_futures[future_key]
+            # Even though we're raising an exception, the connection reference count
+            # should be managed by the calling function's finally block
             raise BoksError("timeout_waiting_response", {"opcode": f"0x{opcode:02X}"})
         except BleakError as e:
             raise BoksError("ble_error", {"error": str(e)})
@@ -486,6 +488,12 @@ class BoksBluetoothDevice:
             payload = await self._client.read_gatt_char(BoksServiceUUID.BATTERY_CHARACTERISTIC)
             if len(payload) == 6:
                 stats["format"] = "measures-first-min-mean-max-last"
+
+                # Check for invalid payload (all FF)
+                if all(b == 255 for b in payload):
+                     _LOGGER.debug("Custom battery char returned invalid data (all FF), likely door closed.")
+                     return None
+
                 raw_temp = payload[5]
                 temperature = raw_temp - 25 if raw_temp != 255 else None
 
@@ -501,6 +509,12 @@ class BoksBluetoothDevice:
                 return stats
             elif len(payload) == 4:
                 stats["format"] = "measures-t1-t5-t10"
+
+                # Check for invalid payload (all FF)
+                if all(b == 255 for b in payload):
+                     _LOGGER.debug("Custom battery char returned invalid data (all FF), likely door closed.")
+                     return None
+
                 raw_temp = payload[3]
                 temperature = raw_temp - 25 if raw_temp != 255 else None
 
@@ -656,12 +670,12 @@ class BoksBluetoothDevice:
         """Validate PIN format."""
         return len(code) == 6 and all(c in BOKS_CHAR_MAP for c in code)
 
-    async def create_pin_code(self, code: str = None, type: str = "standard", index: int = 0) -> str:
+    async def create_pin_code(self, code: str = None, code_type: str = "single", index: int = 0) -> str:
         """
         Create a PIN code. Returns the created code.
-        type: 'master', 'single', 'multi'
+        code_type: 'master', 'single', 'multi'
         """
-        _LOGGER.debug("Creating PIN code: code=%s, type=%s, index=%d", code, type, index)
+        _LOGGER.debug("Creating PIN code: code=%s, type=%s, index=%d", code, code_type, index)
         if not self._config_key_str:
             _LOGGER.error("Config key required but not present")
             raise BoksAuthError("config_key_required")
@@ -678,12 +692,12 @@ class BoksBluetoothDevice:
         payload = bytearray(self._config_key_str.encode('ascii'))
         payload.extend(code.encode('ascii'))
 
-        if type == "master":
+        if code_type == "master":
             # Boks requires the slot to be empty before creating a new Master Code at a specific index.
             # We attempt to delete any existing code at this index first.
             _LOGGER.debug(f"Attempting to clear Master Code slot {index} before writing...")
             try:
-                await self.delete_pin_code(type="master", index_or_code=index)
+                await self.delete_pin_code(code_type="master", index_or_code=index)
                 _LOGGER.debug(f"Slot {index} cleared successfully.")
             except Exception as e:
                 # 0x78 Error usually means slot was already empty, which is fine.
@@ -745,7 +759,7 @@ class BoksBluetoothDevice:
         else:
             raise BoksCommandError("change_master_code_failed")
 
-    async def delete_pin_code(self, type: str, index_or_code: Any) -> bool:
+    async def delete_pin_code(self, code_type: str, index_or_code: Any) -> bool:
         """
         Delete a PIN code.
         For Master Codes, this performs a 'Deep Delete' to remove stacked/duplicate entries on the same index.
@@ -756,14 +770,14 @@ class BoksBluetoothDevice:
         opcode = 0
         base_payload = bytearray(self._config_key_str.encode('ascii'))
 
-        if type == "master":
+        if code_type == "master":
             opcode = BoksCommandOpcode.DELETE_MASTER_CODE
             payload = base_payload + bytearray([int(index_or_code)])
-            
+
             # Deep Delete Strategy for Master Codes
             success_count = 0
             max_retries = 10 # Safety limit
-            
+
             for i in range(max_retries):
                 _LOGGER.debug(f"Deep Delete Master Code Index {index_or_code}, Attempt {i+1}")
                 resp = await self._send_command(
@@ -774,7 +788,7 @@ class BoksBluetoothDevice:
                         BoksNotificationOpcode.CODE_OPERATION_ERROR
                     ]
                 )
-                
+
                 if resp[0] == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
                     success_count += 1
                     _LOGGER.info(f"Successfully deleted a Master Code at index {index_or_code} (Count: {success_count})")
@@ -786,20 +800,20 @@ class BoksBluetoothDevice:
                 else:
                     _LOGGER.warning(f"Unknown response during delete: 0x{resp[0]:02X}")
                     break
-            
+
             if success_count > 0:
                 if success_count > 1:
                     _LOGGER.warning(f"Deep Delete cleaned {success_count} stacked codes on index {index_or_code}. This indicates previous unclean writes.")
                 return True
             return False
 
-        elif type == "single":
+        elif code_type == "single":
             opcode = BoksCommandOpcode.DELETE_SINGLE_USE_CODE
             # For single-use codes, the identifier is the code itself
             if isinstance(index_or_code, str):
                 index_or_code = index_or_code.strip().upper()
             payload = base_payload + str(index_or_code).encode('ascii')
-        elif type == "multi":
+        elif code_type == "multi":
             opcode = BoksCommandOpcode.DELETE_MULTI_USE_CODE
             # For multi-use codes, the identifier is the code itself
             if isinstance(index_or_code, str):
@@ -971,3 +985,7 @@ class BoksBluetoothDevice:
         finally:
             # Unregister the callback
             self._response_callbacks.pop(BoksNotificationOpcode.NOTIFY_LOGS_COUNT, None)
+
+    @property
+    def config_key_str(self):
+        return self._config_key_str

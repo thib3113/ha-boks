@@ -8,6 +8,8 @@ from .coordinator import BoksDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
 
 
+from .util import process_device_info
+
 class BoksEntity(CoordinatorEntity):
     """Base class for Boks entities."""
 
@@ -21,17 +23,11 @@ class BoksEntity(CoordinatorEntity):
     @property
     def device_info(self):
         """Return device info."""
-        info = {
-            "identifiers": {(DOMAIN, self._entry.data[CONF_ADDRESS])},
-            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_ADDRESS])},
-            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_ADDRESS]}",
-            "manufacturer": "Boks",
-            "model": "Boks ONE",
-        }
-        if self.coordinator.data and "sw_version" in self.coordinator.data:
-            info["sw_version"] = self.coordinator.data["sw_version"]
-        elif self.coordinator.data and "device_info_service" in self.coordinator.data:
-            device_info = self.coordinator.data["device_info_service"]
-            if "software_revision" in device_info:
-                info["sw_version"] = device_info["software_revision"]
+        # Get base info using shared utility
+        device_info_service = self.coordinator.data.get("device_info_service") if self.coordinator.data else None
+        info = process_device_info(self._entry.data, device_info_service)
+        
+        # Add connection info which is specific to Entity Device Info (not always needed for Registry Update)
+        info["connections"] = {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_ADDRESS])}
+        
         return info
