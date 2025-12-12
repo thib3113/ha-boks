@@ -149,3 +149,9 @@ LOG_EVENT_TYPES = {
     BoksHistoryEvent.NFC_OPENING: "nfc_opening",
     BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "nfc_tag_registering",
 }
+
+class BoksCodeType(StrEnum):
+    """Code types for Boks."""
+    MASTER = "master"
+    SINGLE_USE = "single_use"
+    MULTI_USE = "multi_use"

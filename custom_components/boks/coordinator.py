@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from datetime import timedelta, datetime
+from typing import Callable
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -15,7 +16,8 @@ from homeassistant.components import bluetooth
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers import translation # Import translation helper
 
-from .ble import BoksBluetoothDevice, BoksError
+from .ble import BoksBluetoothDevice
+from .errors import BoksError
 from .ble.log_entry import BoksLogEntry # Import BoksLogEntry
 from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL # Import DOMAIN and defaults
 from .util import process_device_info
@@ -34,7 +36,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         )
         # Register callback for push updates (door status, battery info)
         self.ble_device.register_status_callback(self._handle_status_update)
-        
+
         self.entry = entry
         _LOGGER.debug("BoksDataUpdateCoordinator initialized with Address: %s, Config Key Present: %s",
                        entry.data[CONF_ADDRESS], bool(entry.data.get(CONF_CONFIG_KEY)))
@@ -81,6 +83,19 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             self.data = {}
 
         self.data.update(status_data)
+        
+        # Persist battery format if detected
+        if "battery_stats" in status_data:
+            stats = status_data["battery_stats"]
+            new_format = stats.get("format")
+            if new_format and new_format != "unknown":
+                current_stored_format = self.entry.data.get("battery_format")
+                if new_format != current_stored_format:
+                    _LOGGER.info(f"Detected new battery format: {new_format}. Persisting to config.")
+                    new_data = dict(self.entry.data)
+                    new_data["battery_format"] = new_format
+                    self.hass.config_entries.async_update_entry(self.entry, data=new_data)
+
         self.async_set_updated_data(self.data)
 
 
@@ -147,10 +162,10 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                                 # map to: component.boks.entity.sensor.last_event.state.{event_type}
                                 event_type = getattr(log, "event_type", "unknown")
                                 key = f"component.{DOMAIN}.entity.sensor.last_event.state.{event_type}"
-                                
+
                                 # Use translated description if available, otherwise fallback to existing description
                                 translated_description = translations.get(key, log.description)
-                                
+
                                 log_entry = {
                                     "opcode": getattr(log, "opcode", "unknown"),
                                     "payload": getattr(log, "payload", b"").hex() if getattr(log, "payload", None) is not None else "",
@@ -228,9 +243,9 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     # Only fetch battery if we don't have it yet (first run)
                     # Afterwards, battery is updated only via door events (see device.py)
                     should_fetch_battery = "battery_level" not in data
-                    
+
                     if should_fetch_battery:
-                        _LOGGER.debug("Fetching battery level (Initial)...")
+                        _LOGGER.debug("Fetching battery level and stats (Initial)...")
                         try:
                             battery_level = await self.ble_device.get_battery_level()
                             data["battery_level"] = battery_level
@@ -238,9 +253,16 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             _LOGGER.debug(f"Battery level fetched: {battery_level}")
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery level: %s", e)
-                        
-                        # Battery stats (including temperature) are now only fetched via door events
-                        _LOGGER.debug("Battery stats fetching is now handled by door events.")
+
+                        try:
+                            battery_stats = await self.ble_device.get_battery_stats()
+                            if battery_stats:
+                                data["battery_stats"] = battery_stats
+                                if "temperature" in battery_stats and battery_stats["temperature"] is not None:
+                                    data["battery_temperature"] = battery_stats["temperature"]
+                                _LOGGER.debug(f"Battery stats fetched: {battery_stats}")
+                        except Exception as e:
+                            _LOGGER.warning("Failed to fetch battery stats: %s", e)
                     else:
                         _LOGGER.debug("Battery fetch skipped (handled by door events).")
 
@@ -292,7 +314,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             if device_entry:
                                 # Process info to get standardized fields (sw_version, hw_version, etc.)
                                 processed_info = process_device_info(self.entry.data, device_info)
-                                
+
                                 # Filter out keys that are not updateable or not needed for update
                                 # async_update_device expects specific kwargs like sw_version, hw_version, etc.
                                 update_kwargs = {}
@@ -340,3 +362,11 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Error communicating with Boks: {err}") from err
 
         return data
+
+    def register_opcode_callback(self, opcode: int, callback: Callable[[bytearray], None]) -> None:
+        """Register a callback for a specific opcode."""
+        self.ble_device.register_opcode_callback(opcode, callback)
+
+    def unregister_opcode_callback(self, opcode: int, callback: Callable[[bytearray], None]) -> None:
+        """Unregister a callback for a specific opcode."""
+        self.ble_device.unregister_opcode_callback(opcode, callback)

@@ -8,7 +8,13 @@ from .sensors.battery import BoksBatterySensor
 from .sensors.battery_temperature import BoksBatteryTemperatureSensor
 from .sensors.last_event import BoksLastEventSensor
 from .sensors.codes import BoksCodeCountSensor
-from .sensors.battery_diagnostics import BoksBatteryDiagnosticSensor, BoksBatteryFormatSensor, BoksBatteryTypeSensor
+from .sensors.log_count import BoksLogCountSensor
+from .sensors.diagnostics import (
+    BoksBatteryDiagnosticSensor,
+    BoksBatteryFormatSensor,
+    BoksBatteryTypeSensor,
+)
+from .sensors.diagnostics.battery_measure_format_sensor import BoksBatteryMeasureFormatSensor
 from .sensors.maintenance import BoksMaintenanceSensor
 
 
@@ -24,16 +30,24 @@ async def async_setup_entry(
         BoksBatterySensor(coordinator, entry),
         BoksBatteryTemperatureSensor(coordinator, entry),
         BoksLastEventSensor(coordinator, entry),
-        BoksCodeCountSensor(coordinator, entry, "master"),
-        BoksCodeCountSensor(coordinator, entry, "single_use"),
         BoksBatteryFormatSensor(coordinator, entry),
         BoksBatteryTypeSensor(coordinator, entry),
         BoksMaintenanceSensor(coordinator, entry),
+        BoksLogCountSensor(coordinator, entry),
     ]
 
-    # Check for battery format in coordinator data to selectively add diagnostic sensors
-    battery_stats = coordinator.data.get("battery_stats", {})
-    battery_format = battery_stats.get("format")
+    # Add code count sensors
+    from .ble.const import BoksCodeType
+    for code_type in [BoksCodeType.MASTER, BoksCodeType.SINGLE_USE]:
+        entities.append(BoksCodeCountSensor(coordinator, entry, code_type))
+        
+    # Check for battery format in config entry (persistent) or coordinator data (live)
+    # This ensures sensors are created at boot if format was previously detected
+    battery_format = entry.data.get("battery_format")
+    
+    if not battery_format:
+        battery_stats = coordinator.data.get("battery_stats", {})
+        battery_format = battery_stats.get("format")
 
     if battery_format == "measures-first-min-mean-max-last":
         entities.extend([

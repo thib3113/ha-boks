@@ -62,7 +62,8 @@
       "ble_error": "BLE Error: {error}",
       "ble_internal_error": "BLE Internal Error: {error}",
       "entity_not_parcel_list": "Entity {target_entity_id} is not a Boks Parcel List.",
-      "maintenance_already_running": "A maintenance task is already in progress. Please wait for it to finish."
+      "maintenance_already_running": "A maintenance task is already in progress. Please wait for it to finish.",
+      "delete_code_failed": "Failed to delete code (Device returned error)"
     },
     "abort": {
       "already_configured": "This Boks is already configured.",
@@ -138,7 +139,11 @@
         "name": "Battery Format"
       },
       "battery_type": {
-        "name": "Battery Type"
+        "name": "Battery Type",
+        "state": {
+          "alkaline_aaa": "8x AAA (Alkaline)",
+          "lithium_lsh20": "LSH20 (Lithium)"
+        }
       },
       "battery_level_first": {
         "name": "Battery Voltage (First)"
@@ -170,6 +175,9 @@
           "idle": "Idle",
           "cleaning": "Cleaning Master Codes"
         }
+      },
+      "log_count": {
+        "name": "Log Count"
       }
     },
     "todo": {
@@ -214,35 +222,85 @@
         }
       }
     },
-    "add_pin_code": {
-      "name": "Add PIN Code",
-      "description": "Adds a new PIN code to the Boks. Requires Configuration Key. If a master code already exists at the specified index, it will be overwritten. Returns the created code.",
+    "open_door": {
+      "name": "Open Door",
+      "description": "Opens the Boks door, optionally with a PIN code.",
       "fields": {
         "code": {
           "name": "PIN Code",
-          "description": "The 6-character PIN code (0-9, A, B). If omitted, a random code will be generated."
-        },
-        "type": {
-          "name": "Type",
-          "description": "The type of code to create."
-        },
-        "index": {
-          "name": "Index",
-          "description": "The index for the code (only for master codes, 0-255). WARNING: Any existing code at this index will be deleted before creation."
+          "description": "The 6-character PIN code to use for opening (alphanumeric).",
+          "example": "123456"
         }
       }
     },
-    "delete_pin_code": {
-      "name": "Delete PIN Code",
-      "description": "Deletes a PIN code from the Boks. Requires Configuration Key.",
+    "add_master_code": {
+      "name": "Add Master Code",
+      "description": "Adds a new master code to the Boks at a specific index. Overwrites any existing code at that index.",
       "fields": {
-        "identifier": {
-          "name": "Identifier",
-          "description": "The PIN Code itself (for Single/Multi/Master) or the Index (for Master)."
+        "code": {
+          "name": "PIN Code",
+          "description": "The 6-character PIN code (0-9, A, B).",
+          "example": "A1B2C3"
         },
-        "type": {
-          "name": "Type",
-          "description": "The type of code to delete."
+        "index": {
+          "name": "Index",
+          "description": "The storage index for the master code (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "Delete Master Code",
+      "description": "Deletes a master code from the Boks using its index.",
+      "fields": {
+        "index": {
+          "name": "Index",
+          "description": "The index of the master code to delete (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "Add Single Use Code",
+      "description": "Adds a new single use code to the Boks.",
+      "fields": {
+        "code": {
+          "name": "PIN Code",
+          "description": "The 6-character PIN code (0-9, A, B).",
+          "example": "D4E5F6"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "Delete Single Use Code",
+      "description": "Deletes a single use code from the Boks using its value.",
+      "fields": {
+        "code": {
+          "name": "PIN Code",
+          "description": "The 6-character PIN code (0-9, A, B) to delete.",
+          "example": "D4E5F6"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "Add Multi Use Code",
+      "description": "Adds a new multi use code to the Boks.",
+      "fields": {
+        "code": {
+          "name": "PIN Code",
+          "description": "The 6-character PIN code (0-9, A, B).",
+          "example": "G7H8I9"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "Delete Multi Use Code",
+      "description": "Deletes a multi use code from the Boks using its value.",
+      "fields": {
+        "code": {
+          "name": "PIN Code",
+          "description": "The 6-character PIN code (0-9, A, B) to delete.",
+          "example": "G7H8I9"
         }
       }
     },

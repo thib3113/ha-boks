@@ -4,22 +4,16 @@ import logging
 import voluptuous as vol
 import json
 import os
-import asyncio
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
-from homeassistant.helpers import config_validation as cv
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
 
-from .ble import BoksError
-from .const import DOMAIN, CONF_CONFIG_KEY
+from .const import DOMAIN
 from .coordinator import BoksDataUpdateCoordinator
-
-from . import logbook
+from .services import async_setup_services
 
 # Define the CONFIG_SCHEMA as an empty schema for config entries only
 CONFIG_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
@@ -28,479 +22,26 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.LOCK, Platform.BUTTON, Platform.EVENT, Platform.TODO]
 
-# Service Schemas
-SERVICE_ADD_PARCEL_SCHEMA = vol.Schema({
-    vol.Optional("description"): cv.string,
-}, extra=vol.ALLOW_EXTRA)
-
-SERVICE_ADD_CODE_SCHEMA = vol.Schema({
-    vol.Optional("code"): cv.string,
-    vol.Optional("type", default="standard"): vol.In(["standard", "master", "single", "multi"]),
-    vol.Optional("index", default=0): cv.positive_int,
-}, extra=vol.ALLOW_EXTRA)
-
-SERVICE_DELETE_CODE_SCHEMA = vol.Schema({
-    vol.Required("identifier"): cv.string, # Code itself or Index
-    vol.Optional("type", default="standard"): vol.In(["standard", "master", "single", "multi"]),
-}, extra=vol.ALLOW_EXTRA)
-
-SERVICE_SYNC_LOGS_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
-
-SERVICE_CLEAN_MASTER_CODES_SCHEMA = vol.Schema({
-    vol.Optional("start_index", default=0): cv.positive_int,
-    vol.Optional("range", default=100): cv.positive_int,
-}, extra=vol.ALLOW_EXTRA)
-
-def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDataUpdateCoordinator:
-    """Retrieve the Boks coordinator from a service call target."""
-    # 1. Try Device ID
-    device_ids = call.data.get("device_id")
-    if device_ids:
-        # Normalize to list
-        if isinstance(device_ids, str):
-            device_ids = [device_ids]
-
-        device_registry = dr.async_get(hass)
-        for device_id in device_ids:
-            device = device_registry.async_get(device_id)
-            if device:
-                # Iterate over config entries of the device
-                for entry_id in device.config_entries:
-                    if entry_id in hass.data[DOMAIN]:
-                        return hass.data[DOMAIN][entry_id]
-
-        # If device_ids were provided but we didn't return above, it means none were Boks devices
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="target_devices_not_boks",
-            translation_placeholders={"device_ids": str(device_ids)}
-        )
-
-    # 2. Try Entity ID
-    entity_ids = call.data.get("entity_id")
-    if entity_ids:
-        if isinstance(entity_ids, str):
-            entity_ids = [entity_ids]
-
-        # Retrieve registry to map entity -> config_entry
-        from homeassistant.helpers import entity_registry as er
-        registry = er.async_get(hass)
-
-        for entity_id in entity_ids:
-            entry = registry.async_get(entity_id)
-            if entry and entry.config_entry_id in hass.data[DOMAIN]:
-                return hass.data[DOMAIN][entry.config_entry_id]
-
-        # If entity_ids were provided but we didn't return above, none were Boks entities
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="target_entities_not_boks",
-            translation_placeholders={"entity_ids": str(entity_ids)}
-        )
-
-    # 3. Fallback: Single Instance (Only if NO target was provided)
-    if len(hass.data[DOMAIN]) == 1:
-        return list(hass.data[DOMAIN].values())[0]
-
-    # 4. Fail
-    raise HomeAssistantError(
-        translation_domain=DOMAIN,
-        translation_key="target_device_missing"
-    )
-
-
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Boks component."""
-
-    # --- Service: Add Parcel ---
-    async def handle_add_parcel(call: ServiceCall) -> dict | None:
-        """Handle the add parcel service call."""
-        description = call.data.get("description", "")
-
-        _LOGGER.info(f"User requested Add Parcel PIN Code: description={description}")
-
-        target_entity_id = None
-
-        # 1. Try to get entity_id directly
-        if "entity_id" in call.data:
-            entity_ids = call.data["entity_id"]
-            if isinstance(entity_ids, list) and len(entity_ids) > 0:
-                 target_entity_id = entity_ids[0]
-            elif isinstance(entity_ids, str):
-                 target_entity_id = entity_ids
-
-        # 2. If no entity_id, try to resolve from device_id
-        if not target_entity_id and "device_id" in call.data:
-            device_ids = call.data["device_id"]
-            if isinstance(device_ids, str):
-                device_ids = [device_ids]
-
-            if device_ids:
-                # Use the first device found
-                target_device_id = device_ids[0]
-
-                # Find the Todo entity associated with this device
-                entity_registry = er.async_get(hass)
-                entries = entity_registry.entities.values()
-                for entry in entries:
-                    if entry.device_id == target_device_id and entry.domain == "todo":
-                        target_entity_id = entry.entity_id
-                        break
-
-                if not target_entity_id:
-                     raise HomeAssistantError(
-                         translation_domain=DOMAIN,
-                         translation_key="todo_entity_not_found_for_device",
-                         translation_placeholders={"target_device_id": target_device_id}
-                     )
-
-        # 3. Fallback (Single Instance) - Only if NO target was provided at all
-        if not target_entity_id:
-            # Check how many Boks entries are loaded
-            boks_entry_ids = list(hass.data[DOMAIN].keys())
-            # Filter out "translations" key if present
-            boks_entry_ids = [k for k in boks_entry_ids if k != "translations"]
-
-            if len(boks_entry_ids) == 1:
-                config_entry_id = boks_entry_ids[0]
-                # Find Todo entity
-                entity_registry = er.async_get(hass)
-                entries = entity_registry.entities.values()
-                for entry in entries:
-                    if entry.config_entry_id == config_entry_id and entry.domain == "todo":
-                        target_entity_id = entry.entity_id
-                        break
-            elif len(boks_entry_ids) > 1:
-                 raise HomeAssistantError(
-                     translation_domain=DOMAIN,
-                     translation_key="multiple_devices_found"
-                 )
-            else:
-                 raise HomeAssistantError(
-                     translation_domain=DOMAIN,
-                     translation_key="no_devices_configured"
-                 )
-
-        if not target_entity_id:
-             raise HomeAssistantError(
-                 translation_domain=DOMAIN,
-                 translation_key="cannot_resolve_todo"
-             )
-
-        # 3. Get Actual Entity Object
-        component = hass.data.get("entity_components", {}).get("todo")
-        if not component:
-             raise HomeAssistantError(
-                 translation_domain=DOMAIN,
-                 translation_key="todo_integration_not_loaded"
-             )
-
-        todo_entity = component.get_entity(target_entity_id)
-
-        if not todo_entity:
-             raise HomeAssistantError(
-                 translation_domain=DOMAIN,
-                 translation_key="todo_entity_not_found",
-                 translation_placeholders={"target_entity_id": target_entity_id}
-             )
-
-        # 4. Verify it's a Boks entity
-        from .todo import BoksParcelTodoList
-        if not isinstance(todo_entity, BoksParcelTodoList):
-             raise HomeAssistantError(
-                 translation_domain=DOMAIN,
-                 translation_key="entity_not_parcel_list",
-                 translation_placeholders={"target_entity_id": target_entity_id}
-             )
-
-        # 5. Generate/Parse Code and Create Parcel
-        from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
-
-        # Check if we have a config key for BLE operations
-        has_config_key = getattr(todo_entity, "_has_config_key", False)
-
-        # Try to extract code immediately if possible, otherwise generate one
-        code_in_desc, parsed_description = parse_parcel_string(description)
-        generated_code = None
-        force_sync = False
-
-        if not code_in_desc:
-            generated_code = generate_random_code()
-
-            if has_config_key:
-                # If we have a key, we want to force a sync because we just generated this code
-                # and the user expects it to be created on the device.
-                force_sync = True
-
-            formatted_description = format_parcel_item(generated_code, description or "Parcel")
-        else:
-            formatted_description = description
-            generated_code = code_in_desc
-            # If code was provided, we normally track only.
-            # But if the user explicitly called this service, maybe they want to force sync?
-            # For now, stick to "Manual input = Tracking" UNLESS we generated it.
-            force_sync = False
-
-        # Delegate creation to the Todo Entity's specialized method
-        # We use force_background_sync=True if we generated the code and want it synced.
-        await todo_entity.async_create_parcel(formatted_description, force_background_sync=force_sync)
-
-        return {"code": generated_code}
-
-    hass.services.async_register(
-        DOMAIN,
-        "add_parcel",
-        handle_add_parcel,
-        schema=SERVICE_ADD_PARCEL_SCHEMA,
-        supports_response=SupportsResponse.OPTIONAL
-    )
-
-    # --- Service: Add Pin Code ---
-    async def handle_add_code(call: ServiceCall) -> dict:
-        """Handle the service call."""
-        code = call.data.get("code")
-        if code:
-            code = code.strip().upper()
-        code_type = call.data.get("type")
-        index = call.data.get("index")
-
-        # Audit Log
-        masked_code = "***" + code[-2:] if code and len(code) > 2 else "***"
-        _LOGGER.info(f"User requested Add PIN Code: Code={masked_code}, Type={code_type}, Index={index}")
-
-        coordinator = get_coordinator_from_call(hass, call)
-
-        await coordinator.ble_device.connect()
-        try:
-            created_code = await coordinator.ble_device.create_pin_code(code, code_type=code_type, index=index)
-            _LOGGER.info(f"Code {created_code} ({code_type}) added successfully.")
-            await coordinator.async_request_refresh()
-            return {"code": created_code}
-        except BoksError as e:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key=e.translation_key,
-                translation_placeholders=e.translation_placeholders
-            ) from e
-        finally:
-            await coordinator.ble_device.disconnect()
-
-    hass.services.async_register(
-        DOMAIN,
-        "add_pin_code",
-        handle_add_code,
-        schema=SERVICE_ADD_CODE_SCHEMA,
-        supports_response=SupportsResponse.OPTIONAL
-    )
-
-    # --- Service: Delete Pin Code ---
-    async def handle_delete_code(call: ServiceCall):
-        """Handle the service call."""
-        identifier = call.data.get("identifier")
-        if identifier:
-            identifier = identifier.strip().upper()
-        code_type = call.data.get("type")
-
-        # Audit Log
-        _LOGGER.info(f"User requested Delete PIN Code: Identifier={identifier}, Type={code_type}")
-
-        coordinator = get_coordinator_from_call(hass, call)
-
-        await coordinator.ble_device.connect()
-        try:
-            await coordinator.ble_device.delete_pin_code(code_type, identifier)
-            _LOGGER.info(f"Code {identifier} ({code_type}) deleted successfully.")
-            await coordinator.async_request_refresh()
-        except BoksError as e:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key=e.translation_key,
-                translation_placeholders=e.translation_placeholders
-            ) from e
-        finally:
-            await coordinator.ble_device.disconnect()
-
-    hass.services.async_register(
-        DOMAIN,
-        "delete_pin_code",
-        handle_delete_code,
-        schema=SERVICE_DELETE_CODE_SCHEMA
-    )
-
-    # --- Service: Sync Logs ---
-    async def handle_sync_logs(call: ServiceCall):
-        """Handle the sync logs service call."""
-        coordinator = get_coordinator_from_call(hass, call)
-        _LOGGER.info("Manual log sync requested via service")
-
-        try:
-            await coordinator.async_sync_logs(update_state=True)
-        except Exception as e:
-            _LOGGER.error(f"Failed to sync logs via service: {e}")
-            raise
-
-    hass.services.async_register(
-        DOMAIN,
-        "sync_logs",
-        handle_sync_logs,
-        schema=SERVICE_SYNC_LOGS_SCHEMA
-    )
-
-    # --- Service: Clean Master Codes ---
-    async def handle_clean_master_codes(call: ServiceCall):
-        """Handle the clean master codes service call."""
-        _LOGGER.info("Starting clean_master_codes action")
-        start_index = call.data.get("start_index", 0)
-        range_val = call.data.get("range", 100)
-
-        # Enforce hard limit of 100 to prevent long-running blocking/battery drain
-        if range_val > 100:
-            _LOGGER.warning(f"Requested range {range_val} exceeds limit. Capping at 100.")
-            range_val = 100
-
-        coordinator = get_coordinator_from_call(hass, call)
-
-        # Check if maintenance is already running
-        current_status = getattr(coordinator, "maintenance_status", {})
-        if current_status.get("running", False):
-            _LOGGER.warning("Clean Master Codes requested but a maintenance task is already running.")
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="maintenance_already_running"
-            )
-
-        _LOGGER.info(f"Clean Master Codes requested: Start={start_index}, Range={range_val}")
-
-        # This operation is long, so we run it in a background task
-        # and update the coordinator state to reflect progress.
-
-        async def _background_clean():
-            total_to_clean = range_val
-            current_idx = start_index
-
-            # Initialize Status
-            coordinator.set_maintenance_status(
-                running=True,
-                current_index=current_idx,
-                total_to_clean=total_to_clean,
-                message="Starting..."
-            )
-
-            cleaned_count = 0
-
-            try:
-                # Initial Connection
-                if not coordinator.ble_device.is_connected:
-                    await coordinator.ble_device.connect()
-
-                for i in range(range_val):
-                    target_index = start_index + i
-                    current_progress_msg = f"Cleaning index {target_index}..."
-
-                    coordinator.set_maintenance_status(
-                        running=True,
-                        current_index=i + 1, # 1-based progress for user
-                        total_to_clean=total_to_clean,
-                        message=current_progress_msg
-                    )
-
-                    retry_count = 0
-                    max_retries = 3
-                    success = False
-
-                    while retry_count < max_retries and not success:
-                        try:
-                             # Ensure connected before command
-                            if not coordinator.ble_device.is_connected:
-                                _LOGGER.debug(f"Reconnecting for index {target_index}...")
-                                await coordinator.ble_device.connect()
-
-                            # delete_pin_code with type='master' handles the "deep delete" loop internally
-                            # until it receives 0x78 (not found)
-                            await coordinator.ble_device.delete_pin_code(type="master", index_or_code=target_index)
-                            cleaned_count += 1
-                            # Small pause to let the device breathe
-                            await asyncio.sleep(0.2)
-                            success = True
-
-                        except Exception as e:
-                            retry_count += 1
-                            _LOGGER.warning(f"Error cleaning index {target_index} (Attempt {retry_count}/{max_retries}): {e}")
-                            await asyncio.sleep(1.0) # Wait a bit before retry
-
-                    if not success:
-                        _LOGGER.error(f"Failed to clean index {target_index} after {max_retries} attempts. Aborting.")
-                        raise Exception("Connection lost or device unresponsive")
-
-
-                # Finished
-                coordinator.set_maintenance_status(
-                    running=False,
-                    current_index=total_to_clean,
-                    total_to_clean=total_to_clean,
-                    message="Finished"
-                )
-
-                # Send Notification
-                await hass.services.async_call(
-                    "persistent_notification",
-                    "create",
-                    {
-                        "message": f"Master Code Cleaning Completed.\nScanned {range_val} indices starting from {start_index}.",
-                        "title": "Boks Maintenance",
-                        "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
-                    }
-                )
-
-            except Exception as e:
-                _LOGGER.error(f"Maintenance task failed: {e}")
-                coordinator.set_maintenance_status(
-                    running=False,
-                    message=f"Failed: {e}"
-                )
-
-                await hass.services.async_call(
-                    "persistent_notification",
-                    "create",
-                    {
-                        "message": f"Master Code Cleaning Failed at index {current_idx}.\nError: {e}",
-                        "title": "Boks Maintenance Error",
-                        "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
-                    }
-                )
-
-            finally:
-                 await coordinator.ble_device.disconnect()
-                 # Reset status after a delay so the user can see "Finished"
-                 await asyncio.sleep(60)
-                 coordinator.set_maintenance_status(running=False, message="")
-
-        # Fire and forget (task is tracked by HA loop)
-        hass.async_create_task(_background_clean())
-
-    hass.services.async_register(
-        DOMAIN,
-        "clean_master_codes",
-        handle_clean_master_codes,
-        schema=SERVICE_CLEAN_MASTER_CODES_SCHEMA
-    )
-
+    
+    # Register all services
+    await async_setup_services(hass)
+    
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Boks from a config entry."""
 
     # Ensure options are populated with defaults if missing
-    # This addresses cases where the options flow was never opened/saved
-    # and ensures the user sees the active values in the options dialog.
     from .const import DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL
-
+    
     options_update = {}
     if "scan_interval" not in entry.options:
         options_update["scan_interval"] = DEFAULT_SCAN_INTERVAL
     if "full_refresh_interval" not in entry.options:
         options_update["full_refresh_interval"] = DEFAULT_FULL_REFRESH_INTERVAL
-
+    
     if options_update:
         new_options = {**entry.options, **options_update}
         hass.config_entries.async_update_entry(entry, options=new_options)
@@ -519,11 +60,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Cache translations for Logbook usage (Manual Load)
     try:
         lang = hass.config.language
-        # Path to the integration directory
         integration_path = os.path.dirname(__file__)
         translation_path = os.path.join(integration_path, "translations", f"{lang}.json")
 
-        # Fallback to English if file doesn't exist
         if not os.path.exists(translation_path):
             _LOGGER.warning("Translation file for '%s' not found at %s, falling back to 'en'", lang, translation_path)
             translation_path = os.path.join(integration_path, "translations", "en.json")
@@ -533,11 +72,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 with open(path, "r", encoding="utf-8") as f:
                     return json.load(f)
 
-            # Execute file I/O in executor to avoid blocking event loop
             translations_json = await hass.async_add_executor_job(load_json, translation_path)
 
-            # Extract the specific state translations we need
-            # Structure: entity -> event -> logs -> state
             try:
                 state_translations = translations_json.get("entity", {}).get("event", {}).get("logs", {}).get("state", {})
                 hass.data[DOMAIN]["translations"] = state_translations
@@ -552,7 +88,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.warning("Failed to manually load translations for Logbook: %s", e)
         hass.data[DOMAIN]["translations"] = {}
 
-    # Pre-import platforms to avoid blocking call in the loop
     for platform in PLATFORMS:
         await hass.async_add_executor_job(
             importlib.import_module, f".{platform}", __package__
@@ -578,13 +113,11 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         new_master_code = new_master_code.strip().upper()
         _LOGGER.info(f"Master code change requested for {entry.title}. New code: {new_master_code}")
 
-        # Update the config entry data with the new master code directly, without BLE interaction
         new_data = dict(entry.data)
         new_data["master_code"] = new_master_code
         hass.config_entries.async_update_entry(entry, data=new_data)
         _LOGGER.info(f"Master code updated successfully in configuration to {new_master_code}.")
 
-        # Clear the option to avoid re-triggering on next reload if not intended
         new_options = dict(entry.options)
         if "master_code" in new_options:
             del new_options["master_code"]

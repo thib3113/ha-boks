@@ -63,7 +63,8 @@
       "ble_error": "Erreur BLE : {error}",
       "ble_internal_error": "Erreur interne BLE : {error}",
       "entity_not_parcel_list": "L'entité {target_entity_id} n'est pas une liste de colis Boks.",
-      "maintenance_already_running": "Une tâche de maintenance est déjà en cours. Veuillez attendre qu'elle se termine."
+      "maintenance_already_running": "Une tâche de maintenance est déjà en cours. Veuillez attendre qu'elle se termine.",
+      "delete_code_failed": "Échec de la suppression du code (l'appareil a renvoyé une erreur)"
     },
     "abort": {
       "already_configured": "Cette Boks est déjà configurée.",
@@ -136,10 +137,23 @@
         "name": "Codes à usage unique"
       },
       "battery_format": {
-        "name": "Format Batterie"
+        "name": "Format de Mesure",
+        "state": {
+          "measures-first-min-mean-max-last": "Détaillé (Min/Moy/Max)",
+          "measures-t1-t5-t10": "Détaillé (T1/T5/T10)",
+          "measure-single": "Simple",
+          "unknown": "Inconnu",
+          "other": "Autre"
+        }
       },
       "battery_type": {
-        "name": "Type de Batterie"
+        "name": "Type de Batterie",
+        "state": {
+          "lsh14": "LSH14 (Lithium)",
+          "8x_aaa": "8 x AAA (Alcalines)",
+          "unknown": "Inconnu",
+          "other": "Autre"
+        }
       },
       "battery_level_first": {
         "name": "Tension Batterie (Première)"
@@ -171,6 +185,9 @@
           "idle": "Inactif",
           "cleaning": "Nettoyage Codes Permanents"
         }
+      },
+      "log_count": {
+        "name": "Nombre de journaux"
       }
     },
     "todo": {
@@ -215,35 +232,85 @@
         }
       }
     },
-    "add_pin_code": {
-      "name": "Ajouter un code PIN",
-      "description": "Ajoute un nouveau code PIN à la Boks. Nécessite une clé de configuration. Si un code permanent existe déjà à l'index spécifié, il sera écrasé. Retourne le code créé.",
+    "open_door": {
+      "name": "Ouvrir la porte",
+      "description": "Ouvre la porte de la Boks, optionnellement avec un code PIN.",
       "fields": {
         "code": {
           "name": "Code PIN",
-          "description": "Le code PIN à 6 caractères (0-9, A, B). S'il est omis, un code aléatoire sera généré."
-        },
-        "code_type": {
-          "name": "Type",
-          "description": "Le type de code : master (Code permanent), single (Code à usage unique), ou multi (Code à usage multiple)."
-        },
-        "index": {
-          "name": "Index",
-          "description": "L'index pour le code (uniquement pour les codes permanents, 0-255). ATTENTION : Tout code existant à cet index sera supprimé avant l'ajout."
+          "description": "Le code PIN à utiliser pour ouvrir la porte (6 caractères alphanumériques).",
+          "example": "123456"
         }
       }
     },
-    "delete_pin_code": {
-      "name": "Supprimer un code PIN",
-      "description": "Supprime un code PIN de la Boks. Nécessite une clé de configuration.",
+    "add_master_code": {
+      "name": "Ajouter un code maître",
+      "description": "Ajoute un nouveau code maître à la Boks à un index spécifique. Écrasera tout code existant à cet index.",
       "fields": {
-        "identifier": {
-          "name": "Identifiant",
-          "description": "Le code PIN lui-même (pour Unique/Multiple/Permanent) ou l'Index (pour Permanent)."
+        "code": {
+          "name": "Code PIN",
+          "description": "Le code PIN à 6 caractères (0-9, A, B).",
+          "example": "A1B2C3"
         },
-        "code_type": {
-          "name": "Type",
-          "description": "Le type de code : master (Code permanent), single (Code à usage unique), ou multi (Code à usage multiple)."
+        "index": {
+          "name": "Index",
+          "description": "L'index de stockage du code maître (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "Supprimer un code maître",
+      "description": "Supprime un code maître de la Boks en utilisant son index.",
+      "fields": {
+        "index": {
+          "name": "Index",
+          "description": "L'index du code maître à supprimer (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "Ajouter un code unique",
+      "description": "Ajoute un nouveau code à usage unique à la Boks.",
+      "fields": {
+        "code": {
+          "name": "Code PIN",
+          "description": "Le code PIN à 6 caractères (0-9, A, B).",
+          "example": "D4E5F6"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "Supprimer un code unique",
+      "description": "Supprime un code à usage unique de la Boks en utilisant sa valeur.",
+      "fields": {
+        "code": {
+          "name": "Code PIN",
+          "description": "Le code PIN à 6 caractères (0-9, A, B) à supprimer.",
+          "example": "D4E5F6"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "Ajouter un code multi-usage",
+      "description": "Ajoute un nouveau code à usage multiple à la Boks.",
+      "fields": {
+        "code": {
+          "name": "Code PIN",
+          "description": "Le code PIN à 6 caractères (0-9, A, B).",
+          "example": "G7H8I9"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "Supprimer un code multi-usage",
+      "description": "Supprime un code à usage multiple de la Boks en utilisant sa valeur.",
+      "fields": {
+        "code": {
+          "name": "Code PIN",
+          "description": "Le code PIN à 6 caractères (0-9, A, B) à supprimer.",
+          "example": "G7H8I9"
         }
       }
     },

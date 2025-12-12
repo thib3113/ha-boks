@@ -1,0 +1,132 @@
+test_all_boks_services:
+  alias: "Test All Boks Services"
+  icon: mdi:package-variant-closed
+  description: "Runs a sequence of tests on the Boks integration: Sync, Add Code, Delete Code, Add Parcel with Verification."
+  fields:
+    target_lock:
+      description: "The Boks Lock Entity"
+      default: lock.boks_lock
+      selector:
+        entity:
+          domain: lock
+    target_todo:
+      description: "The Boks Parcel Todo Entity"
+      default: todo.boks_parcels
+      selector:
+        entity:
+          domain: todo
+
+  sequence:
+    # 1. Sync Logs
+    - service: persistent_notification.create
+      data:
+        message: "Starting Boks Test Sequence..."
+        title: "Boks Test"
+
+    - service: boks.sync_logs
+      target:
+        entity_id: "{{ target_lock }}"
+      data: {}
+
+    - delay: 2
+
+    # 2. Add Single Code
+    - service: boks.add_pin_code
+      target:
+        entity_id: "{{ target_lock }}"
+      data:
+        code: "112233"
+        type: "single"
+      response_variable: single_code_resp
+    
+    - service: persistent_notification.create
+      data:
+        message: "Added Single Code '112233'. Response: {{ single_code_resp.code }}"
+        title: "Boks Test"
+
+    - delay: 2
+
+    # 3. Delete Single Code
+    - service: boks.delete_pin_code
+      target:
+        entity_id: "{{ target_lock }}"
+      data:
+        identifier: "112233"
+        type: "single"
+
+    - service: persistent_notification.create
+      data:
+        message: "Deleted Single Code '112233'."
+        title: "Boks Test"
+
+    - delay: 2
+
+    # 4. Add Master Code (Index 9)
+    - service: boks.add_pin_code
+      target:
+        entity_id: "{{ target_lock }}"
+      data:
+        code: "445566"
+        type: "master"
+        index: 9
+      response_variable: master_code_resp
+
+    - service: persistent_notification.create
+      data:
+        message: "Added Master Code '445566' at index 9. Response: {{ master_code_resp.code }}"
+        title: "Boks Test"
+    
+    - delay: 2
+
+    # 5. Delete Master Code (Index 9)
+    - service: boks.delete_pin_code
+      target:
+        entity_id: "{{ target_lock }}"
+      data:
+        identifier: "9"
+        type: "master"
+
+    - service: persistent_notification.create
+      data:
+        message: "Deleted Master Code at index 9."
+        title: "Boks Test"
+
+    - delay: 2
+
+    # 6. Add Parcel & Verify
+    - service: boks.add_parcel
+      target:
+        entity_id: "{{ target_todo }}"
+      data:
+        description: "Test Parcel Auto"
+      response_variable: new_parcel
+
+    - service: persistent_notification.create
+      data:
+        message: "Added Parcel. Code: {{ new_parcel.code }}. Verifying in Todo list..."
+        title: "Boks Test"
+
+    - delay: 2
+
+    - service: todo.get_items
+      target:
+        entity_id: "{{ target_todo }}"
+      response_variable: todo_list
+
+    - if:
+        - condition: template
+          value_template: >
+            {% set code = new_parcel.code %}
+            {% set items = todo_list[target_todo]['items'] %}
+            {% set matches = items | selectattr('summary', 'search', code) | list %}
+            {{ matches | length > 0 }}
+      then:
+        - service: persistent_notification.create
+          data:
+            message: "SUCCESS: Parcel with code {{ new_parcel.code }} found in Todo List."
+            title: "Boks Test Result"
+      else:
+        - service: persistent_notification.create
+          data:
+            message: "FAILURE: Parcel with code {{ new_parcel.code }} NOT found in Todo List. Items: {{ todo_list[target_todo]['items'] }}"
+            title: "Boks Test Result"

@@ -1,11 +1,7 @@
 """Boks BLE package."""
 
-from .device import (
-    BoksBluetoothDevice,
-    BoksError,
-    BoksAuthError,
-    BoksCommandError,
-)
+from .device import BoksBluetoothDevice
+from ..errors import BoksError, BoksAuthError, BoksCommandError
 from .log_entry import BoksLogEntry
 from .const import (
     BoksServiceUUID,

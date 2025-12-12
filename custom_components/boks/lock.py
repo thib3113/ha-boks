@@ -12,7 +12,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_MASTER_CODE
+from .const import DOMAIN, CONF_MASTER_CODE, TIMEOUT_DOOR_CLOSE, DELAY_POST_DOOR_CLOSE_SYNC
 from .coordinator import BoksDataUpdateCoordinator
 from .ble import BoksBluetoothDevice
 from .ble.const import BoksHistoryEvent, LOG_EVENT_TYPES
@@ -174,18 +174,18 @@ class BoksLock(CoordinatorEntity, LockEntity):
 
     async def _wait_and_disconnect(self, ble_device):
         """Keep connection alive to wait for door close and sync logs."""
-        _LOGGER.debug("Monitoring door status for up to 2 minutes...")
+        _LOGGER.debug(f"Monitoring door status for up to {TIMEOUT_DOOR_CLOSE}s...")
         try:
-            # Wait for door to close (timeout 120s)
+            # Wait for door to close (timeout)
             # This blocks until door is closed or timeout
-            closed = await ble_device.wait_for_door_closed(timeout=120.0)
+            closed = await ble_device.wait_for_door_closed(timeout=TIMEOUT_DOOR_CLOSE)
 
             if closed:
                 _LOGGER.info("Door closed detected. Initiating log sync...")
                 # Small delay to ensure device has finished writing logs
-                await asyncio.sleep(2)
+                await asyncio.sleep(DELAY_POST_DOOR_CLOSE_SYNC)
             else:
-                _LOGGER.debug("Door did not close within 2 minutes.")
+                _LOGGER.debug(f"Door did not close within {TIMEOUT_DOOR_CLOSE}s.")
 
             # Perform a full refresh (logs, battery, etc.) and disconnect
             # This replaces the manual async_sync_logs and ensures clean disconnection via coordinator

@@ -43,3 +43,6 @@ tests.log
 
 TODO.md
 api.py
+
+commit_message.txt
+scripts/test_live_interactive.py

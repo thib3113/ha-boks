@@ -13,37 +13,39 @@ add_parcel:
       selector:
         text:
 
-add_pin_code:
-  name: translation::services.add_pin_code.name
-  description: translation::services.add_pin_code.description
+open_door:
+  name: translation::services.open_door.name
+  description: translation::services.open_door.description
   target:
     entity:
       integration: boks
       domain: lock
   fields:
     code:
-      name: translation::services.add_pin_code.fields.code.name
-      description: translation::services.add_pin_code.fields.code.description
+      name: translation::services.open_door.fields.code.name
+      description: translation::services.open_door.fields.code.description
+      required: false
+      selector:
+        text:
+
+add_master_code:
+  name: translation::services.add_master_code.name
+  description: translation::services.add_master_code.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    code:
+      name: translation::services.add_master_code.fields.code.name
+      description: translation::services.add_master_code.fields.code.description
       required: true
       selector:
         text:
-    type:
-      name: translation::services.add_pin_code.fields.type.name
-      description: translation::services.add_pin_code.fields.type.description
-      required: true
-      selector:
-        select:
-          options:
-            - single
-            - multi
-            - master
-          mode: dropdown
-    # valid_from et valid_until sont supprimés
-    # index est déplacé ici si c'est pour master codes
     index:
-      name: translation::services.add_pin_code.fields.index.name
-      description: translation::services.add_pin_code.fields.index.description
-      required: false
+      name: translation::services.add_master_code.fields.index.name
+      description: translation::services.add_master_code.fields.index.description
+      required: true
       selector:
         number:
           min: 0
@@ -51,31 +53,84 @@ add_pin_code:
           step: 1
           mode: box
 
-delete_pin_code:
-  name: translation::services.delete_pin_code.name
-  description: translation::services.delete_pin_code.description
+delete_master_code:
+  name: translation::services.delete_master_code.name
+  description: translation::services.delete_master_code.description
   target:
     entity:
       integration: boks
       domain: lock
   fields:
-    identifier:
-      name: translation::services.delete_pin_code.fields.identifier.name
-      description: translation::services.delete_pin_code.fields.identifier.description
+    index:
+      name: translation::services.delete_master_code.fields.index.name
+      description: translation::services.delete_master_code.fields.index.description
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 255
+          step: 1
+          mode: box
+
+add_single_code:
+  name: translation::services.add_single_code.name
+  description: translation::services.add_single_code.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    code:
+      name: translation::services.add_single_code.fields.code.name
+      description: translation::services.add_single_code.fields.code.description
       required: true
       selector:
         text:
-    type:
-      name: translation::services.delete_pin_code.fields.type.name
-      description: translation::services.delete_pin_code.fields.type.description
+
+delete_single_code:
+  name: translation::services.delete_single_code.name
+  description: translation::services.delete_single_code.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    code:
+      name: translation::services.delete_single_code.fields.code.name
+      description: translation::services.delete_single_code.fields.code.description
       required: true
       selector:
-        select:
-          options:
-            - single
-            - multi
-            - master
-          mode: dropdown
+        text:
+
+add_multi_code:
+  name: translation::services.add_multi_code.name
+  description: translation::services.add_multi_code.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    code:
+      name: translation::services.add_multi_code.fields.code.name
+      description: translation::services.add_multi_code.fields.code.description
+      required: true
+      selector:
+        text:
+
+delete_multi_code:
+  name: translation::services.delete_multi_code.name
+  description: translation::services.delete_multi_code.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    code:
+      name: translation::services.delete_multi_code.fields.code.name
+      description: translation::services.delete_multi_code.fields.code.description
+      required: true
+      selector:
+        text:
 
 clean_master_codes:
   name: translation::services.clean_master_codes.name

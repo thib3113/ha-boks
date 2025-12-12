@@ -1,0 +1,504 @@
+"""Tests for the Boks services."""
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr, entity_registry as er
+
+from custom_components.boks.services import (
+    get_coordinator_from_call,
+    async_setup_services,
+    SERVICE_ADD_PARCEL_SCHEMA,
+    SERVICE_ADD_CODE_SCHEMA,
+    SERVICE_DELETE_CODE_SCHEMA,
+    SERVICE_SYNC_LOGS_SCHEMA,
+    SERVICE_CLEAN_MASTER_CODES_SCHEMA
+)
+from custom_components.boks.const import DOMAIN, CONF_CONFIG_KEY
+from custom_components.boks.coordinator import BoksDataUpdateCoordinator
+from custom_components.boks.errors import BoksError
+from custom_components.boks.todo import BoksParcelTodoList
+
+
+@pytest.fixture
+def mock_hass():
+    """Create a mock HomeAssistant instance."""
+    hass = MagicMock(spec=HomeAssistant)
+    hass.data = {DOMAIN: {}}
+    return hass
+
+
+@pytest.fixture
+def mock_coordinator():
+    """Create a mock coordinator."""
+    coordinator = MagicMock(spec=BoksDataUpdateCoordinator)
+    coordinator.ble_device = MagicMock()
+    coordinator.ble_device.connect = AsyncMock()
+    coordinator.ble_device.disconnect = AsyncMock()
+    coordinator.ble_device.create_pin_code = AsyncMock(return_value="ABC123")
+    coordinator.ble_device.delete_pin_code = AsyncMock()
+    coordinator.async_request_refresh = AsyncMock()
+    coordinator.async_sync_logs = AsyncMock()
+    return coordinator
+
+
+@pytest.fixture
+def mock_service_call():
+    """Create a mock service call."""
+    call = MagicMock(spec=ServiceCall)
+    call.data = {}
+    return call
+
+
+def test_get_coordinator_from_call_device_id_found(mock_hass, mock_coordinator):
+    """Test get_coordinator_from_call with device ID found."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up device registry
+    mock_device_registry = MagicMock()
+    mock_device = MagicMock()
+    mock_device.config_entries = [entry_id]
+    mock_device_registry.async_get.return_value = mock_device
+    with patch("homeassistant.helpers.device_registry.async_get", return_value=mock_device_registry):
+        # Create a mock service call with device_id
+        call = MagicMock()
+        call.data = {"device_id": "test_device_id"}
+        
+        coordinator = get_coordinator_from_call(mock_hass, call)
+        
+        assert coordinator == mock_coordinator
+
+
+def test_get_coordinator_from_call_device_id_not_found(mock_hass):
+    """Test get_coordinator_from_call with device ID not found."""
+    # Set up device registry to return None
+    mock_device_registry = MagicMock()
+    mock_device_registry.async_get.return_value = None
+    with patch("homeassistant.helpers.device_registry.async_get", return_value=mock_device_registry):
+        # Create a mock service call with device_id
+        call = MagicMock()
+        call.data = {"device_id": "test_device_id"}
+        
+        with pytest.raises(HomeAssistantError, match="target_devices_not_boks"):
+            get_coordinator_from_call(mock_hass, call)
+
+
+def test_get_coordinator_from_call_entity_id_found(mock_hass, mock_coordinator):
+    """Test get_coordinator_from_call with entity ID found."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up entity registry
+    mock_entity_registry = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.config_entry_id = entry_id
+    mock_entity_registry.async_get.return_value = mock_entry
+    with patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_registry):
+        # Create a mock service call with entity_id
+        call = MagicMock()
+        call.data = {"entity_id": "test_entity_id"}
+        
+        coordinator = get_coordinator_from_call(mock_hass, call)
+        
+        assert coordinator == mock_coordinator
+
+
+def test_get_coordinator_from_call_entity_id_not_found(mock_hass):
+    """Test get_coordinator_from_call with entity ID not found."""
+    # Set up entity registry to return None
+    mock_entity_registry = MagicMock()
+    mock_entity_registry.async_get.return_value = None
+    with patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_registry):
+        # Create a mock service call with entity_id
+        call = MagicMock()
+        call.data = {"entity_id": "test_entity_id"}
+        
+        with pytest.raises(HomeAssistantError, match="target_entities_not_boks"):
+            get_coordinator_from_call(mock_hass, call)
+
+
+def test_get_coordinator_from_call_single_instance_found(mock_hass, mock_coordinator):
+    """Test get_coordinator_from_call with single instance found."""
+    # Set up hass.data with a single coordinator
+    mock_hass.data[DOMAIN] = {"test_entry_id": mock_coordinator}
+    
+    # Create a mock service call with no targets
+    call = MagicMock()
+    call.data = {}
+    
+    coordinator = get_coordinator_from_call(mock_hass, call)
+    
+    assert coordinator == mock_coordinator
+
+
+def test_get_coordinator_from_call_single_instance_not_found(mock_hass):
+    """Test get_coordinator_from_call with single instance not found."""
+    # Set up hass.data with no coordinators
+    mock_hass.data[DOMAIN] = {}
+    
+    # Create a mock service call with no targets
+    call = MagicMock()
+    call.data = {}
+    
+    with pytest.raises(HomeAssistantError, match="target_device_missing"):
+        get_coordinator_from_call(mock_hass, call)
+
+
+def test_get_coordinator_from_call_multiple_instances(mock_hass, mock_coordinator):
+    """Test get_coordinator_from_call with multiple instances."""
+    # Set up hass.data with multiple coordinators
+    mock_hass.data[DOMAIN] = {
+        "test_entry_id_1": mock_coordinator,
+        "test_entry_id_2": mock_coordinator
+    }
+    
+    # Create a mock service call with no targets
+    call = MagicMock()
+    call.data = {}
+    
+    with pytest.raises(HomeAssistantError, match="target_device_missing"):
+        get_coordinator_from_call(mock_hass, call)
+
+
+async def test_async_setup_services(mock_hass):
+    """Test async_setup_services."""
+    with patch("custom_components.boks.services.cv") as mock_cv:
+        # Mock the schema validation functions
+        mock_cv.string = MagicMock()
+        mock_cv.positive_int = MagicMock()
+        mock_cv.In = MagicMock()
+        
+        await async_setup_services(mock_hass)
+        
+        # Verify that services were registered
+        assert mock_hass.services.async_register.call_count == 5
+
+
+async def test_handle_add_parcel_with_entity_id(mock_hass, mock_coordinator):
+    """Test handle_add_parcel service with entity_id."""
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"entity_id": "test_entity_id", "description": "Test parcel"}
+    
+    # Set up entity registry
+    mock_entity_registry = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.config_entry_id = "test_entry_id"
+    mock_entity_registry.async_get.return_value = mock_entry
+    with patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_registry):
+        # Set up entity component
+        mock_component = MagicMock()
+        mock_todo_entity = MagicMock(spec=BoksParcelTodoList)
+        mock_todo_entity._has_config_key = True
+        mock_todo_entity.async_create_parcel = AsyncMock()
+        mock_component.get_entity.return_value = mock_todo_entity
+        mock_hass.data.get.return_value = mock_component
+        
+        # Import the service handler
+        from custom_components.boks.services import handle_add_parcel
+        
+        with patch("custom_components.boks.services.parse_parcel_string", return_value=(None, "Test parcel")), \
+             patch("custom_components.boks.services.generate_random_code", return_value="ABC123"), \
+             patch("custom_components.boks.services.format_parcel_item", return_value="ABC123 Test parcel"):
+            
+            result = await handle_add_parcel(call)
+            
+            assert result == {"code": "ABC123"}
+            mock_todo_entity.async_create_parcel.assert_called_once_with("ABC123 Test parcel", force_background_sync=True)
+
+
+async def test_handle_add_parcel_with_device_id(mock_hass, mock_coordinator):
+    """Test handle_add_parcel service with device_id."""
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"device_id": "test_device_id", "description": "Test parcel"}
+    
+    # Set up entity registry
+    mock_entity_registry = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.device_id = "test_device_id"
+    mock_entry.domain = "todo"
+    mock_entry.entity_id = "test_entity_id"
+    mock_entity_registry.entities.values.return_value = [mock_entry]
+    with patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_registry):
+        # Set up entity component
+        mock_component = MagicMock()
+        mock_todo_entity = MagicMock(spec=BoksParcelTodoList)
+        mock_todo_entity._has_config_key = True
+        mock_todo_entity.async_create_parcel = AsyncMock()
+        mock_component.get_entity.return_value = mock_todo_entity
+        mock_hass.data.get.return_value = mock_component
+        
+        # Import the service handler
+        from custom_components.boks.services import handle_add_parcel
+        
+        with patch("custom_components.boks.services.parse_parcel_string", return_value=(None, "Test parcel")), \
+             patch("custom_components.boks.services.generate_random_code", return_value="ABC123"), \
+             patch("custom_components.boks.services.format_parcel_item", return_value="ABC123 Test parcel"):
+            
+            result = await handle_add_parcel(call)
+            
+            assert result == {"code": "ABC123"}
+            mock_todo_entity.async_create_parcel.assert_called_once_with("ABC123 Test parcel", force_background_sync=True)
+
+
+async def test_handle_add_parcel_no_targets_single_instance(mock_hass, mock_coordinator):
+    """Test handle_add_parcel service with no targets but single instance."""
+    # Set up hass.data with a single coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator, "translations": {}}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"description": "Test parcel"}
+    
+    # Set up entity registry
+    mock_entity_registry = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.config_entry_id = entry_id
+    mock_entry.domain = "todo"
+    mock_entry.entity_id = "test_entity_id"
+    mock_entity_registry.entities.values.return_value = [mock_entry]
+    with patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_registry):
+        # Set up entity component
+        mock_component = MagicMock()
+        mock_todo_entity = MagicMock(spec=BoksParcelTodoList)
+        mock_todo_entity._has_config_key = True
+        mock_todo_entity.async_create_parcel = AsyncMock()
+        mock_component.get_entity.return_value = mock_todo_entity
+        mock_hass.data.get.return_value = mock_component
+        
+        # Import the service handler
+        from custom_components.boks.services import handle_add_parcel
+        
+        with patch("custom_components.boks.services.parse_parcel_string", return_value=(None, "Test parcel")), \
+             patch("custom_components.boks.services.generate_random_code", return_value="ABC123"), \
+             patch("custom_components.boks.services.format_parcel_item", return_value="ABC123 Test parcel"):
+            
+            result = await handle_add_parcel(call)
+            
+            assert result == {"code": "ABC123"}
+            mock_todo_entity.async_create_parcel.assert_called_once_with("ABC123 Test parcel", force_background_sync=True)
+
+
+async def test_handle_add_parcel_todo_entity_not_found(mock_hass):
+    """Test handle_add_parcel service when todo entity is not found."""
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"entity_id": "test_entity_id", "description": "Test parcel"}
+    
+    # Set up entity registry
+    mock_entity_registry = MagicMock()
+    mock_entry = MagicMock()
+    mock_entry.config_entry_id = "test_entry_id"
+    mock_entity_registry.async_get.return_value = mock_entry
+    with patch("homeassistant.helpers.entity_registry.async_get", return_value=mock_entity_registry):
+        # Set up entity component to return None
+        mock_component = MagicMock()
+        mock_component.get_entity.return_value = None
+        mock_hass.data.get.return_value = mock_component
+        
+        # Import the service handler
+        from custom_components.boks.services import handle_add_parcel
+        
+        with pytest.raises(HomeAssistantError, match="todo_entity_not_found"):
+            await handle_add_parcel(call)
+
+
+async def test_handle_add_code_success(mock_hass, mock_coordinator):
+    """Test handle_add_code service success."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"code": "ABC123", "type": "single", "index": 0}
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_add_code
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        result = await handle_add_code(call)
+        
+        assert result == {"code": "ABC123"}
+        mock_coordinator.ble_device.connect.assert_called_once()
+        mock_coordinator.ble_device.create_pin_code.assert_called_once_with("ABC123", "single", 0)
+        mock_coordinator.ble_device.disconnect.assert_called_once()
+
+
+async def test_handle_add_code_boks_error(mock_hass, mock_coordinator):
+    """Test handle_add_code service with BoksError."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"code": "ABC123", "type": "single", "index": 0}
+    
+    # Make create_pin_code raise a BoksError
+    mock_coordinator.ble_device.create_pin_code.side_effect = BoksError("test_error")
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_add_code
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        with pytest.raises(HomeAssistantError):
+            await handle_add_code(call)
+
+
+async def test_handle_delete_code_success(mock_hass, mock_coordinator):
+    """Test handle_delete_code service success."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"identifier": "ABC123", "type": "single"}
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_delete_code
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        await handle_delete_code(call)
+        
+        mock_coordinator.ble_device.connect.assert_called_once()
+        mock_coordinator.ble_device.delete_pin_code.assert_called_once_with("single", "ABC123")
+        mock_coordinator.ble_device.disconnect.assert_called_once()
+
+
+async def test_handle_delete_code_boks_error(mock_hass, mock_coordinator):
+    """Test handle_delete_code service with BoksError."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"identifier": "ABC123", "type": "single"}
+    
+    # Make delete_pin_code raise a BoksError
+    mock_coordinator.ble_device.delete_pin_code.side_effect = BoksError("test_error")
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_delete_code
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        with pytest.raises(HomeAssistantError):
+            await handle_delete_code(call)
+
+
+async def test_handle_sync_logs_success(mock_hass, mock_coordinator):
+    """Test handle_sync_logs service success."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {}
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_sync_logs
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        await handle_sync_logs(call)
+        
+        mock_coordinator.async_sync_logs.assert_called_once_with(update_state=True)
+
+
+async def test_handle_sync_logs_exception(mock_hass, mock_coordinator):
+    """Test handle_sync_logs service with exception."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Make async_sync_logs raise an exception
+    mock_coordinator.async_sync_logs.side_effect = Exception("Test error")
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {}
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_sync_logs
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        with pytest.raises(Exception, match="Test error"):
+            await handle_sync_logs(call)
+
+
+async def test_handle_clean_master_codes_success(mock_hass, mock_coordinator):
+    """Test handle_clean_master_codes service success."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"start_index": 0, "range": 5}
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_clean_master_codes
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator), \
+         patch("custom_components.boks.services.asyncio.sleep", new_callable=AsyncMock):
+        
+        await handle_clean_master_codes(call)
+        
+        # Verify that the background task was created
+        mock_hass.async_create_task.assert_called_once()
+
+
+async def test_handle_clean_master_codes_already_running(mock_hass, mock_coordinator):
+    """Test handle_clean_master_codes service when already running."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Set maintenance status to running
+    mock_coordinator.maintenance_status = {"running": True}
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {"start_index": 0, "range": 5}
+    
+    # Import the service handler
+    from custom_components.boks.services import handle_clean_master_codes
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        with pytest.raises(HomeAssistantError, match="maintenance_already_running"):
+            await handle_clean_master_codes(call)
+
+
+async def test_service_schemas():
+    """Test service schemas."""
+    # Test SERVICE_ADD_PARCEL_SCHEMA
+    valid_data = {"description": "Test parcel"}
+    result = SERVICE_ADD_PARCEL_SCHEMA(valid_data)
+    assert result == valid_data
+    
+    # Test SERVICE_ADD_CODE_SCHEMA
+    valid_data = {"code": "ABC123", "type": "single", "index": 0}
+    result = SERVICE_ADD_CODE_SCHEMA(valid_data)
+    assert result == valid_data
+    
+    # Test SERVICE_DELETE_CODE_SCHEMA
+    valid_data = {"identifier": "ABC123", "type": "single"}
+    result = SERVICE_DELETE_CODE_SCHEMA(valid_data)
+    assert result == valid_data
+    
+    # Test SERVICE_SYNC_LOGS_SCHEMA
+    valid_data = {}
+    result = SERVICE_SYNC_LOGS_SCHEMA(valid_data)
+    assert result == valid_data
+    
+    # Test SERVICE_CLEAN_MASTER_CODES_SCHEMA
+    valid_data = {"start_index": 0, "range": 5}
+    result = SERVICE_CLEAN_MASTER_CODES_SCHEMA(valid_data)
+    assert result == valid_data
