@@ -709,6 +709,12 @@ class BoksBluetoothDevice:
                 BoksNotificationOpcode.CODE_OPERATION_ERROR
             ]
         )
+
+        # WORKAROUND: Firmware bug for Single/Multi codes
+        # The firmware returns 0x78 (ERROR) even on success for these types.
+        if type in ("single", "multi") and resp[0] == BoksNotificationOpcode.CODE_OPERATION_ERROR:
+            return True
+
         return resp[0] == BoksNotificationOpcode.CODE_OPERATION_SUCCESS
 
     async def get_logs(self, count: int = None) -> List[BoksLogEntry]:

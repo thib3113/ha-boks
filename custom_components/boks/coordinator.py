@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.components import bluetooth
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers import translation # Import translation helper
+from homeassistant.util import dt as dt_util
 
 from .ble import BoksBluetoothDevice
 from .errors import BoksError
@@ -83,6 +84,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             self.data = {}
 
         self.data.update(status_data)
+        self.data["last_connection"] = dt_util.now().isoformat()
         
         # Persist battery format if detected
         if "battery_stats" in status_data:
@@ -340,6 +342,9 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     logs_data = await self.async_sync_logs(update_state=False)
                     if logs_data:
                         data.update(logs_data)
+
+                    # Update last connection time on successful update cycle
+                    data["last_connection"] = dt_util.now().isoformat()
 
                 finally:
                     # Disconnect after update to save battery and avoid blue LED

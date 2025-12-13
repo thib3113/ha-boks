@@ -4,6 +4,8 @@
   "content_in_root": false,
   "zip_release": false,
   "filename": "boks.zip",
-
+  "version": "1.0.1",
+  "issue_tracker": "https://github.com/thib3113/boks/issues",
+  "changelog": "https://github.com/thib3113/boks/blob/main/CHANGELOG.md",
   "homeassistant": "2024.1.0"
 }
