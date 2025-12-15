@@ -26,7 +26,12 @@ from custom_components.boks.todo import BoksParcelTodoList
 def mock_hass():
     """Create a mock HomeAssistant instance."""
     hass = MagicMock(spec=HomeAssistant)
-    hass.data = {DOMAIN: {}}
+    hass.data = {
+        DOMAIN: {},
+        "entity_components": {}
+    }
+    hass.services = MagicMock()
+    hass.services.async_register = MagicMock()
     return hass
 
 
@@ -34,6 +39,7 @@ def mock_hass():
 def mock_coordinator():
     """Create a mock coordinator."""
     coordinator = MagicMock(spec=BoksDataUpdateCoordinator)
+    coordinator.maintenance_status = {"running": False}
     coordinator.ble_device = MagicMock()
     coordinator.ble_device.connect = AsyncMock()
     coordinator.ble_device.disconnect = AsyncMock()
@@ -83,8 +89,9 @@ def test_get_coordinator_from_call_device_id_not_found(mock_hass):
         call = MagicMock()
         call.data = {"device_id": "test_device_id"}
         
-        with pytest.raises(HomeAssistantError, match="target_devices_not_boks"):
+        with pytest.raises(HomeAssistantError) as excinfo:
             get_coordinator_from_call(mock_hass, call)
+        assert excinfo.value.translation_key == "target_devices_not_boks"
 
 
 def test_get_coordinator_from_call_entity_id_found(mock_hass, mock_coordinator):
@@ -118,8 +125,9 @@ def test_get_coordinator_from_call_entity_id_not_found(mock_hass):
         call = MagicMock()
         call.data = {"entity_id": "test_entity_id"}
         
-        with pytest.raises(HomeAssistantError, match="target_entities_not_boks"):
+        with pytest.raises(HomeAssistantError) as excinfo:
             get_coordinator_from_call(mock_hass, call)
+        assert excinfo.value.translation_key == "target_entities_not_boks"
 
 
 def test_get_coordinator_from_call_single_instance_found(mock_hass, mock_coordinator):
@@ -145,8 +153,9 @@ def test_get_coordinator_from_call_single_instance_not_found(mock_hass):
     call = MagicMock()
     call.data = {}
     
-    with pytest.raises(HomeAssistantError, match="target_device_missing"):
+    with pytest.raises(HomeAssistantError) as excinfo:
         get_coordinator_from_call(mock_hass, call)
+    assert excinfo.value.translation_key == "target_device_missing"
 
 
 def test_get_coordinator_from_call_multiple_instances(mock_hass, mock_coordinator):
@@ -161,8 +170,9 @@ def test_get_coordinator_from_call_multiple_instances(mock_hass, mock_coordinato
     call = MagicMock()
     call.data = {}
     
-    with pytest.raises(HomeAssistantError, match="target_device_missing"):
+    with pytest.raises(HomeAssistantError) as excinfo:
         get_coordinator_from_call(mock_hass, call)
+    assert excinfo.value.translation_key == "target_device_missing"
 
 
 async def test_async_setup_services(mock_hass):
@@ -197,7 +207,7 @@ async def test_handle_add_parcel_with_entity_id(mock_hass, mock_coordinator):
         mock_todo_entity._has_config_key = True
         mock_todo_entity.async_create_parcel = AsyncMock()
         mock_component.get_entity.return_value = mock_todo_entity
-        mock_hass.data.get.return_value = mock_component
+        mock_hass.data["entity_components"]["todo"] = mock_component
         
         # Capture handler
         handlers = {}
@@ -237,7 +247,7 @@ async def test_handle_add_parcel_with_device_id(mock_hass, mock_coordinator):
         mock_todo_entity._has_config_key = True
         mock_todo_entity.async_create_parcel = AsyncMock()
         mock_component.get_entity.return_value = mock_todo_entity
-        mock_hass.data.get.return_value = mock_component
+        mock_hass.data["entity_components"]["todo"] = mock_component
         
         # Capture handler
         handlers = {}
@@ -281,7 +291,7 @@ async def test_handle_add_parcel_no_targets_single_instance(mock_hass, mock_coor
         mock_todo_entity._has_config_key = True
         mock_todo_entity.async_create_parcel = AsyncMock()
         mock_component.get_entity.return_value = mock_todo_entity
-        mock_hass.data.get.return_value = mock_component
+        mock_hass.data["entity_components"]["todo"] = mock_component
         
         # Capture handler
         handlers = {}
@@ -316,7 +326,7 @@ async def test_handle_add_parcel_todo_entity_not_found(mock_hass):
         # Set up entity component to return None
         mock_component = MagicMock()
         mock_component.get_entity.return_value = None
-        mock_hass.data.get.return_value = mock_component
+        mock_hass.data["entity_components"]["todo"] = mock_component
         
         # Capture handler
         handlers = {}
@@ -324,8 +334,9 @@ async def test_handle_add_parcel_todo_entity_not_found(mock_hass):
         await async_setup_services(mock_hass)
         handler = handlers["add_parcel"]
         
-        with pytest.raises(HomeAssistantError, match="todo_entity_not_found"):
+        with pytest.raises(HomeAssistantError) as excinfo:
             await handler(call)
+        assert excinfo.value.translation_key == "todo_entity_not_found"
 
 
 async def test_handle_add_single_code_success(mock_hass, mock_coordinator):
@@ -518,8 +529,9 @@ async def test_handle_clean_master_codes_already_running(mock_hass, mock_coordin
     handler = handlers["clean_master_codes"]
     
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
-        with pytest.raises(HomeAssistantError, match="maintenance_already_running"):
+        with pytest.raises(HomeAssistantError) as excinfo:
             await handler(call)
+        assert excinfo.value.translation_key == "maintenance_already_running"
 
 
 async def test_service_schemas():

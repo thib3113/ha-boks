@@ -15,6 +15,7 @@ from custom_components.boks.coordinator import BoksDataUpdateCoordinator
 def mock_coordinator():
     """Create a mock coordinator."""
     coordinator = MagicMock(spec=BoksDataUpdateCoordinator)
+    coordinator.last_update_success = True
     coordinator.ble_device = MagicMock()
     coordinator.ble_device.connect = AsyncMock()
     coordinator.ble_device.disconnect = AsyncMock()
@@ -45,6 +46,10 @@ def todo_list(hass: HomeAssistant, mock_coordinator, mock_config_entry, mock_sto
     """Create a BoksParcelTodoList instance."""
     todo_list = BoksParcelTodoList(mock_coordinator, mock_config_entry, mock_store, True)
     todo_list.hass = hass
+    todo_list.entity_id = "todo.boks_parcels"
+    todo_list.platform = MagicMock()
+    todo_list.platform.platform_name = "boks"
+    todo_list.platform.domain = DOMAIN
     return todo_list
 
 
@@ -220,6 +225,11 @@ async def test_async_create_parcel_without_code_with_config_key(hass: HomeAssist
 async def test_async_create_parcel_without_code_without_config_key(hass: HomeAssistant, mock_coordinator, mock_config_entry, mock_store):
     """Test async_create_parcel without code and without config key."""
     todo_list = BoksParcelTodoList(mock_coordinator, mock_config_entry, mock_store, False)  # No config key
+    todo_list.hass = hass
+    todo_list.entity_id = "todo.boks_parcels"
+    todo_list.platform = MagicMock()
+    todo_list.platform.platform_name = "boks"
+    todo_list.platform.domain = DOMAIN
     
     with patch("custom_components.boks.todo.parse_parcel_string", return_value=(None, "Test parcel")), \
          patch("custom_components.boks.todo.generate_random_code", return_value="XYZ789"), \
@@ -470,10 +480,13 @@ async def test_handle_log_event_matching_code(hass: HomeAssistant, todo_list):
     }
     
     with patch("custom_components.boks.todo.parse_parcel_string", return_value=("ABC123", "Test item")), \
-         patch.object(todo_list, "_async_save", new_callable=AsyncMock), \
-         patch.object(todo_list.hass.bus, "async_fire"):
+         patch.object(todo_list, "_async_save", new_callable=AsyncMock):
         
-        todo_list._handle_log_event(event)
+        # Mock async_fire directly on the bus object if possible, or just ignore it if we don't need to assert it
+        # But the error is about read-only attribute.
+        # Let's try to mock the bus attribute of hass instead.
+        with patch.object(todo_list.hass, "bus", MagicMock()) as mock_bus:
+            todo_list._handle_log_event(event)
         
         # Verify the item was marked as completed
         assert todo_list._items[0].status == TodoItemStatus.COMPLETED
@@ -519,6 +532,11 @@ async def test_async_added_to_hass_with_config_key(hass: HomeAssistant, todo_lis
 async def test_async_added_to_hass_without_config_key(hass: HomeAssistant, mock_coordinator, mock_config_entry, mock_store):
     """Test async_added_to_hass without config key."""
     todo_list = BoksParcelTodoList(mock_coordinator, mock_config_entry, mock_store, False)  # No config key
+    todo_list.hass = hass
+    todo_list.entity_id = "todo.boks_parcels"
+    todo_list.platform = MagicMock()
+    todo_list.platform.platform_name = "boks"
+    todo_list.platform.domain = DOMAIN
     
     with patch("custom_components.boks.todo.async_track_time_interval") as mock_track:
         await todo_list.async_added_to_hass()

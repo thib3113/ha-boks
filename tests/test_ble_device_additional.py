@@ -162,7 +162,8 @@ async def test_delete_pin_code_operation_error(hass: HomeAssistant):
     
     with patch.object(device, "_send_command", new_callable=AsyncMock, return_value=response_packet):
         result = await device.delete_pin_code("single", "123456")
-        assert result is False
+        # Due to firmware bug workaround, single/multi delete returns True even on error
+        assert result is True
 
 
 async def test_get_logs_success(hass: HomeAssistant):

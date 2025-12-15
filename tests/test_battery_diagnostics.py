@@ -1,6 +1,6 @@
 """Tests for the Boks battery diagnostics sensors."""
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from custom_components.boks.sensors.diagnostics.battery_diagnostic_sensor import BoksBatteryDiagnosticSensor
@@ -118,20 +118,6 @@ def test_battery_format_sensor_get_current_value_with_data(mock_coordinator, moc
     """Test getting current format value with valid data."""
     mock_coordinator.data = {
         "battery_stats": {
-            "format": 1  # Should map to "aa"
-        }
-    }
-    
-    sensor = BoksBatteryFormatSensor(mock_coordinator, mock_config_entry)
-    value = sensor._get_current_value()
-    
-    assert value == "aa"
-
-
-def test_battery_format_sensor_get_current_value_with_string_format(mock_coordinator, mock_config_entry):
-    """Test getting current format value with string format."""
-    mock_coordinator.data = {
-        "battery_stats": {
             "format": "measure-single"
         }
     }
@@ -139,7 +125,21 @@ def test_battery_format_sensor_get_current_value_with_string_format(mock_coordin
     sensor = BoksBatteryFormatSensor(mock_coordinator, mock_config_entry)
     value = sensor._get_current_value()
     
-    assert value is None  # String formats are not mapped
+    assert value == "measure-single"
+
+
+def test_battery_format_sensor_get_current_value_with_unknown_format(mock_coordinator, mock_config_entry):
+    """Test getting current format value with unknown format."""
+    mock_coordinator.data = {
+        "battery_stats": {
+            "format": None
+        }
+    }
+    
+    sensor = BoksBatteryFormatSensor(mock_coordinator, mock_config_entry)
+    value = sensor._get_current_value()
+    
+    assert value == "unknown"
 
 
 def test_battery_type_sensor_init(mock_coordinator, mock_config_entry):
@@ -153,23 +153,35 @@ def test_battery_type_sensor_init(mock_coordinator, mock_config_entry):
 
 def test_battery_type_sensor_get_current_value_with_data(mock_coordinator, mock_config_entry):
     """Test getting current type value with valid data."""
-    mock_coordinator.data = {
-        "battery_stats": {
-            "type": 1  # Should map to "alkaline"
+    # Mock PCB_VERSIONS behavior (assuming PCB_VERSIONS maps fw_rev to pcb_version)
+    # We need to know what PCB_VERSIONS contains. Based on implementation:
+    # if pcb_version == "3.0": return "lsh14"
+    # if pcb_version == "4.0": return "8x_aaa"
+    
+    # Let's assume we need to mock PCB_VERSIONS or use a known value if imported.
+    # Since we can't easily mock the imported constant without patching,
+    # let's try to patch it or use values that might be in it.
+    # But wait, the implementation imports PCB_VERSIONS from ...const
+    
+    # Let's patch PCB_VERSIONS in the sensor module
+    with patch("custom_components.boks.sensors.diagnostics.battery_type_sensor.PCB_VERSIONS", {"1.0.0": "3.0"}):
+        mock_coordinator.data = {
+            "device_info_service": {
+                "firmware_revision": "1.0.0"
+            }
         }
-    }
-    
-    sensor = BoksBatteryTypeSensor(mock_coordinator, mock_config_entry)
-    value = sensor._get_current_value()
-    
-    assert value == "alkaline"
+        
+        sensor = BoksBatteryTypeSensor(mock_coordinator, mock_config_entry)
+        value = sensor._get_current_value()
+        
+        assert value == "lsh14"
 
 
 def test_battery_type_sensor_get_current_value_with_unknown_type(mock_coordinator, mock_config_entry):
     """Test getting current type value with unknown type."""
     mock_coordinator.data = {
-        "battery_stats": {
-            "type": 99  # Should map to "unknown"
+        "device_info_service": {
+            "firmware_revision": "unknown_fw"
         }
     }
     

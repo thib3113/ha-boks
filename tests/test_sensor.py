@@ -10,6 +10,10 @@ async def test_sensors(hass: HomeAssistant, mock_boks_ble_device, mock_bluetooth
     
     # Mock valid data from BLE
     mock_boks_ble_device.get_battery_level = AsyncMock(return_value=85)
+    mock_boks_ble_device.get_battery_stats = AsyncMock(return_value={
+        "format": "measures-first-min-mean-max-last",
+        "temperature": 25
+    })
     mock_boks_ble_device.get_code_counts = AsyncMock(return_value={"master": 1, "single_use": 2})
     mock_boks_ble_device.get_device_information = AsyncMock(return_value={
         "manufacturer_name": "Boks",
