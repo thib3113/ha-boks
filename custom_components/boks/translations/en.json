@@ -46,6 +46,7 @@
       "create_code_failed": "Failed to create code (Device returned error)",
       "change_master_code_failed": "Failed to change master code (Device returned error)",
       "unknown_code_type": "Unknown code type",
+      "unknown_device": "Device not seen by Bluetooth adapter.",
       "not_connectable": "The detected device is not connectable (probably via a passive proxy).",
       "todo_entity_not_found_for_device": "No Todo entity found for device {target_device_id}",
       "target_devices_not_boks": "Target device(s) {device_ids} are not Boks devices.",

@@ -43,13 +43,32 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the manual entry step."""
         errors = {}
 
-        # Pre-fill Address if discovered
-        prefilled_address = None
+        # Defaults
+        default_address = None
+        default_master_code = ""
+        default_credential = ""
+
         if self._discovery_info:
-            prefilled_address = self._discovery_info.address
+            default_address = self._discovery_info.address
 
         if user_input is not None:
-            address = user_input[CONF_ADDRESS]
+            # Preserve input values for the form retry
+            default_address = user_input.get(CONF_ADDRESS, default_address)
+            default_master_code = user_input.get(CONF_MASTER_CODE, default_master_code)
+            default_credential = user_input.get("credential", default_credential)
+
+            # 0. Normalize Address
+            raw_addr = user_input[CONF_ADDRESS]
+            # Remove all non-alphanumeric characters
+            clean_addr = "".join(c for c in raw_addr if c.isalnum()).upper()
+            
+            if len(clean_addr) == 12:
+                # Reformat to XX:XX:XX:XX:XX:XX
+                address = ":".join(clean_addr[i:i+2] for i in range(0, 12, 2))
+            else:
+                # Keep original to allow standard validation failure or if it's already weird
+                address = raw_addr.strip().upper()
+
             master_code_input = user_input[CONF_MASTER_CODE].strip().upper()
             credential = user_input.get("credential", "").strip().upper()
 
@@ -129,9 +148,9 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Form Schema
         schema = {
-            vol.Required(CONF_ADDRESS, default=prefilled_address or vol.UNDEFINED): str,
-            vol.Required(CONF_MASTER_CODE): str,
-            vol.Optional("credential"): str,
+            vol.Required(CONF_ADDRESS, default=default_address or vol.UNDEFINED): str,
+            vol.Required(CONF_MASTER_CODE, default=default_master_code): str,
+            vol.Optional("credential", default=default_credential): str,
         }
 
         return self.async_show_form(
