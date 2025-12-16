@@ -16,9 +16,8 @@ jobs:
 
       - name: Create ZIP archive
         run: |
-          cd custom_components
-          # Zip recursively the boks folder into boks.zip in the root directory
-          zip -r ../boks.zip boks
+          cd custom_components/boks
+          zip -r ../../boks.zip .
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
