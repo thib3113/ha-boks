@@ -325,6 +325,16 @@
     "sync_logs": {
       "name": "Sync Logs",
       "description": "Manually retrieve logs from the Boks and trigger associated events."
+    },
+    "enable_laposte": {
+      "name": "Enable La Poste",
+      "description": "Enable or disable La Poste access (Vigik).",
+      "fields": {
+        "enable": {
+          "name": "Enable",
+          "description": "True to enable, False to disable."
+        }
+      }
     }
   }
 }

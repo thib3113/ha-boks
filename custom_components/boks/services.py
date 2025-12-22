@@ -59,6 +59,10 @@ SERVICE_CLEAN_MASTER_CODES_SCHEMA = vol.Schema({
     vol.Optional("range", default=MAX_MASTER_CODE_CLEAN_RANGE): cv.positive_int,
 }, extra=vol.ALLOW_EXTRA)
 
+SERVICE_ENABLE_LAPOSTE_SCHEMA = vol.Schema({
+    vol.Required("enable"): cv.boolean,
+}, extra=vol.ALLOW_EXTRA)
+
 
 def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDataUpdateCoordinator:
     """Retrieve the Boks coordinator from a service call target."""
@@ -129,9 +133,9 @@ async def async_setup_services(hass: HomeAssistant):
         code = call.data.get("code")
         if code:
             code = code.strip().upper()
-        
+
         coordinator = get_coordinator_from_call(hass, call)
-        
+
         # Get the lock entity to use its open logic (which handles fallback/generation)
         # We need to find the lock entity associated with this coordinator
         lock_entity = None
@@ -143,7 +147,7 @@ async def async_setup_services(hass: HomeAssistant):
                 if component:
                     lock_entity = component.get_entity(entry.entity_id)
                     break
-        
+
         if lock_entity:
             # Use entity logic
             await lock_entity.async_open(code=code)
@@ -300,12 +304,12 @@ async def async_setup_services(hass: HomeAssistant):
                 translation_placeholders=e.translation_placeholders
             ) from e
         finally:
-            await coordinator.ble_device.disconnect()
+            await asyncio.shield(coordinator.ble_device.disconnect())
 
     async def _handle_delete_code(call: ServiceCall, code_type: str, identifier: str | int):
         if isinstance(identifier, str):
             identifier = identifier.strip().upper()
-        
+
         _LOGGER.info(f"Deleting PIN Code: Identifier={identifier}, Type={code_type}")
 
         coordinator = get_coordinator_from_call(hass, call)
@@ -314,7 +318,7 @@ async def async_setup_services(hass: HomeAssistant):
             success = await coordinator.ble_device.delete_pin_code(code_type, identifier)
             if not success:
                  raise BoksError("delete_code_failed")
-            
+
             _LOGGER.info(f"Code {identifier} ({code_type}) deleted successfully.")
             await coordinator.async_request_refresh()
         except BoksError as e:
@@ -324,7 +328,7 @@ async def async_setup_services(hass: HomeAssistant):
                 translation_placeholders=e.translation_placeholders
             ) from e
         finally:
-            await coordinator.ble_device.disconnect()
+            await asyncio.shield(coordinator.ble_device.disconnect())
 
     # --- Service: Add Master Code ---
     async def handle_add_master_code(call: ServiceCall) -> dict:
@@ -423,7 +427,7 @@ async def async_setup_services(hass: HomeAssistant):
             range_val = MAX_MASTER_CODE_CLEAN_RANGE
 
         coordinator = get_coordinator_from_call(hass, call)
-        
+
         current_status = getattr(coordinator, "maintenance_status", {})
         if current_status.get("running", False):
             _LOGGER.warning("Clean Master Codes requested but a maintenance task is already running.")
@@ -433,36 +437,36 @@ async def async_setup_services(hass: HomeAssistant):
             )
 
         _LOGGER.info(f"Clean Master Codes requested: Start={start_index}, Range={range_val}")
-        
+
         async def _background_clean():
             total_to_clean = range_val
             current_idx = start_index
             coordinator.set_maintenance_status(
-                running=True, 
-                current_index=current_idx, 
+                running=True,
+                current_index=current_idx,
                 total_to_clean=total_to_clean,
                 message="Starting..."
             )
             cleaned_count = 0
-            
+
             try:
                 if not coordinator.ble_device.is_connected:
                     await coordinator.ble_device.connect()
-                
+
                 for i in range(range_val):
                     target_index = start_index + i
                     current_progress_msg = f"Cleaning index {target_index}..."
                     coordinator.set_maintenance_status(
                         running=True,
-                        current_index=i + 1, 
+                        current_index=i + 1,
                         total_to_clean=total_to_clean,
                         message=current_progress_msg
                     )
-                    
+
                     retry_count = 0
                     max_retries = 3
                     success = False
-                    
+
                     while retry_count < max_retries and not success:
                         try:
                             if not coordinator.ble_device.is_connected:
@@ -478,11 +482,11 @@ async def async_setup_services(hass: HomeAssistant):
                             retry_count += 1
                             _LOGGER.warning(f"Error cleaning index {target_index} (Attempt {retry_count}/{max_retries}): {e}")
                             await asyncio.sleep(1.0)
-                            
+
                     if not success:
                         _LOGGER.error(f"Failed to clean index {target_index} after {max_retries} attempts. Aborting.")
                         raise Exception("Connection lost or device unresponsive")
-                
+
                 coordinator.set_maintenance_status(
                     running=False,
                     current_index=total_to_clean,
@@ -498,7 +502,7 @@ async def async_setup_services(hass: HomeAssistant):
                         "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
                     }
                 )
-                
+
             except Exception as e:
                 _LOGGER.error(f"Maintenance task failed: {e}")
                 coordinator.set_maintenance_status(running=False, message=f"Failed: {e}")
@@ -513,7 +517,7 @@ async def async_setup_services(hass: HomeAssistant):
                 )
 
             finally:
-                 await coordinator.ble_device.disconnect()
+                 await asyncio.shield(coordinator.ble_device.disconnect())
                  await asyncio.sleep(60)
                  coordinator.set_maintenance_status(running=False, message="")
 
@@ -525,3 +529,29 @@ async def async_setup_services(hass: HomeAssistant):
         handle_clean_master_codes,
         schema=SERVICE_CLEAN_MASTER_CODES_SCHEMA
     )
+
+    # --- Service: Enable La Poste ---
+    async def handle_enable_laposte(call: ServiceCall):
+        """Handle the enable La Poste service call."""
+        enable = call.data["enable"]
+        coordinator = get_coordinator_from_call(hass, call)
+
+        await coordinator.ble_device.connect()
+        try:
+            await coordinator.ble_device.enable_laposte(enable)
+            _LOGGER.info(f"La Poste configuration set to {enable}")
+        except BoksError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=e.translation_key,
+                translation_placeholders=e.translation_placeholders
+            ) from e
+        finally:
+            await asyncio.shield(coordinator.ble_device.disconnect())
+
+    # hass.services.async_register(
+    #     DOMAIN,
+    #     "enable_laposte",
+    #     handle_enable_laposte,
+    #     schema=SERVICE_ENABLE_LAPOSTE_SCHEMA
+    # )

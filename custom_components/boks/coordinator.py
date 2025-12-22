@@ -20,7 +20,7 @@ from homeassistant.util import dt as dt_util
 from .ble import BoksBluetoothDevice
 from .errors import BoksError
 from .ble.log_entry import BoksLogEntry # Import BoksLogEntry
-from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL # Import DOMAIN and defaults
+from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, TIMEOUT_BLE_CONNECTION # Import DOMAIN and defaults
 from .util import process_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -200,7 +200,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.warning(f"Failed to sync logs: {e}")
         finally:
             # Always disconnect to decrement reference counter
-            await self.ble_device.disconnect()
+            await asyncio.shield(self.ble_device.disconnect())
 
         return result
 
@@ -212,34 +212,23 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             # Note: If the device is already connected via an active command,
             # the BoksBle class handles the lock.
 
-            async with asyncio.timeout(30):
-                # Always connect to increment reference counter
+            async with asyncio.timeout(TIMEOUT_BLE_CONNECTION):
                 # Try to get the BLEDevice from HA's cache (Best Practice)
-                # First try with connectable=True, then with connectable=False
                 ble_device_struct = bluetooth.async_ble_device_from_address(
                     self.hass, self.entry.data[CONF_ADDRESS], connectable=True
                 )
                 if not ble_device_struct:
-                    # If not found with connectable=True, try with connectable=False
                     ble_device_struct = bluetooth.async_ble_device_from_address(
                         self.hass, self.entry.data[CONF_ADDRESS], connectable=False
                     )
 
-                if ble_device_struct:
-                    await self.ble_device.connect(device=ble_device_struct)
-                else:
-                    # If not in cache, try connecting anyway (might fail or use cached address in Bleak)
-                    # But usually we need the BLEDevice object for Home Assistant
-                    # If we can't find it, we can't connect reliably.
-                    # However, BoksBle.connect() handles None device if address is known.
-                    # But let's be strict here as per previous logic.
-                    # Actually, previous logic raised UpdateFailed.
-                    # Let's try to connect with just address if struct is missing,
-                    # but BoksBle.connect() expects device or uses address.
-                    # Let's stick to previous behavior: fail if not found.
+                if not ble_device_struct:
                     raise UpdateFailed("device_not_in_cache")
 
                 try:
+                    # Always connect to increment reference counter
+                    await self.ble_device.connect(device=ble_device_struct)
+
                     now = datetime.now()
 
                     # Only fetch battery if we don't have it yet (first run)
@@ -276,25 +265,15 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         _LOGGER.debug(f"Code counts fetched: {counts}")
                     except BoksError as e:
                         _LOGGER.warning("Could not fetch code counts: %s", e)
-                        # Even if we fail to fetch code counts, we should continue with other operations
-                        # The connection reference count should be properly managed by the finally block
                     except asyncio.TimeoutError:
                         _LOGGER.warning("Timeout while fetching code counts")
-                        # Even if we timeout, we should continue with other operations
-                        # The connection reference count should be properly managed by the finally block
 
-                    # 4. Get Device Information (Always update on poll, or maybe throttle?)
-                    # Since these don't change often, we could throttle, but for now let's fetch to ensure we have them.
-                    # Actually, reading 7 characteristics every poll might be too much.
-                    # Let's only fetch if we don't have them or if it's been a while (e.g. 24h).
+                    # 4. Get Device Information
                     should_fetch_device_info = True
                     if "device_info_service" in data:
-                         # If we have data, maybe skip? But user might update firmware.
-                         # Let's throttle to once every 24h (or 2x full refresh interval)
                          last_fetch = data.get("last_device_info_fetch")
                          if last_fetch:
                              last_fetch_dt = datetime.fromisoformat(last_fetch)
-                             # Device info changes rarely, so we use 2x the normal refresh interval
                              device_info_interval_hours = self.full_refresh_interval_hours * 2
                              if (now - last_fetch_dt) < timedelta(hours=device_info_interval_hours):
                                  should_fetch_device_info = False
@@ -314,11 +293,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             )
 
                             if device_entry:
-                                # Process info to get standardized fields (sw_version, hw_version, etc.)
                                 processed_info = process_device_info(self.entry.data, device_info)
-
-                                # Filter out keys that are not updateable or not needed for update
-                                # async_update_device expects specific kwargs like sw_version, hw_version, etc.
                                 update_kwargs = {}
                                 if "sw_version" in processed_info:
                                     update_kwargs["sw_version"] = processed_info["sw_version"]
@@ -349,13 +324,12 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                 finally:
                     # Disconnect after update to save battery and avoid blue LED
                     # This will decrement the reference counter
-                    await self.ble_device.disconnect()
+                    await asyncio.shield(self.ble_device.disconnect())
 
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during Boks BLE data update")
-            # If the device timed out, we might be disconnected.
-            # We don't raise UpdateFailed here immediately to allow other parts to work.
-            # The next update cycle will try to reconnect.
+            raise UpdateFailed("Timeout during Boks BLE data update")
+
         except UpdateFailed:
             # Re-raise pre-handled failures (like Device not found) without extra logging
             raise

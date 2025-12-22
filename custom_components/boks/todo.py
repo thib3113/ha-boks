@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import uuid
 from datetime import timedelta
@@ -251,7 +252,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
                 raw_item["sync_retry_count"] = retry_count + 1
                 await self._async_save()
             finally:
-                await self.coordinator.ble_device.disconnect()
+                await asyncio.shield(self.coordinator.ble_device.disconnect())
 
     async def _update_todo_item_metadata_remove_pending(self, item_uid: str) -> None:
         """Remove the pending_sync_code from metadata."""

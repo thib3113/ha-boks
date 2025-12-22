@@ -89,6 +89,7 @@ async def test_send_command_timeout_no_retry(hass: HomeAssistant):
     mock_client = MagicMock()
     mock_client.is_connected = True
     mock_client.write_gatt_char = AsyncMock()
+    mock_client.disconnect = AsyncMock()
     device._client = mock_client
     
     # Mock connect

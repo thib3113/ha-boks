@@ -149,27 +149,33 @@ class BoksBluetoothDevice:
         """Connect to the Boks."""
         async with self._lock:
             self._connection_users += 1
-            if self.is_connected:
+            if self.is_connected and self._notifications_subscribed:
                 return
 
-            _LOGGER.debug("Connecting to Boks %s", self.address)
+            _LOGGER.debug("Connecting to Boks %s (Subscribed: %s)", self.address, self._notifications_subscribed)
 
-            if device is None:
-                device = bluetooth.async_ble_device_from_address(
-                    self.hass, self.address, connectable=True
-                )
-                if not device:
+            if not self.is_connected:
+                if device is None:
                     device = bluetooth.async_ble_device_from_address(
-                        self.hass, self.address, connectable=False
+                        self.hass, self.address, connectable=True
                     )
+                    if not device:
+                        device = bluetooth.async_ble_device_from_address(
+                            self.hass, self.address, connectable=False
+                        )
+
+                try:
+                    self._client = await establish_connection(
+                        BleakClient,
+                        device if device is not None else self.address,
+                        self.address,
+                        disconnected_callback=self._on_disconnect
+                    )
+                except BaseException:
+                    self._connection_users -= 1
+                    raise
 
             try:
-                self._client = await establish_connection(
-                    BleakClient,
-                    device if device is not None else self.address,
-                    self.address,
-                )
-
                 if not self._notifications_subscribed:
                     await self._client.start_notify(BoksServiceUUID.NOTIFY_CHARACTERISTIC, self._notification_handler)
                     self._notifications_subscribed = True
@@ -177,9 +183,15 @@ class BoksBluetoothDevice:
 
                 # Reset event on connection
                 self._door_event.clear()
-            except Exception:
-                self._connection_users -= 1
+            except BaseException:
+                # If we fail to subscribe, it's safer to force disconnect to try fresh next time
+                await self.force_disconnect()
                 raise
+
+    def _on_disconnect(self, client: BleakClient) -> None:
+        """Handle disconnection."""
+        _LOGGER.debug("BLE Disconnected callback triggered for %s", self.address)
+        self._notifications_subscribed = False
 
     async def disconnect(self) -> None:
         """Disconnect from the Boks."""
@@ -191,7 +203,8 @@ class BoksBluetoothDevice:
                 return
 
             if self._client and self._client.is_connected:
-                await self._client.disconnect()
+                # Shield the disconnect call to ensure it completes even if the task is cancelled
+                await asyncio.shield(self._client.disconnect())
             self._client = None
             self._notifications_subscribed = False
             _LOGGER.info("Disconnected from Boks")
@@ -376,7 +389,10 @@ class BoksBluetoothDevice:
                 # Cleanup future
                 if future_key in self._response_futures:
                     del self._response_futures[future_key]
-                # Timeout means command was sent but no Ack. We stop here.
+                
+                # Timeout means command was sent but no Ack. 
+                # We force disconnect to ensure next attempt is fresh.
+                await self.force_disconnect()
                 raise BoksError("timeout_waiting_response", {"opcode": f"0x{opcode:02X}"})
 
             except (BleakError, AttributeError, OSError) as e:
@@ -795,3 +811,33 @@ class BoksBluetoothDevice:
             return result
         finally:
             self._response_callbacks.pop(BoksNotificationOpcode.NOTIFY_LOGS_COUNT, None)
+
+    async def enable_laposte(self, enable: bool) -> bool:
+        """Enable or disable La Poste configuration."""
+        if not self._config_key_str:
+            raise BoksAuthError("config_key_required")
+
+        # Payload: ConfigKey (8) + R (1) + P (1)
+        # R = 0x01 (SCAN_LAPOSTE_NFC_TAGS)
+        # P = 0x01 if enable else 0x00
+        
+        payload = bytearray(self._config_key_str.encode('ascii'))
+        payload.append(0x01) # R
+        payload.append(0x01 if enable else 0x00) # P
+
+        resp = await self._send_command(
+            BoksCommandOpcode.SET_CONFIGURATION,
+            payload,
+            wait_for_opcodes=[
+                BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS,
+                BoksNotificationOpcode.ERROR_UNAUTHORIZED,
+                BoksNotificationOpcode.ERROR_BAD_REQUEST
+            ]
+        )
+
+        if resp[0] == BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS:
+            return True
+        elif resp[0] == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
+             raise BoksAuthError("unauthorized")
+        else:
+            raise BoksCommandError("enable_laposte_failed")

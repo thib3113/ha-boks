@@ -334,6 +334,16 @@
     "sync_logs": {
       "name": "Synchroniser les journaux",
       "description": "Récupère manuellement les journaux de la Boks et déclenche les événements associés."
+    },
+    "enable_laposte": {
+      "name": "Activer La Poste",
+      "description": "Active ou désactive l'accès La Poste (Vigik).",
+      "fields": {
+        "enable": {
+          "name": "Activer",
+          "description": "Vrai pour activer, Faux pour désactiver."
+        }
+      }
     }
   }
 }

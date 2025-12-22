@@ -170,7 +170,7 @@ class BoksLock(CoordinatorEntity, LockEntity):
             # If we failed to launch the background task (e.g. open_door failed),
             # we must disconnect (decrement reference counter) ourselves.
             if not success:
-                await ble_device.disconnect()
+                await asyncio.shield(ble_device.disconnect())
 
     async def _wait_and_disconnect(self, ble_device):
         """Keep connection alive to wait for door close and sync logs."""
@@ -197,4 +197,4 @@ class BoksLock(CoordinatorEntity, LockEntity):
             # Ensure disconnection if something failed above or if coordinator didn't disconnect
             if ble_device.is_connected:
                 _LOGGER.debug("Disconnecting from Boks (cleanup).")
-                await ble_device.disconnect()
+                await asyncio.shield(ble_device.disconnect())
