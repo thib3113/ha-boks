@@ -6,6 +6,8 @@ Ce document explique comment utiliser les événements exposés par l'intégrati
 
 L'intégration Boks expose une entité `event` (par exemple, `event.boks_logs`) qui se déclenche chaque fois que de nouvelles données de journal sont récupérées de votre appareil Boks. Cette entité sert de point central pour toutes les activités historiques enregistrées par votre Boks.
 
+En plus de l'entité `event`, l'intégration émet également des événements sur le bus d'événements Home Assistant avec le type d'événement `boks_log_entry`. Ces événements contiennent les mêmes données que l'entité `event` et peuvent être utilisés dans les automatisations comme alternative aux déclencheurs basés sur l'état.
+
 Lorsqu'un événement se déclenche, il contient un attribut `event_type` et potentiellement d'autres données qui décrivent ce qui s'est passé.
 
 ## Types d'Événements Disponibles
@@ -44,6 +46,8 @@ action:
       message: "Votre Boks a été ouverte !"
 mode: queued
 ```
+
+> ⚠️ **Avertissement** : Lorsque vous utilisez l'entité `event.boks_logs` dans les automatisations, assurez-vous d'utiliser le nom d'entité correct car il peut varier en fonction du nom de votre appareil. Vérifiez le nom de l'entité dans votre instance Home Assistant pour garantir l'exactitude.
 
 *   **Explication** :
     *   Le `trigger` écoute tout changement d'état sur `event.boks_logs`.

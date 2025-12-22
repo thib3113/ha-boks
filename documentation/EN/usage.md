@@ -6,6 +6,8 @@ This document explains how to use the events exposed by the Boks integration for
 
 The Boks integration exposes an `event` entity (e.g., `event.boks_logs`) that fires whenever new log data is retrieved from your Boks device. This entity acts as a central point for all historical activities recorded by your Boks.
 
+In addition to the `event` entity, the integration also emits events on the Home Assistant event bus with the event type `boks_log_entry`. These events contain the same data as the `event` entity and can be used in automations as an alternative to state-based triggers.
+
 When an event fires, it carries an `event_type` attribute and potentially other data that describes what happened.
 
 ## Available Event Types
@@ -44,6 +46,8 @@ action:
       message: "Your Boks has been opened!"
 mode: queued
 ```
+
+> ⚠️ **Warning**: When using the `event.boks_logs` entity in automations, make sure to use the correct entity name as it may vary depending on your device name. Check the entity name in your Home Assistant instance to ensure accuracy.
 
 *   **Explanation**:
     *   The `trigger` listens for any state change on `event.boks_logs`.

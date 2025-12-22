@@ -18,10 +18,10 @@ L'intégration Boks propose une approche à plusieurs niveaux pour la fonctionna
     *   **Saisie** : Entrez votre code de déverrouillage Boks à 6 caractères (par exemple, `1234AB`) dans le champ "Code Maître". Laissez le champ "Authentifiant" vide.
     *   **Fonctionnalités Activées** :
         *   **Déverrouillage Boks** : Contrôlez l'entité `lock` pour ouvrir votre Boks.
-        *   **Capteur de Niveau de Batterie** : Surveillez l'état de la batterie de votre appareil Boks.
+        *   **Capteur de Niveau de Batterie** : Surveillez l'état de la batterie de votre appareil Boks (les données de batterie ne sont disponibles qu'après l'ouverture de la porte). Note : Les entités de batterie peuvent nécessiter un redémarrage de l'intégration pour apparaître.
         *   **Capteur de Comptage des Codes** : Surveillez le nombre de Codes Maîtres, Standard et Multi-usage stockés sur votre appareil.
         *   **Journalisation des Événements** : Recevez les événements opérationnels de base de votre Boks (par exemple, porte ouverte/fermée, tentatives de code valides/invalides) via l'entité `event.<nom>_logs`.
-        *   **Liste de Tâches (Fonctionnalité de Base)** : Une entité `todo.<nom>_parcels` sera créée. Vous pouvez l'utiliser pour suivre les colis (avec descriptions), mais vous devrez gérer manuellement (créer et associer) tous les codes PIN. L'intégration tentera toujours de valider et de marquer les tâches comme terminées si elle détecte un code associé manuellement dans ses journaux et émettra des événements `boks_parcel_completed`.
+        *   **Liste de Tâches (Fonctionnalité de Base)** : Une entité `todo.<nom>_parcels` sera créée. Vous pouvez l'utiliser pour suivre les colis (avec descriptions), mais vous devrez gérer manuellement (créer et associer) tous les codes PIN. L'intégration tentera toujours de valider et de marquer les tâches comme terminées si elle détecte un code associé manuellement dans ses journaux et émettra des événements `boks_parcel_completed`. En "Mode Dégradé" (lorsqu'aucune Clé de Configuration n'est fournie), le suivi des colis est disponible sans génération de code.
 
 *   **2. Clé de Configuration ou Clé Maître (Optionnel, Recommandé pour les Fonctionnalités Avancées)**
     *   **Saisie** : En plus de votre "Code Maître", entrez votre **Clé de Configuration** (8 caractères hexadécimaux) ou **Clé Maître** (64 caractères hexadécimaux) dans le champ "Authentifiant".
@@ -37,6 +37,16 @@ L'intégration Boks propose une approche à plusieurs niveaux pour la fonctionna
 6.  **Soumettre** : Cliquez sur "Soumettre" pour finaliser la configuration et activer l'intégration avec les fonctionnalités sélectionnées.
 
 ## Configuration Avancée
+
+### Persistance du Format de Batterie
+
+L'appareil Boks prend en charge différents formats de mesure de batterie, qui sont automatiquement détectés par l'intégration :
+
+*   **measure-single** : Mesure simple du niveau de batterie (service de batterie standard)
+*   **measures-t1-t5-t10** : Mesures multiples à différents intervalles de temps
+*   **measures-first-min-mean-max-last** : Mesures détaillées incluant les valeurs min, moyenne et max
+
+L'intégration détecte automatiquement le format de batterie lors de la première ouverture de la porte et le stocke dans la configuration. Cela garantit que les capteurs de diagnostic de batterie appropriés sont créés et disponibles même lorsque l'appareil est hors ligne. Si le format de batterie change (par exemple, en raison d'une mise à jour du firmware), l'intégration le détectera et mettra à jour le format stocké lors de la prochaine ouverture de la porte.
 
 [Ajouter des détails sur toutes les options de configuration avancées, si applicables. Par exemple, plusieurs appareils Boks, paramètres spécifiques.]
 

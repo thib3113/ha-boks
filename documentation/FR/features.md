@@ -11,16 +11,24 @@ Ces fonctionnalités sont accessibles dès que le Code Maître (PIN) est configu
 
 ### 📊 Surveillance et Capteurs
 *   **Niveau de batterie** : Surveillez l'état de la batterie.
-*   **Comptage des codes** : Visualisez combien de codes (Maître, Standard, Multi-usage) sont stockés sur la boîte.
+*   **Température de batterie** : Surveillez la température de la batterie.
+*   **Comptage des codes** : Visualisez combien de codes (Maître, à usage unique) sont stockés sur la boîte.
+*   **Nombre de journaux** : Visualisez combien de journaux sont stockés sur la boîte.
+*   **Dernière connexion** : Visualisez l'horodatage de la dernière connexion réussie à l'appareil.
+*   **Dernier événement** : Visualisez le dernier événement de l'appareil.
+*   **Statut de maintenance** : Visualisez le statut des opérations de maintenance.
+*   **Format de mesure** : Visualisez le format de mesure de batterie utilisé par l'appareil.
+*   **Type de batterie** : Visualisez le type de batterie installé dans l'appareil.
+*   **Capteurs de diagnostic de batterie** : Visualisez les mesures détaillées de tension de batterie (disponibilité dépend du format de mesure).
 
 ### 📜 Journalisation (Logs)
-L'intégration récupère automatiquement l'historique de la Boks et émet des événements (`event.boks_logs`) :
+L'intégration récupère automatiquement l'historique de la Boks et émet des événements (`event.boks_log_entry`) :
 *   Ouvertures (Bluetooth, Clavier, Clé)
 *   Fermetures
 *   Erreurs et tentatives invalides
 
 ### 📦 Suivi de Colis (Mode Manuel)
-L'entité `todo.suivi_boks` est disponible pour lister vos colis attendus.
+L'entité `todo.parcels` est disponible pour lister vos colis attendus.
 *   **Sans Config Key** : Vous devez gérer les codes manuellement (créer le code sur la boîte, puis l'ajouter dans la description de la tâche).
 *   L'intégration validera quand même la tâche si elle voit passer ce code dans les logs.
 

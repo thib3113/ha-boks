@@ -11,16 +11,24 @@ These features are accessible as soon as the Master Code (PIN) is configured.
 
 ### 📊 Monitoring & Sensors
 *   **Battery Level**: Monitor the device battery status.
-*   **Code Counts**: View how many codes (Master, Standard, Multi-use) are stored on the box.
+*   **Battery Temperature**: Monitor the device battery temperature.
+*   **Code Counts**: View how many codes (Master, Single-use) are stored on the box.
+*   **Log Count**: View how many logs are stored on the box.
+*   **Last Connection**: View the timestamp of the last successful connection to the device.
+*   **Last Event**: View the most recent event from the device.
+*   **Maintenance Status**: View the status of maintenance operations.
+*   **Battery Format**: View the battery measurement format used by the device.
+*   **Battery Type**: View the type of battery installed in the device.
+*   **Battery Diagnostic Sensors**: View detailed battery voltage measurements (availability depends on battery format).
 
 ### 📜 Logging (History)
-The integration automatically retrieves the Boks history and emits events (`event.boks_logs`):
+The integration automatically retrieves the Boks history and emits events (`event.boks_log_entry`):
 *   Openings (Bluetooth, Keypad, Key)
 *   Closings
 *   Errors and invalid attempts
 
 ### 📦 Parcel Tracking (Manual Mode)
-The `todo.suivi_boks` entity is available to list expected parcels.
+The `todo.parcels` entity is available to list expected parcels.
 *   **Without Config Key**: You must manage codes manually (create the code on the box, then add it to the task description).
 *   The integration will still validate the task if it sees this code used in the logs.
 

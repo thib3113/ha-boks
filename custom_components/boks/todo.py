@@ -337,10 +337,10 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
 
         else: # No code provided
             if not self._has_config_key:
-                # Degraded: Generate for tracking only
-                final_code = generate_random_code()
+                # Degraded: No code generation
+                final_code = None
                 final_summary = format_parcel_item(final_code, clean_desc)
-                _LOGGER.info(f"Degraded Mode: No Config Key. Generated code '{final_code}' for tracking only.")
+                _LOGGER.info("Degraded Mode: No Config Key. No code generated for tracking.")
 
             else: # Has key, need generation
                 # Asynchronous Generation (UI Call)

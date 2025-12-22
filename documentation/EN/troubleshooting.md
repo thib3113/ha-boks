@@ -24,7 +24,7 @@ After adding this, restart your Home Assistant instance. Once restarted, check y
 *   **Check Bluetooth**: Ensure Bluetooth is enabled and working on your Home Assistant server or ESPHome proxy. Verify other Bluetooth devices are discoverable.
 *   **Range**: Make sure your Boks device is within close proximity to your Home Assistant Bluetooth adapter or ESPHome proxy. Bluetooth range can be limited.
 *   **ESPHome Proxy**: If using an ESPHome proxy, ensure it is properly configured and connected to Home Assistant. Check its logs for Bluetooth-related errors.
-*   **Restart Integration/Home Assistant**: Sometimes a simple restart of the Boks integration (from Devices & Services -> Boks -> Reload) or Home Assistant itself can resolve discovery issues.
+*   **Restart Integration/Home Assistant**: Sometimes a simple restart of the Boks integration (from Devices & Services -> Boks -> Reload) or Home Assistant itself can resolve discovery issues. If battery entities are not displaying correctly, try restarting the integration.
 
 ### 2. Unable to connect or control Boks
 
@@ -39,7 +39,13 @@ After adding this, restart your Home Assistant instance. Once restarted, check y
 *   **Permissions**: Ensure the provided Credential has the necessary permissions for the Boks device.
 *   **Device Firmware**: Very old Boks firmware might not support certain features or logging mechanisms. Ensure your Boks firmware is up to date if possible.
 
-### 4. Integration becoming unavailable or disconnected
+### 4. Battery diagnostic sensors not showing detailed information
+
+*   **Battery Format**: The detailed battery diagnostic sensors (e.g., min, max, mean voltage) are only available when the Boks device supports the appropriate battery measurement format. Some devices may only support basic battery level reporting.
+*   **First Door Opening**: Battery format information is detected during the first door opening of the device. If the sensors are not showing detailed information, try opening the Boks door, then restart the integration to force a reconnection and redetection of the battery format.
+*   **Device Compatibility**: Older Boks devices may not support advanced battery diagnostics. Check your device's hardware version to determine its capabilities.
+
+### 5. Integration becoming unavailable or disconnected
 
 *   **Bluetooth Stability**: Bluetooth connections can sometimes be unstable. Ensure your Bluetooth hardware is reliable.
 *   **Distance/Obstructions**: Too much distance or physical obstructions (walls, metal) between your Home Assistant Bluetooth adapter/proxy and the Boks can lead to disconnections.

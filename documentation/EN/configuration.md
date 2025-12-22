@@ -18,10 +18,10 @@ The Boks integration offers a tiered approach to functionality based on the cred
     *   **Input**: Enter your 6-character Boks unlock code (e.g., `1234AB`) in the "Master Code" field. Leave the "Credential" field empty.
     *   **Features Enabled**:
         *   **Boks Unlock**: Control the `lock` entity to open your Boks.
-        *   **Battery Level Sensor**: Monitor your Boks device's battery status.
+        *   **Battery Level Sensor**: Monitor your Boks device's battery status (battery data is only available after opening the door). Note: Battery entities may require an integration restart to appear.
         *   **Code Counts Sensor**: Monitor the number of Master, Standard, and Multi-use codes stored on your device.
         *   **Event Logging**: Receive basic operational events from your Boks (e.g., door opened/closed, valid/invalid code attempts) via the `event.<name>_logs` entity.
-        *   **Todo List (Basic Functionality)**: A `todo.<name>_parcels` entity will be created. You can use it to track parcels (with descriptions), but you will need to manually manage (create and associate) any PIN codes. The integration will still attempt to validate and mark tasks as complete if it detects a manually associated code in its logs and emit `boks_parcel_completed` events.
+        *   **Todo List (Basic Functionality)**: A `todo.<name>_parcels` entity will be created. You can use it to track parcels (with descriptions), but you will need to manually manage (create and associate) any PIN codes. The integration will still attempt to validate and mark tasks as complete if it detects a manually associated code in its logs and emit `boks_parcel_completed` events. In "Degraded Mode" (when no Config Key is provided), parcel tracking is available without code generation.
 
 *   **2. Config Key or Master Key (Optional, Recommended for Advanced Features)**
     *   **Input**: In addition to your "Master Code," enter your **Configuration Key** (8 hex characters) or **Master Key** (64 hex characters) into the "Credential" field.
@@ -37,6 +37,16 @@ The Boks integration offers a tiered approach to functionality based on the cred
 6.  **Submit**: Click "Submit" to complete the configuration and activate the integration with the selected features.
 
 ## Advanced Configuration
+
+### Battery Format Persistence
+
+The Boks device supports different battery measurement formats, which are automatically detected by the integration:
+
+*   **measure-single**: Simple battery level measurement (standard battery service)
+*   **measures-t1-t5-t10**: Multiple measurements at different time intervals
+*   **measures-first-min-mean-max-last**: Detailed measurements including min, mean, and max values
+
+The integration automatically detects the battery format during the first door opening and stores it in the configuration. This ensures that the appropriate battery diagnostic sensors are created and available even when the device is offline. If the battery format changes (e.g., due to a firmware update), the integration will detect and update the stored format during the next door opening.
 
 [Add details about any advanced configuration options, if applicable. E.g., multiple Boks devices, specific settings.]
 
