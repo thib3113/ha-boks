@@ -233,15 +233,15 @@ async def test_async_create_parcel_without_code_without_config_key(hass: HomeAss
     
     with patch("custom_components.boks.todo.parse_parcel_string", return_value=(None, "Test parcel")), \
          patch("custom_components.boks.todo.generate_random_code", return_value="XYZ789"), \
-         patch("custom_components.boks.todo.format_parcel_item", return_value="XYZ789 Test parcel"), \
+         patch("custom_components.boks.todo.format_parcel_item", return_value="Test parcel"), \
          patch.object(todo_list, "_async_save", new_callable=AsyncMock):
         
         code = await todo_list.async_create_parcel("Test parcel")
         
-        assert code == "XYZ789"
+        assert code is None
         assert len(todo_list._items) == 1
         assert len(todo_list._raw_data) == 1
-        assert todo_list._items[0].summary == "XYZ789 Test parcel"
+        assert todo_list._items[0].summary == "Test parcel"
         assert todo_list._items[0].status == TodoItemStatus.NEEDS_ACTION
         # Check that pending_sync_code is NOT set when no config key
         assert not any("pending_sync_code" in item for item in todo_list._raw_data)
