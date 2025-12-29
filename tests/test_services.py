@@ -14,8 +14,10 @@ from custom_components.boks.services import (
     SERVICE_ADD_MASTER_CODE_SCHEMA,
     SERVICE_DELETE_MASTER_CODE_SCHEMA,
     SERVICE_SYNC_LOGS_SCHEMA,
-    SERVICE_CLEAN_MASTER_CODES_SCHEMA
+    SERVICE_CLEAN_MASTER_CODES_SCHEMA,
+    SERVICE_SET_CONFIGURATION_SCHEMA
 )
+from custom_components.boks.ble.const import BoksConfigType
 from custom_components.boks.const import DOMAIN, CONF_CONFIG_KEY
 from custom_components.boks.coordinator import BoksDataUpdateCoordinator
 from custom_components.boks.errors import BoksError
@@ -185,9 +187,8 @@ async def test_async_setup_services(mock_hass):
         
         await async_setup_services(mock_hass)
         
-        # Verify that services were registered (there are 10 services now)
-        assert mock_hass.services.async_register.call_count == 10
-
+        # Verify that services were registered (there are 11 services now)
+        assert mock_hass.services.async_register.call_count == 11
 
 async def test_handle_add_parcel_with_entity_id(mock_hass, mock_coordinator):
     """Test handle_add_parcel service with entity_id."""
@@ -534,34 +535,191 @@ async def test_handle_clean_master_codes_already_running(mock_hass, mock_coordin
         assert excinfo.value.translation_key == "maintenance_already_running"
 
 
+async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
+
+
+    """Test handle_set_configuration service success."""
+
+
+    # Set up hass.data with a coordinator
+
+
+    entry_id = "test_entry_id"
+
+
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+
+
+    
+
+
+    # Set up the service call
+
+
+    call = MagicMock()
+
+
+    call.data = {"laposte": True}
+
+
+    
+
+
+    # Mock set_configuration on ble_device
+
+
+    mock_coordinator.ble_device.set_configuration = AsyncMock(return_value=True)
+
+
+    
+
+
+    # Capture handler
+
+
+    handlers = {}
+
+
+    mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
+
+
+    await async_setup_services(mock_hass)
+
+
+    handler = handlers["set_configuration"]
+
+
+    
+
+
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+
+
+        await handler(call)
+
+
+        
+
+
+        mock_coordinator.ble_device.connect.assert_called()
+
+
+        mock_coordinator.ble_device.set_configuration.assert_called_with(BoksConfigType.SCAN_LAPOSTE_NFC_TAGS, True)
+
+
+        mock_coordinator.ble_device.disconnect.assert_called()
+
+
+
+
+
+
+
+
 async def test_service_schemas():
+
+
     """Test service schemas."""
+
+
     # Test SERVICE_ADD_PARCEL_SCHEMA
+
+
     valid_data = {"description": "Test parcel"}
+
+
     result = SERVICE_ADD_PARCEL_SCHEMA(valid_data)
-    assert result == valid_data
-    
-    # Test SERVICE_ADD_SINGLE_CODE_SCHEMA
-    valid_data = {"code": "ABC123"}
-    result = SERVICE_ADD_SINGLE_CODE_SCHEMA(valid_data)
-    assert result == valid_data
-    
-    # Test SERVICE_DELETE_SINGLE_CODE_SCHEMA
-    valid_data = {"code": "ABC123"}
-    result = SERVICE_DELETE_SINGLE_CODE_SCHEMA(valid_data)
-    assert result == valid_data
-    
-    # Test SERVICE_ADD_MASTER_CODE_SCHEMA
-    valid_data = {"code": "ABC123", "index": 1}
-    result = SERVICE_ADD_MASTER_CODE_SCHEMA(valid_data)
+
+
     assert result == valid_data
 
-    # Test SERVICE_SYNC_LOGS_SCHEMA
-    valid_data = {}
-    result = SERVICE_SYNC_LOGS_SCHEMA(valid_data)
-    assert result == valid_data
+
     
-    # Test SERVICE_CLEAN_MASTER_CODES_SCHEMA
-    valid_data = {"start_index": 0, "range": 5}
-    result = SERVICE_CLEAN_MASTER_CODES_SCHEMA(valid_data)
+
+
+    # Test SERVICE_ADD_SINGLE_CODE_SCHEMA
+
+
+    valid_data = {"code": "ABC123"}
+
+
+    result = SERVICE_ADD_SINGLE_CODE_SCHEMA(valid_data)
+
+
     assert result == valid_data
+
+
+    
+
+
+    # Test SERVICE_DELETE_SINGLE_CODE_SCHEMA
+
+
+    valid_data = {"code": "ABC123"}
+
+
+    result = SERVICE_DELETE_SINGLE_CODE_SCHEMA(valid_data)
+
+
+    assert result == valid_data
+
+
+    
+
+
+    # Test SERVICE_ADD_MASTER_CODE_SCHEMA
+
+
+    valid_data = {"code": "ABC123", "index": 1}
+
+
+    result = SERVICE_ADD_MASTER_CODE_SCHEMA(valid_data)
+
+
+    assert result == valid_data
+
+
+
+
+
+    # Test SERVICE_SYNC_LOGS_SCHEMA
+
+
+    valid_data = {}
+
+
+    result = SERVICE_SYNC_LOGS_SCHEMA(valid_data)
+
+
+    assert result == valid_data
+
+
+    
+
+
+    # Test SERVICE_CLEAN_MASTER_CODES_SCHEMA
+
+
+    valid_data = {"start_index": 0, "range": 5}
+
+
+    result = SERVICE_CLEAN_MASTER_CODES_SCHEMA(valid_data)
+
+
+    assert result == valid_data
+
+
+
+
+
+    # Test SERVICE_SET_CONFIGURATION_SCHEMA
+
+
+    valid_data = {"laposte": True}
+
+
+    result = SERVICE_SET_CONFIGURATION_SCHEMA(valid_data)
+
+
+    assert result == valid_data
+

@@ -64,7 +64,8 @@
       "ble_internal_error": "Erreur interne BLE : {error}",
       "entity_not_parcel_list": "L'entité {target_entity_id} n'est pas une liste de colis Boks.",
       "maintenance_already_running": "Une tâche de maintenance est déjà en cours. Veuillez attendre qu'elle se termine.",
-      "delete_code_failed": "Échec de la suppression du code (l'appareil a renvoyé une erreur)"
+      "delete_code_failed": "Échec de la suppression du code (l'appareil a renvoyé une erreur)",
+      "set_configuration_failed": "Échec de la configuration {config_type} (l'appareil a renvoyé une erreur)"
     },
     "abort": {
       "already_configured": "Cette Boks est déjà configurée.",
@@ -78,7 +79,8 @@
         "data": {
           "scan_interval": "Intervalle de mise à jour (minutes)",
           "full_refresh_interval": "Intervalle de rafraîchissement complet (heures)",
-          "master_code": "Code permanent pour l'ouverture (optionnel)"
+          "master_code": "Code permanent pour l'ouverture (optionnel)",
+          "anonymize_logs": "Anonymiser les logs (Remplace les clés et PINs par des valeurs factices)"
         },
         "description": "Configurez la fréquence à laquelle Home Assistant se connecte à la Boks pour mettre à jour le statut."
       }
@@ -247,8 +249,8 @@
       }
     },
     "add_master_code": {
-      "name": "Ajouter un code maître",
-      "description": "Ajoute un nouveau code maître à la Boks à un index spécifique. Écrasera tout code existant à cet index.",
+      "name": "Ajouter un code permanent",
+      "description": "Ajoute un nouveau code permanent à la Boks à un index spécifique. Écrasera tout code existant à cet index.",
       "fields": {
         "code": {
           "name": "Code PIN",
@@ -257,18 +259,18 @@
         },
         "index": {
           "name": "Index",
-          "description": "L'index de stockage du code maître (0-255).",
+          "description": "L'index de stockage du code permanent (0-255).",
           "example": "2"
         }
       }
     },
     "delete_master_code": {
-      "name": "Supprimer un code maître",
-      "description": "Supprime un code maître de la Boks en utilisant son index.",
+      "name": "Supprimer un code permanent",
+      "description": "Supprime un code permanent de la Boks en utilisant son index.",
       "fields": {
         "index": {
           "name": "Index",
-          "description": "L'index du code maître à supprimer (0-255).",
+          "description": "L'index du code permanent à supprimer (0-255).",
           "example": "2"
         }
       }
@@ -335,13 +337,13 @@
       "name": "Synchroniser les journaux",
       "description": "Récupère manuellement les journaux de la Boks et déclenche les événements associés."
     },
-    "enable_laposte": {
-      "name": "Activer La Poste",
-      "description": "Active ou désactive l'accès La Poste (Vigik).",
+    "set_configuration": {
+      "name": "Modifier la configuration",
+      "description": "Modifie les paramètres de configuration de la Boks (NFC, matériel, etc.).",
       "fields": {
-        "enable": {
-          "name": "Activer",
-          "description": "Vrai pour activer, Faux pour désactiver."
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "Active ou désactive la reconnaissance des badges La Poste."
         }
       }
     }

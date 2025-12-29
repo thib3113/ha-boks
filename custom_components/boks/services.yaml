@@ -164,9 +164,45 @@ clean_master_codes:
           mode: box
 
 sync_logs:
+
   name: translation::services.sync_logs.name
+
   description: translation::services.sync_logs.description
+
   target:
+
     entity:
+
       integration: boks
+
       domain: lock
+
+
+
+set_configuration:
+
+  name: translation::services.set_configuration.name
+
+  description: translation::services.set_configuration.description
+
+  target:
+
+    entity:
+
+      integration: boks
+
+      domain: lock
+
+  fields:
+
+    laposte:
+
+      name: translation::services.set_configuration.fields.laposte.name
+
+      description: translation::services.set_configuration.fields.laposte.description
+
+      required: false
+
+      selector:
+
+        boolean: {}

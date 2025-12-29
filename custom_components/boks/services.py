@@ -10,6 +10,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import DOMAIN, CONF_CONFIG_KEY, MAX_MASTER_CODE_CLEAN_RANGE
+from .ble.const import BoksConfigType
 from .coordinator import BoksDataUpdateCoordinator
 from .errors import BoksError
 from .todo import BoksParcelTodoList
@@ -59,8 +60,8 @@ SERVICE_CLEAN_MASTER_CODES_SCHEMA = vol.Schema({
     vol.Optional("range", default=MAX_MASTER_CODE_CLEAN_RANGE): cv.positive_int,
 }, extra=vol.ALLOW_EXTRA)
 
-SERVICE_ENABLE_LAPOSTE_SCHEMA = vol.Schema({
-    vol.Required("enable"): cv.boolean,
+SERVICE_SET_CONFIGURATION_SCHEMA = vol.Schema({
+    vol.Optional("laposte"): cv.boolean,
 }, extra=vol.ALLOW_EXTRA)
 
 
@@ -530,28 +531,32 @@ async def async_setup_services(hass: HomeAssistant):
         schema=SERVICE_CLEAN_MASTER_CODES_SCHEMA
     )
 
-    # --- Service: Enable La Poste ---
-    async def handle_enable_laposte(call: ServiceCall):
-        """Handle the enable La Poste service call."""
-        enable = call.data["enable"]
+    # --- Service: Set Configuration ---
+    async def handle_set_configuration(call: ServiceCall):
+        """Handle the set configuration service call."""
         coordinator = get_coordinator_from_call(hass, call)
+        
+        # Check each supported configuration option
+        # Initially only laposte
+        laposte = call.data.get("laposte")
+        
+        if laposte is not None:
+            _LOGGER.info(f"Setting La Poste configuration to {laposte}")
+            await coordinator.ble_device.connect()
+            try:
+                await coordinator.ble_device.set_configuration(BoksConfigType.SCAN_LAPOSTE_NFC_TAGS, laposte)
+            except BoksError as e:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key=e.translation_key,
+                    translation_placeholders=e.translation_placeholders
+                ) from e
+            finally:
+                await asyncio.shield(coordinator.ble_device.disconnect())
 
-        await coordinator.ble_device.connect()
-        try:
-            await coordinator.ble_device.enable_laposte(enable)
-            _LOGGER.info(f"La Poste configuration set to {enable}")
-        except BoksError as e:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key=e.translation_key,
-                translation_placeholders=e.translation_placeholders
-            ) from e
-        finally:
-            await asyncio.shield(coordinator.ble_device.disconnect())
-
-    # hass.services.async_register(
-    #     DOMAIN,
-    #     "enable_laposte",
-    #     handle_enable_laposte,
-    #     schema=SERVICE_ENABLE_LAPOSTE_SCHEMA
-    # )
+    hass.services.async_register(
+        DOMAIN,
+        "set_configuration",
+        handle_set_configuration,
+        schema=SERVICE_SET_CONFIGURATION_SCHEMA
+    )

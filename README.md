@@ -117,6 +117,8 @@ Use the **[Home Assistant Boks Extension](https://github.com/thib3113/ha-boks-we
 
 ## Debugging
 
+> **⚠️ Security Warning:** Enabling debug logging will expose sensitive information in your Home Assistant logs. **Before sharing logs publicly**, please enable the **"Anonymize logs"** option in the integration settings. This will automatically replace your private keys and PIN codes with fake values (e.g., `1234AB`, `1A3B5C7E`).
+
 To enable debug logging:
 
 ```yaml

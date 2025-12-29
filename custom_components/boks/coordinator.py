@@ -20,7 +20,7 @@ from homeassistant.util import dt as dt_util
 from .ble import BoksBluetoothDevice
 from .errors import BoksError
 from .ble.log_entry import BoksLogEntry # Import BoksLogEntry
-from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, TIMEOUT_BLE_CONNECTION # Import DOMAIN and defaults
+from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS # Import DOMAIN and defaults
 from .util import process_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,7 +33,8 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         self.ble_device = BoksBluetoothDevice(
             hass=hass,
             address=entry.data[CONF_ADDRESS],
-            config_key=entry.data.get(CONF_CONFIG_KEY)
+            config_key=entry.data.get(CONF_CONFIG_KEY),
+            anonymize_logs=entry.options.get(CONF_ANONYMIZE_LOGS, False)
         )
         # Register callback for push updates (door status, battery info)
         self.ble_device.register_status_callback(self._handle_status_update)

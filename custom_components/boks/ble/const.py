@@ -155,3 +155,7 @@ class BoksCodeType(StrEnum):
     MASTER = "master"
     SINGLE_USE = "single_use"
     MULTI_USE = "multi_use"
+
+class BoksConfigType(IntEnum):
+    """Configuration types for Boks (SET_CONFIGURATION)."""
+    SCAN_LAPOSTE_NFC_TAGS = 0x01

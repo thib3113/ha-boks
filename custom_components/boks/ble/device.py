@@ -20,6 +20,7 @@ from .const import (
     BoksCommandOpcode,
     BoksNotificationOpcode,
     BoksHistoryEvent,
+    BoksConfigType,
 )
 from .log_entry import BoksLogEntry
 from .protocol import BoksProtocol
@@ -40,10 +41,11 @@ _LOGGER = logging.getLogger(__name__)
 class BoksBluetoothDevice:
     """Class to handle BLE communication with the Boks."""
 
-    def __init__(self, hass: HomeAssistant, address: str, config_key: str = None):
+    def __init__(self, hass: HomeAssistant, address: str, config_key: str = None, anonymize_logs: bool = False):
         """Initialize the Boks BLE client."""
         self.hass = hass
         self.address = address
+        self.anonymize_logs = anonymize_logs
 
         if config_key and len(config_key) != 8:
             raise BoksAuthError("config_key_invalid_length")
@@ -220,17 +222,44 @@ class BoksBluetoothDevice:
             _LOGGER.info("Force disconnected from Boks")
 
     def _log_packet(self, direction: str, data: bytearray):
-        """Log packet with sensitive data redacted."""
+        """Log packet. Fakes sensitive data if anonymize_logs is True (Anonymization mode)."""
         if not data:
             return
 
         opcode = data[0]
-        payload = data[2:-1] if len(data) > 3 else b""
-        redacted_payload = payload.hex()
+        
+        if self.anonymize_logs:
+            # Mode Anonymisé: On affiche des valeurs factices pour le partage
+            faked_data = self._get_faked_packet(data)
+            payload_log = faked_data[2:-1].hex()
+            raw_log = faked_data.hex()
+            suffix = " (ANONYMIZED)"
+        else:
+            # Mode Normal: On affiche TOUT en clair (sans aucune troncature ni masquage)
+            payload_log = data[2:-1].hex() if len(data) > 3 else ""
+            raw_log = data.hex()
+            suffix = ""
 
-        # Opcodes with sensitive payloads
-        if opcode == BoksCommandOpcode.OPEN_DOOR:
-            redacted_payload = "*** (PIN)"
+        _LOGGER.debug("%s Opcode: 0x%02X, Payload: %s, Raw: %s%s", 
+                      direction, opcode, payload_log, raw_log, suffix)
+
+    def _get_faked_packet(self, data: bytearray) -> bytearray:
+        """Create a version of the packet with sensitive data replaced by placeholders."""
+        faked = bytearray(data)
+        opcode = faked[0]
+        length = faked[1]
+        
+        # Placeholders
+        FAKE_PIN = b"1234AB"
+        FAKE_KEY = b"1A3B5C7E"
+
+        modified = False
+
+        # 1. Handle commands (Downlink)
+        if opcode == BoksCommandOpcode.OPEN_DOOR and length >= 6:
+            faked[2:8] = FAKE_PIN
+            modified = True
+        
         elif opcode in (
             BoksCommandOpcode.CREATE_MASTER_CODE,
             BoksCommandOpcode.CREATE_SINGLE_USE_CODE,
@@ -240,11 +269,50 @@ class BoksBluetoothDevice:
             BoksCommandOpcode.DELETE_SINGLE_USE_CODE,
             BoksCommandOpcode.DELETE_MULTI_USE_CODE,
             BoksCommandOpcode.SET_CONFIGURATION,
-            BoksCommandOpcode.GENERATE_CODES
+            BoksCommandOpcode.GENERATE_CODES,
+            BoksCommandOpcode.REGISTER_NFC_TAG_SCAN_START,
+            BoksCommandOpcode.REGISTER_NFC_TAG,
+            BoksCommandOpcode.UNREGISTER_NFC_TAG
         ):
-            redacted_payload = "*** (Sensitive)"
+            # These all start with the ConfigKey (8 bytes)
+            if length >= 8:
+                faked[2:10] = FAKE_KEY
+                modified = True
+            
+            # Some also contain a PIN after the key
+            if opcode in (BoksCommandOpcode.CREATE_MASTER_CODE, BoksCommandOpcode.CREATE_SINGLE_USE_CODE, BoksCommandOpcode.CREATE_MULTI_USE_CODE):
+                if length >= 14:
+                    faked[10:16] = FAKE_PIN
+            elif opcode == BoksCommandOpcode.MASTER_CODE_EDIT:
+                # [Key(8)][Index(1)][PIN(6)]
+                if length >= 15:
+                    faked[11:17] = FAKE_PIN
 
-        _LOGGER.debug("%s Opcode: 0x%02X, Payload: %s, Raw: %s", direction, opcode, redacted_payload, data.hex())
+        # 2. Handle History events (Uplink)
+        elif opcode in (
+            BoksHistoryEvent.CODE_BLE_VALID,
+            BoksHistoryEvent.CODE_KEY_VALID,
+            BoksHistoryEvent.CODE_BLE_INVALID,
+            BoksHistoryEvent.CODE_KEY_INVALID
+        ):
+            # History payloads vary, but often contain the 6-char PIN at the start or offset
+            if length >= 6:
+                faked[2:8] = FAKE_PIN
+                modified = True
+        
+        elif opcode == BoksHistoryEvent.NFC_OPENING:
+            # Tag ID (usually 7-10 bytes)
+            if length >= 4:
+                # Just scramble the tag ID
+                for i in range(2, 2 + length):
+                    faked[i] = 0x55
+                modified = True
+
+        # 3. Recalculate checksum if modified
+        if modified:
+            faked[-1] = BoksProtocol.calculate_checksum(faked[:-1])
+            
+        return faked
 
     def _notification_handler(self, sender: int, data: bytearray):
         """Handle incoming notifications."""
@@ -389,8 +457,8 @@ class BoksBluetoothDevice:
                 # Cleanup future
                 if future_key in self._response_futures:
                     del self._response_futures[future_key]
-                
-                # Timeout means command was sent but no Ack. 
+
+                # Timeout means command was sent but no Ack.
                 # We force disconnect to ensure next attempt is fresh.
                 await self.force_disconnect()
                 raise BoksError("timeout_waiting_response", {"opcode": f"0x{opcode:02X}"})
@@ -557,7 +625,7 @@ class BoksBluetoothDevice:
             raise BoksError("pin_code_invalid_length")
 
         payload = pin_code.encode('ascii')
-        _LOGGER.warning(f"Sending PIN code: {pin_code}")
+        _LOGGER.debug(f"Sending PIN code: {pin_code}")
         resp = await self._send_command(
             BoksCommandOpcode.OPEN_DOOR,
             payload,
@@ -812,18 +880,15 @@ class BoksBluetoothDevice:
         finally:
             self._response_callbacks.pop(BoksNotificationOpcode.NOTIFY_LOGS_COUNT, None)
 
-    async def enable_laposte(self, enable: bool) -> bool:
-        """Enable or disable La Poste configuration."""
+    async def set_configuration(self, config_type: int, value: bool) -> bool:
+        """Set a configuration value (SET_CONFIGURATION)."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
 
-        # Payload: ConfigKey (8) + R (1) + P (1)
-        # R = 0x01 (SCAN_LAPOSTE_NFC_TAGS)
-        # P = 0x01 if enable else 0x00
-        
+        # Payload: ConfigKey (8) + ConfigType (1) + Value (1)
         payload = bytearray(self._config_key_str.encode('ascii'))
-        payload.append(0x01) # R
-        payload.append(0x01 if enable else 0x00) # P
+        payload.append(config_type)
+        payload.append(0x01 if value else 0x00)
 
         resp = await self._send_command(
             BoksCommandOpcode.SET_CONFIGURATION,
@@ -840,4 +905,4 @@ class BoksBluetoothDevice:
         elif resp[0] == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
              raise BoksAuthError("unauthorized")
         else:
-            raise BoksCommandError("enable_laposte_failed")
+            raise BoksCommandError("set_configuration_failed", {"config_type": hex(config_type)})

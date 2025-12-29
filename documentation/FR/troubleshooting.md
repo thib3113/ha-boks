@@ -4,6 +4,8 @@ Ce document fournit des conseils sur la façon de dépanner les problèmes coura
 
 ## Activation de la Journalisation de Débogage
 
+> **⚠️ Avertissement de Sécurité :** L'activation du mode debug affichera des informations sensibles dans vos journaux. **Avant de partager vos logs publiquement**, veuillez activer l'option **"Anonymiser les logs"** dans les réglages de l'intégration. Cela remplacera automatiquement vos données privées (clés, codes PIN) par des valeurs factices (ex: `1234AB`, `1A3B5C7E`).
+
 Lorsque vous rencontrez des problèmes avec l'intégration Boks, l'activation de la journalisation de débogage peut fournir des informations précieuses sur son fonctionnement et aider à identifier la cause première des problèmes.
 
 Pour activer la journalisation de débogage, ajoutez la configuration suivante à votre fichier `configuration.yaml` de Home Assistant :

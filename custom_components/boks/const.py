@@ -6,6 +6,7 @@ DOMAIN = "boks"
 CONF_CONFIG_KEY = "config_key"
 CONF_MASTER_KEY = "master_key"
 CONF_MASTER_CODE = "master_code"
+CONF_ANONYMIZE_LOGS = "anonymize_logs"
 CONF_AUTH_METHOD = "auth_method"
 BOKS_CHAR_MAP = "0123456789AB"
 

@@ -4,8 +4,8 @@ import asyncio
 from unittest.mock import MagicMock, patch, AsyncMock
 from bleak.exc import BleakError
 from homeassistant.core import HomeAssistant
-from custom_components.boks.ble.device import BoksBluetoothDevice, BoksError, BoksAuthError
-from custom_components.boks.ble.const import BoksServiceUUID, BoksNotificationOpcode
+from custom_components.boks.ble.device import BoksBluetoothDevice, BoksError, BoksAuthError, BoksCommandError
+from custom_components.boks.ble.const import BoksServiceUUID, BoksNotificationOpcode, BoksCommandOpcode
 from custom_components.boks.const import TIMEOUT_COMMAND_RESPONSE
 
 async def test_device_init_valid_key(hass: HomeAssistant):
@@ -122,3 +122,26 @@ async def test_notification_handler_door_status(hass: HomeAssistant):
     
     assert device._door_status is True
     callback.assert_called_with({"door_open": True})
+
+async def test_set_configuration_success(hass: HomeAssistant):
+    """Test successful set_configuration."""
+    device = BoksBluetoothDevice(hass, "AA:BB:CC:DD:EE:FF", "12345678")
+    
+    with patch.object(device, "_send_command", new_callable=AsyncMock) as mock_send:
+        mock_send.return_value = bytearray([BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS, 0x00, 0xC4])
+        
+        result = await device.set_configuration(0x01, True)
+        
+        assert result is True
+        # Check payload: ConfigKey(8) + Type(1) + Value(1)
+        expected_payload = b"12345678" + b"\x01\x01"
+        mock_send.assert_called_with(
+            BoksCommandOpcode.SET_CONFIGURATION,
+            expected_payload,
+            wait_for_opcodes=[
+                BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS,
+                BoksNotificationOpcode.ERROR_UNAUTHORIZED,
+                BoksNotificationOpcode.ERROR_BAD_REQUEST
+            ]
+        )
+    

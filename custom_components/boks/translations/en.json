@@ -64,7 +64,8 @@
       "ble_internal_error": "BLE Internal Error: {error}",
       "entity_not_parcel_list": "Entity {target_entity_id} is not a Boks Parcel List.",
       "maintenance_already_running": "A maintenance task is already in progress. Please wait for it to finish.",
-      "delete_code_failed": "Failed to delete code (Device returned error)"
+      "delete_code_failed": "Failed to delete code (Device returned error)",
+      "set_configuration_failed": "Failed to set configuration {config_type} (Device returned error)"
     },
     "abort": {
       "already_configured": "This Boks is already configured.",
@@ -78,7 +79,8 @@
         "data": {
           "scan_interval": "Polling Interval (minutes)",
           "full_refresh_interval": "Full Refresh Interval (hours)",
-          "master_code": "Master Code for opening (optional)"
+          "master_code": "Master Code for opening (optional)",
+          "anonymize_logs": "Anonymize logs (Replace keys and PINs with fake values for sharing)"
         },
         "description": "Configure how often Home Assistant connects to the Boks to update status."
       }
@@ -326,13 +328,13 @@
       "name": "Sync Logs",
       "description": "Manually retrieve logs from the Boks and trigger associated events."
     },
-    "enable_laposte": {
-      "name": "Enable La Poste",
-      "description": "Enable or disable La Poste access (Vigik).",
+    "set_configuration": {
+      "name": "Set Configuration",
+      "description": "Modify Boks configuration settings (NFC, hardware, etc.).",
       "fields": {
-        "enable": {
-          "name": "Enable",
-          "description": "True to enable, False to disable."
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "Enable or disable La Poste tag recognition."
         }
       }
     }

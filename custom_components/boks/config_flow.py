@@ -11,7 +11,16 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.core import callback
 from homeassistant.components import bluetooth
 
-from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, BOKS_CHAR_MAP, CONF_MASTER_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL
+from .const import (
+    DOMAIN, 
+    CONF_CONFIG_KEY, 
+    CONF_MASTER_CODE, 
+    BOKS_CHAR_MAP, 
+    CONF_MASTER_KEY, 
+    DEFAULT_SCAN_INTERVAL, 
+    DEFAULT_FULL_REFRESH_INTERVAL,
+    CONF_ANONYMIZE_LOGS
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +32,7 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: config_entries.ConfigEntry) -> config_entries.OptionsFlow:
         """Create the options flow."""
-        return BoksOptionsFlowHandler()
+        return BoksOptionsFlowHandler(config_entry)
 
     def __init__(self):
         """Initialize."""
@@ -162,9 +171,9 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class BoksOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle Boks options."""
 
-    def __init__(self) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        pass
+        self.config_entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Manage the options."""
@@ -198,6 +207,10 @@ class BoksOptionsFlowHandler(config_entries.OptionsFlow):
                         CONF_MASTER_CODE,
                         description={"suggested_value": self.config_entry.options.get(CONF_MASTER_CODE)},
                     ): str,
+                    vol.Optional(
+                        CONF_ANONYMIZE_LOGS,
+                        default=self.config_entry.options.get(CONF_ANONYMIZE_LOGS, False),
+                    ): bool,
                 }
             ),
             errors=errors,

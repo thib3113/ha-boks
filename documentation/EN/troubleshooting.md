@@ -4,6 +4,8 @@ This document provides guidance on how to troubleshoot common issues and enable 
 
 ## Enabling Debug Logging
 
+> **⚠️ Security Warning:** Enabling debug logging will expose sensitive information in your Home Assistant logs. **Before sharing logs publicly**, please enable the **"Anonymize logs"** option in the integration settings. This will automatically replace your private keys and PIN codes with fake values (e.g., `1234AB`, `1A3B5C7E`).
+
 When encountering issues with the Boks integration, enabling debug logging can provide valuable insights into its operation and help identify the root cause of problems.
 
 To enable debug logging, add the following configuration to your Home Assistant `configuration.yaml` file:

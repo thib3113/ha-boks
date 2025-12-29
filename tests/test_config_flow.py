@@ -6,7 +6,7 @@ from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.core import HomeAssistant
 
-from custom_components.boks.const import DOMAIN, CONF_MASTER_CODE
+from custom_components.boks.const import DOMAIN, CONF_MASTER_CODE, CONF_ANONYMIZE_LOGS
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
 
 async def test_user_flow_valid(hass: HomeAssistant, mock_setup_entry, mock_bluetooth) -> None:
@@ -104,3 +104,28 @@ async def test_bluetooth_discovery(hass: HomeAssistant, mock_bluetooth) -> None:
     assert result2["type"] == FlowResultType.CREATE_ENTRY
     assert result2["title"] == "Boks Device"
     assert result2["data"][CONF_ADDRESS] == "AA:BB:CC:DD:EE:FF"
+
+async def test_options_flow_anonymize_logs(hass: HomeAssistant, mock_config_entry) -> None:
+    """Test options flow with anonymize_logs."""
+    # Ensure options are valid ints for the schema
+    mock_config_entry.options = {
+        "scan_interval": 10,
+        "full_refresh_interval": 12,
+        CONF_ANONYMIZE_LOGS: False
+    }
+    mock_config_entry.add_to_hass(hass)
+    
+    result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "init"
+    
+    # Toggle anonymize_logs
+    result2 = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={
+            CONF_ANONYMIZE_LOGS: True
+        }
+    )
+    
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["data"][CONF_ANONYMIZE_LOGS] is True
