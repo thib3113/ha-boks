@@ -1,8 +1,9 @@
 name: Release Boks Integration
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
@@ -11,24 +12,124 @@ permissions:
   artifact-metadata: write
 
 jobs:
-  build_and_release:
+  # Call the existing test workflow to ensure code quality before building
+  test:
+    uses: ./.github/workflows/tests.yaml
+
+  build:
+    name: Build Integration Bundle
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        uses: actions/checkout@v4
 
       - name: Create ZIP archive
         run: |
           cd custom_components/boks
           zip -r ../../boks.zip .
 
+      - name: Verify ZIP structure
+        run: |
+          # Check if manifest.json exists at the root of the ZIP
+          if ! unzip -l boks.zip | grep -q " manifest.json$"; then
+            echo "Error: manifest.json not found at the root of the ZIP archive."
+            echo "Current ZIP structure:"
+            unzip -l boks.zip
+            exit 1
+          fi
+          echo "ZIP structure verified: manifest.json is at the root."
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: boks-bundle
+          path: boks.zip
+          retention-days: 1
+
+  publish:
+    name: Attest and Publish Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: boks-bundle
+
       - name: Attest Build Provenance
-        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        id: attest
+        uses: actions/attest-build-provenance@v2
         with:
           subject-path: boks.zip
 
-      - name: Upload Release Asset
-        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Create and Populate Release
+        uses: actions/github-script@v7
+        env:
+          # Using environment variables for security
+          TAG_NAME: ${{ github.ref_name }}
+          ATTESTATION_ID: ${{ steps.attest.outputs.attestation-id }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
         with:
-          files: boks.zip
+          script: |
+            const fs = require('fs');
+            
+            const { 
+              TAG_NAME, 
+              ATTESTATION_ID, 
+              REPO_OWNER, 
+              REPO_NAME, 
+              RUN_ID, 
+              SERVER_URL 
+            } = process.env;
+
+            // 1. Create the final Release
+            const release = await github.rest.repos.createRelease({
+              owner: REPO_OWNER,
+              repo: REPO_NAME,
+              tag_name: TAG_NAME,
+              name: `Release ${TAG_NAME}`,
+              prerelease: false,
+              generate_release_notes: true,
+              make_latest: 'true'
+            });
+
+            // 2. Upload the ZIP asset
+            const filePath = 'boks.zip';
+            const fileData = fs.readFileSync(filePath);
+            const fileStats = fs.statSync(filePath);
+
+            await github.rest.repos.uploadReleaseAsset({
+              owner: REPO_OWNER,
+              repo: REPO_NAME,
+              release_id: release.data.id,
+              name: 'boks.zip',
+              data: fileData,
+              headers: {
+                'content-type': 'application/zip',
+                'content-length': fileStats.size
+              }
+            });
+
+            // 3. Add security details to the body
+            const attestationUrl = `${SERVER_URL}/${REPO_OWNER}/${REPO_NAME}/attestations/${ATTESTATION_ID}`;
+            const footer = `
+            ---
+            ### 🛡️ Security & Provenance
+            This release asset has been digitally signed and attested.
+            - **Official Attestation**: [Verify on GitHub](${attestationUrl})
+            - **Manual Verification**:
+              \`\`\`bash
+              gh attestation verify boks.zip --repo ${REPO_OWNER}/${REPO_NAME}
+              \`\`\`
+            **Workflow Run**: [Execution #${RUN_ID}](${SERVER_URL}/${REPO_OWNER}/${REPO_NAME}/actions/runs/${RUN_ID})`;
+
+            await github.rest.repos.updateRelease({
+              owner: REPO_OWNER,
+              repo: REPO_NAME,
+              release_id: release.data.id,
+              body: (release.data.body || '') + footer
+            });

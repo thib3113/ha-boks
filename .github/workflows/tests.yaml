@@ -1,5 +1,8 @@
 name: Tests
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
@@ -10,6 +13,7 @@ on:
       - main
       - dev
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   tests:
