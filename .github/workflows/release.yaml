@@ -87,9 +87,9 @@ jobs:
               repo: REPO_NAME,
               tag_name: TAG_NAME,
               name: `Release ${TAG_NAME}`,
-              prerelease: false,
-              generate_release_notes: true,
-              make_latest: 'true'
+              prerelease: true,
+              make_latest: 'false',
+              generate_release_notes: true
             });
 
             // 2. Upload both ZIP and Checksums
