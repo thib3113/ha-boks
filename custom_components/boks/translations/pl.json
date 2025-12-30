@@ -1,0 +1,351 @@
+{
+  "config": {
+    "step": {
+      "cloud": {
+        "title": "Logowanie Boks",
+        "description": "Wprowadź dane logowania do aplikacji Boks, aby automatycznie pobrać klucze urządzenia.",
+        "data": {
+          "username": "E-mail",
+          "password": "Hasło"
+        }
+      },
+      "device_selection": {
+        "title": "Wybierz swój Boks",
+        "description": "Wybierz Boks, który chcesz dodać.",
+        "data": {
+          "device": "Urządzenie"
+        }
+      },
+      "user": {
+        "title": "Konfiguracja ręczna",
+        "description": "Wprowadź swoje dane uwierzytelniające Boks.\n\n**Kolejność preferencji:**\n1. **Klucz główny (64 znaki):** Pełny dostęp.\n2. **Klucz konfiguracji (8 znaków):** Dostęp standardowy.",
+        "data": {
+          "mac": "Adres Bluetooth",
+          "master_code": "Kod główny",
+          "credential": "Dane uwierzytelniające (ConfigKey lub MasterKey)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie można połączyć się z interfejsem API Boks.",
+      "invalid_auth": "Nieprawidłowy adres e-mail lub hasło.",
+      "boks_not_found": "Nie znaleziono Boks na tym koncie pasującego do adresu MAC.",
+      "cannot_retrieve_key": "Nie udało się pobrać klucza konfiguracji z chmury.",
+      "device_not_found": "Urządzenie nie zostało znalezione na liście.",
+      "device_not_in_cache": "Urządzenie nie zostało znalezione w pamięci podręcznej Bluetooth. Brak dostępnej ścieżki połączenia.",
+      "no_devices_found": "Nie znaleziono urządzeń Boks na tym koncie.",
+      "connection_error": "Błąd połączenia podczas pobierania urządzeń.",
+      "invalid_credential_format": "Nieprawidłowy format danych uwierzytelniających. Musi mieć 8/64 znaków szesnastkowych",
+      "invalid_master_code_format": "Nieprawidłowy format kodu głównego. Musi to być kod 6-cyfrowy (0-9, A, B).",
+      "unknown": "Wystąpił nieznany błąd.",
+      "pin_code_invalid_length": "Kod PIN musi mieć 6 znaków",
+      "pin_code_invalid": "Nieprawidłowy kod PIN",
+      "unauthorized": "Nieautoryzowany",
+      "config_key_required": "Do tej operacji wymagany jest klucz konfiguracji",
+      "invalid_code_format": "Nieprawidłowy format kodu (musi mieć 6 znaków z zakresu 0-9, A, B)",
+      "create_code_failed": "Nie udało się utworzyć kodu (urządzenie zwróciło błąd)",
+      "change_master_code_failed": "Nie udało się zmienić kodu głównego (urządzenie zwróciło błąd)",
+      "unknown_code_type": "Nieznany typ kodu",
+      "unknown_device": "Urządzenie niewidoczne przez adapter Bluetooth.",
+      "not_connectable": "Wykryte urządzenie nie jest możliwe do połączenia (prawdopodobnie przez pasywne proxy).",
+      "todo_entity_not_found_for_device": "Nie znaleziono encji Todo dla urządzenia {target_device_id}",
+      "target_devices_not_boks": "Urządzenie(a) docelowe {device_ids} nie są urządzeniami Boks.",
+      "target_entities_not_boks": "Encja(e) docelowe {entity_ids} należą do urządzeń innych niż Boks.",
+      "target_device_missing": "Nie znaleziono lub nie określono docelowego urządzenia Boks. Podaj device_id lub entity_id.",
+      "multiple_devices_found": "Znaleziono wiele urządzeń Boks. Podaj docelową encję lub urządzenie.",
+      "no_devices_configured": "Brak skonfigurowanych urządzeń Boks.",
+      "cannot_resolve_todo": "Nie udało się rozwiązać docelowej listy zadań Boks.",
+      "todo_integration_not_loaded": "Integracja Todo nie została załadowana.",
+      "todo_entity_not_found": "Encja Todo {target_entity_id} nie znaleziona lub nie załadowana.",
+      "config_key_invalid_length": "Klucz konfiguracji musi mieć dokładnie 8 znaków.",
+      "ble_client_none": "Klient BLE to Brak, nie można wysłać polecenia",
+      "timeout_waiting_response": "Przekroczono limit czasu oczekiwania na odpowiedź dla kodu operacji {opcode}",
+      "ble_error": "Błąd BLE: {error}",
+      "ble_internal_error": "Błąd wewnętrzny BLE: {error}",
+      "entity_not_parcel_list": "Encja {target_entity_id} nie jest listą paczek Boks.",
+      "maintenance_already_running": "Zadanie konserwacji jest już w toku. Poczekaj na jego zakończenie.",
+      "delete_code_failed": "Nie udało się usunąć kodu (urządzenie zwróciło błąd)",
+      "set_configuration_failed": "Nie udało się ustawić konfiguracji {config_type} (urządzenie zwróciło błąd)"
+    },
+    "abort": {
+      "already_configured": "Ten Boks jest już skonfigurowany.",
+      "not_connectable": "Wykryte urządzenie nie jest możliwe do połączenia (prawdopodobnie przez pasywne proxy).",
+      "cannot_connect": "Nie można połączyć się z urządzeniem. Sprawdź, czy znajduje się w zasięgu i czy można się z nim połączyć."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Interwał odpytywania (minuty)",
+          "full_refresh_interval": "Interwał pełnego odświeżania (godziny)",
+          "master_code": "Kod główny do otwierania (opcjonalny)",
+          "anonymize_logs": "Anonimizuj logi (zastąp klucze i kody PIN fałszywymi wartościami do udostępniania)"
+        },
+        "description": "Skonfiguruj, jak często Home Assistant łączy się z Boks, aby zaktualizować status."
+      }
+    }
+  },
+  "selector": {
+      "setup_method": {
+          "options": {
+              "cloud": "Logowanie w chmurze (Automatyczne - wymaga ważnych danych logowania do oficjalnej aplikacji Boks)",
+              "manual": "Wprowadzanie ręczne"
+          }
+      }
+  },
+  "entity": {
+    "button": {
+      "sync_logs": {
+        "name": "Synchronizuj logi"
+      }
+    },
+    "lock": {
+      "door": {
+        "name": "Drzwi"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Bateria"
+      },
+      "last_connection": {
+        "name": "Ostatnie połączenie"
+      },
+      "last_event": {
+        "name": "Ostatnie zdarzenie",
+        "state": {
+          "no_events": "Brak zdarzeń",
+          "code_ble_valid": "Użyto prawidłowego kodu BLE",
+          "code_key_valid": "Użyto prawidłowego kodu klawiatury",
+          "code_ble_invalid": "Nieprawidłowe polecenie BLE",
+          "code_key_invalid": "Użyto nieprawidłowego kodu klawiatury",
+          "door_closed": "Drzwi zamknięte",
+          "door_opened": "Drzwi otwarte",
+          "history_erase": "Historia wyczyszczona",
+          "power_off": "Wyłączanie",
+          "block_reset": "Reset bloku",
+          "power_on": "Włączanie",
+          "ble_reboot": "Restart BLE",
+          "scale_measure": "Ciągły pomiar wagi",
+          "nfc_error_transaction": "Błąd transakcji NFC (0x99)",
+          "error": "Błąd (Diagnostyka)",
+          "nfc_opening": "Otwieranie NFC",
+          "nfc_tag_registering": "Skanowanie rejestracji tagu NFC",
+          "unknown": "Nieznane zdarzenie"
+        }
+      },
+      "master_codes_count": {
+        "name": "Kody główne"
+      },
+      "single_use_codes_count": {
+        "name": "Kody jednorazowe"
+      },
+      "battery_format": {
+        "name": "Format baterii",
+        "state": {
+          "measures-first-min-mean-max-last": "Szczegółowy (Min/Śr/Maks)",
+          "measures-t1-t5-t10": "Szczegółowy (T1/T5/T10)",
+          "measure-single": "Prosty",
+          "unknown": "Nieznany",
+          "other": "Inny"
+        }
+      },
+      "battery_type": {
+        "name": "Typ baterii",
+        "state": {
+          "lsh14": "LSH14 (Litowa)",
+          "8x_aaa": "8x AAA (Alkaliczna)",
+          "unknown": "Nieznany",
+          "other": "Inny"
+        }
+      },
+      "battery_level_first": {
+        "name": "Napięcie baterii (Pierwsze)"
+      },
+      "battery_level_min": {
+        "name": "Napięcie baterii (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Napięcie baterii (Średnie)"
+      },
+      "battery_level_max": {
+        "name": "Napięcie baterii (Maks)"
+      },
+      "battery_level_last": {
+        "name": "Napięcie baterii (Ostatnie)"
+      },
+      "battery_level_t1": {
+        "name": "Napięcie baterii (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Napięcie baterii (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Napięcie baterii (T10)"
+      },
+      "maintenance_status": {
+        "name": "Status konserwacji",
+        "state": {
+          "idle": "Bezczynny",
+          "cleaning": "Czyszczenie kodów głównych"
+        }
+      },
+      "log_count": {
+        "name": "Liczba logów"
+      }
+    },
+    "todo": {
+      "parcels": {
+        "name": "Paczki"
+      }
+    },
+    "event": {
+      "logs": {
+        "name": "Logi",
+        "state": {
+          "code_ble_valid": "Użyto prawidłowego kodu BLE",
+          "code_key_valid": "Użyto prawidłowego kodu klawiatury",
+          "code_ble_invalid": "Nieprawidłowe polecenie BLE",
+          "code_key_invalid": "Użyto nieprawidłowego kodu klawiatury",
+          "door_closed": "Drzwi zamknięte",
+          "door_opened": "Drzwi otwarte",
+          "history_erase": "Historia wyczyszczona",
+          "power_off": "Wyłączanie",
+          "block_reset": "Reset bloku",
+          "power_on": "Włączanie",
+          "ble_reboot": "Restart BLE",
+          "scale_measure": "Ciągły pomiar wagi",
+          "nfc_error_transaction": "Błąd transakcji NFC",
+          "error": "Błąd (Diagnostyka)",
+          "nfc_opening": "Otwieranie NFC",
+          "nfc_tag_registering": "Skanowanie rejestracji tagu NFC",
+          "unknown": "Nieznane zdarzenie"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_parcel": {
+      "name": "Dodaj paczkę",
+      "description": "Dodaje nową paczkę do listy",
+      "fields": {
+        "description": {
+          "name": "Opis",
+          "description": "Dodaje opis do paczki",
+          "example": "Dostawa książki"
+        }
+      }
+    },
+    "open_door": {
+      "name": "Otwórz drzwi",
+      "description": "Otwiera drzwi Boks, opcjonalnie za pomocą kodu PIN.",
+      "fields": {
+        "code": {
+          "name": "Kod PIN",
+          "description": "6-znakowy kod PIN do otwarcia (0-9, A, B).",
+          "example": "123456"
+        }
+      }
+    },
+    "add_master_code": {
+      "name": "Dodaj kod główny",
+      "description": "Dodaje nowy kod główny do Boks pod określonym indeksem. Nadpisuje każdy istniejący kod pod tym indeksem.",
+      "fields": {
+        "code": {
+          "name": "Kod PIN",
+          "description": "6-znakowy kod PIN (0-9, A, B).",
+          "example": "1234AB"
+        },
+        "index": {
+          "name": "Indeks",
+          "description": "Indeks przechowywania dla kodu głównego (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "Usuń kod główny",
+      "description": "Usuwa kod główny z Boks za pomocą jego indeksu.",
+      "fields": {
+        "index": {
+          "name": "Indeks",
+          "description": "Indeks kodu głównego do usunięcia (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "Dodaj kod jednorazowy",
+      "description": "Dodaje nowy kod jednorazowy do Boks.",
+      "fields": {
+        "code": {
+          "name": "Kod PIN",
+          "description": "6-znakowy kod PIN (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "Usuń kod jednorazowy",
+      "description": "Usuwa kod jednorazowy z Boks za pomocą jego wartości.",
+      "fields": {
+        "code": {
+          "name": "Kod PIN",
+          "description": "6-znakowy kod PIN (0-9, A, B) do usunięcia.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "Dodaj kod wielokrotnego użytku",
+      "description": "Dodaje nowy kod wielokrotnego użytku do Boks.",
+      "fields": {
+        "code": {
+          "name": "Kod PIN",
+          "description": "6-znakowy kod PIN (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "Usuń kod wielokrotnego użytku",
+      "description": "Usuwa kod wielokrotnego użytku z Boks za pomocą jego wartości.",
+      "fields": {
+        "code": {
+          "name": "Kod PIN",
+          "description": "6-znakowy kod PIN (0-9, A, B) do usunięcia.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "Wyczyść kody główne",
+      "description": "Skanuje i usuwa kody główne w określonym zakresie indeksów, aby usunąć duchy. Limit: 100 indeksów na uruchomienie.",
+      "fields": {
+        "start_index": {
+          "name": "Indeks początkowy",
+          "description": "Indeks, od którego należy rozpocząć czyszczenie (0-255)."
+        },
+        "range": {
+          "name": "Zakres",
+          "description": "Liczba indeksów do zeskanowania (Maks. 100)."
+        }
+      }
+    },
+    "sync_logs": {
+      "name": "Synchronizuj logi",
+      "description": "Ręcznie pobierz logi z Boks i uruchom powiązane zdarzenia."
+    },
+    "set_configuration": {
+      "name": "Ustaw konfigurację",
+      "description": "Zmodyfikuj ustawienia konfiguracji Boks (NFC, sprzęt itp.).",
+      "fields": {
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "Włącz lub wyłącz rozpoznawanie tagów La Poste."
+        }
+      }
+    }
+  }
+}

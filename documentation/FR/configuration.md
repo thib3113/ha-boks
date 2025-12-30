@@ -14,20 +14,20 @@ Ce guide explique comment configurer l'intégration Boks pour Home Assistant apr
 
 L'intégration Boks propose une approche à plusieurs niveaux pour la fonctionnalité basée sur les authentifiants que vous fournissez lors de la configuration :
 
-*   **1. Code Maître Uniquement (Requis pour le Fonctionnement de Base)**
-    *   **Saisie** : Entrez votre code de déverrouillage Boks à 6 caractères (par exemple, `1234AB`) dans le champ "Code Maître". Laissez le champ "Authentifiant" vide.
+*   **1. Code Permanent Uniquement (Requis pour le Fonctionnement de Base)**
+    *   **Saisie** : Entrez votre code de déverrouillage Boks à 6 caractères (par exemple, `1234AB`) dans le champ "Code Permanent". Laissez le champ "Authentifiant" vide.
     *   **Fonctionnalités Activées** :
         *   **Déverrouillage Boks** : Contrôlez l'entité `lock` pour ouvrir votre Boks.
         *   **Capteur de Niveau de Batterie** : Surveillez l'état de la batterie de votre appareil Boks (les données de batterie ne sont disponibles qu'après l'ouverture de la porte). Note : Les entités de batterie peuvent nécessiter un redémarrage de l'intégration pour apparaître.
-        *   **Capteur de Comptage des Codes** : Surveillez le nombre de Codes Maîtres, Standard et Multi-usage stockés sur votre appareil.
+        *   **Capteur de Comptage des Codes** : Surveillez le nombre de Codes Permanents, Standard et Multi-usage stockés sur votre appareil.
         *   **Journalisation des Événements** : Recevez les événements opérationnels de base de votre Boks (par exemple, porte ouverte/fermée, tentatives de code valides/invalides) via l'entité `event.<nom>_logs`.
-        *   **Liste de Tâches (Fonctionnalité de Base)** : Une entité `todo.<nom>_parcels` sera créée. Vous pouvez l'utiliser pour suivre les colis (avec descriptions), mais vous devrez gérer manuellement (créer et associer) tous les codes PIN. L'intégration tentera toujours de valider et de marquer les tâches comme terminées si elle détecte un code associé manuellement dans ses journaux et émettra des événements `boks_parcel_completed`. En "Mode Dégradé" (lorsqu'aucune Clé de Configuration n'est fournie), le suivi des colis est disponible sans génération de code.
+        *   **Liste de Tâches (Fonctionnalité de Base)** : Une entité `todo.<nom>_parcels` sera créée. Vous pouvez l'utiliser pour suivre les colis (avec descriptions), mais vous devrez gérer manuellement (créer et associer) tous les codes PIN. L'intégration tentera toujours de valider et de marquer les tâches comme terminées si elle détecte un code associé manuellement dans ses journaux et émettra des événements `boks_parcel_completed`. En "Mode Dégradé" (lorsqu'aucune Clef de Configuration n'est fournie), le suivi des colis est disponible sans génération de code.
 
-*   **2. Clé de Configuration ou Clé Maître (Optionnel, Recommandé pour les Fonctionnalités Avancées)**
-    *   **Saisie** : En plus de votre "Code Maître", entrez votre **Clé de Configuration** (8 caractères hexadécimaux) ou **Clé Maître** (64 caractères hexadécimaux) dans le champ "Authentifiant".
-        *   *Conseil* : Fournir la **Clé Maître** est recommandé car elle offre plus de capacités et pourrait prendre en charge de futures fonctionnalités telles que la génération de codes hors ligne. Actuellement, la Clé de Configuration et la Clé Maître activent le même ensemble de fonctionnalités avancées.
+*   **2. Clef de Configuration ou Clef Maître (Optionnel, Recommandé pour les Fonctionnalités Avancées)**
+    *   **Saisie** : En plus de votre "Code Permanent", entrez votre **Clef de Configuration** (8 caractères hexadécimaux) ou **Clef Maître** (64 caractères hexadécimaux) dans le champ "Authentifiant".
+        *   *Conseil* : Fournir la **Clef Maître** est recommandé car elle offre plus de capacités et pourrait prendre en charge de futures fonctionnalités telles que la génération de codes hors ligne. Actuellement, la Clef de Configuration et la Clef Maître activent le même ensemble de fonctionnalités avancées.
     *   **Fonctionnalités Activées** :
-        *   **Toutes les Fonctionnalités du Code Maître Uniquement**
+        *   **Toutes les Fonctionnalités du Code Permanent Uniquement**
         *   **Intégration Améliorée de la Liste de Tâches (Gestion des Colis)** : L'entité `todo.<nom>_parcels` offre une fonctionnalité complète.
             *   **Génération Automatique de PIN** : Lorsque vous ajoutez un élément à la liste `todo.<nom>_parcels` avec une description (par exemple, "Colis Amazon"), l'intégration générera automatiquement un code PIN unique associé à cette entrée de colis.
             *   **Support des Descriptions** : Vous pouvez ajouter des descriptions significatives à vos éléments de liste de tâches, qui sont liés aux codes PIN générés.
@@ -52,7 +52,7 @@ L'intégration détecte automatiquement le format de batterie lors de la premiè
 
 ## Reconfiguration d'une Intégration Existante
 
-Si vous devez modifier le Code Maître ou l'Authentifiant pour une intégration Boks déjà configurée :
+Si vous devez modifier le Code Permanent ou l'Authentifiant pour une intégration Boks déjà configurée :
 
 1.  Allez dans **Paramètres** -> **Appareils et Services**.
 2.  Trouvez votre intégration Boks et cliquez sur "Configurer".

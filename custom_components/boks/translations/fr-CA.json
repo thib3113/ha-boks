@@ -27,7 +27,7 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossible de se connecter à l'API Boks.",
+      "cannot_connect": "Impossible de se connecter à lAPI Boks.",
       "invalid_auth": "Email ou mot de passe invalide.",
       "boks_not_found": "Aucune Boks trouvée sur ce compte correspondant à l'adresse MAC.",
       "cannot_retrieve_key": "Impossible de récupérer la clé de configuration depuis le cloud.",
@@ -58,19 +58,19 @@
       "todo_integration_not_loaded": "L'intégration Todo n'est pas chargée.",
       "todo_entity_not_found": "Entité Todo {target_entity_id} introuvable ou non chargée.",
       "config_key_invalid_length": "La clé de configuration doit comporter exactement 8 caractères.",
-      "ble_client_none": "Le client BLE est nul, impossible d'envoyer la commande",
-      "timeout_waiting_response": "Délai d'attente dépassé pour la réponse à l'opcode {opcode}",
+      "ble_client_none": "Le client BLE est nul, impossible denvoyer la commande",
+      "timeout_waiting_response": "Délai dattente dépassé pour la réponse à lOpcodes {opcode}",
       "ble_error": "Erreur BLE : {error}",
       "ble_internal_error": "Erreur interne BLE : {error}",
-      "entity_not_parcel_list": "L'entité {target_entity_id} n'est pas une liste de colis Boks.",
-      "maintenance_already_running": "Une tâche de maintenance est déjà en cours. Veuillez attendre qu'elle se termine.",
-      "delete_code_failed": "Échec de la suppression du code (l'appareil a renvoyé une erreur)",
-      "set_configuration_failed": "Échec de la configuration {config_type} (l'appareil a renvoyé une erreur)"
+      "entity_not_parcel_list": "Lentité {target_entity_id} nest pas une liste de colis Boks.",
+      "maintenance_already_running": "Une tâche de maintenance est déjà en cours. Veuillez attendre quelle se termine.",
+      "delete_code_failed": "Échec de la suppression du code (lappareil a renvoyé une erreur)",
+      "set_configuration_failed": "Échec de la configuration {config_type} (lappareil a renvoyé une erreur)"
     },
     "abort": {
       "already_configured": "Cette Boks est déjà configurée.",
-      "not_connectable": "L'appareil détecté n'est pas connectable (probablement via un proxy passif).",
-      "cannot_connect": "Impossible de se connecter à l'appareil. Vérifiez qu'il est à portée et connectable."
+      "not_connectable": "Lappareil détecté nest pas connectable (probablement via un proxy passif).",
+      "cannot_connect": "Impossible de se connecter à lappareil. Vérifiez quil est à portée et connectable."
     }
   },
   "options": {
@@ -79,7 +79,7 @@
         "data": {
           "scan_interval": "Intervalle de mise à jour (minutes)",
           "full_refresh_interval": "Intervalle de rafraîchissement complet (heures)",
-          "master_code": "Code permanent pour l'ouverture (optionnel)",
+          "master_code": "Code permanent pour louverture (optionnel)",
           "anonymize_logs": "Anonymiser les logs (Remplace les clés et PINs par des valeurs factices)"
         },
         "description": "Configurez la fréquence à laquelle Home Assistant se connecte à la Boks pour mettre à jour le statut."
@@ -89,7 +89,7 @@
   "selector": {
       "setup_method": {
           "options": {
-              "cloud": "Connexion Cloud (Automatique - nécessite des identifiants valides pour l'app officielle Boks)",
+              "cloud": "Connexion Cloud (Automatique - nécessite des identifiants valides pour lapp officielle Boks)",
               "manual": "Saisie Manuelle"
           }
       }
@@ -131,7 +131,7 @@
           "nfc_error_transaction": "Erreur Transaction NFC",
           "error": "Erreur",
           "nfc_opening": "Ouverture NFC",
-          "nfc_tag_registering": "Scan d'enregistrement de tag NFC",
+          "nfc_tag_registering": "Scan denregistrement de tag NFC",
           "unknown": "Événement inconnu"
         }
       },
@@ -219,7 +219,7 @@
           "nfc_error_transaction": "Erreur Transaction NFC",
           "error": "Erreur",
           "nfc_opening": "Ouverture NFC",
-          "nfc_tag_registering": "Scan d'enregistrement de tag NFC",
+          "nfc_tag_registering": "Scan denregistrement de tag NFC",
           "unknown": "Événement inconnu"
         }
       }
@@ -243,8 +243,8 @@
       "fields": {
         "code": {
           "name": "Code PIN",
-          "description": "Le code PIN à 6 caractères (0-9, A, B).",
-          "example": "1234AB"
+          "description": "Le code PIN à utiliser pour ouvrir la porte (0-9, A, B).",
+          "example": "123456"
         }
       }
     },
@@ -259,7 +259,7 @@
         },
         "index": {
           "name": "Index",
-          "description": "L'index de stockage du code permanent (0-255).",
+          "description": "Lindex de stockage du code permanent (0-255).",
           "example": "2"
         }
       }
@@ -270,7 +270,7 @@
       "fields": {
         "index": {
           "name": "Index",
-          "description": "L'index du code permanent à supprimer (0-255).",
+          "description": "Lindex du code permanent à supprimer (0-255).",
           "example": "2"
         }
       }
@@ -321,15 +321,15 @@
     },
     "clean_master_codes": {
       "name": "Nettoyer les Codes Permanents",
-      "description": "Scanne et supprime les codes permanents dans une plage d'index donnée pour éliminer les fantômes. Limite : 100 index par exécution.",
+      "description": "Scanne et supprime les codes permanents dans une plage dindex donnée pour éliminer les fantômes. Limite : 100 index par exécution.",
       "fields": {
         "start_index": {
           "name": "Index de début",
-          "description": "L'index à partir duquel commencer le nettoyage (0-255)."
+          "description": "Lindex à partir duquel commencer le nettoyage (0-255)."
         },
         "range": {
           "name": "Plage",
-          "description": "Nombre d'index à scanner (Max 100)."
+          "description": "Nombre dindex à scanner (Max 100)."
         }
       }
     },

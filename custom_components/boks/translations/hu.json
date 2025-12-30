@@ -1,0 +1,351 @@
+{
+  "config": {
+    "step": {
+      "cloud": {
+        "title": "Boks bejelentkezés",
+        "description": "Adja meg Boks alkalmazás hitelesítő adatait a készülékkulcsok automatikus lekéréséhez.",
+        "data": {
+          "username": "E-mail",
+          "password": "Jelszó"
+        }
+      },
+      "device_selection": {
+        "title": "Válassza ki a Boks-ot",
+        "description": "Válassza ki, melyik Boks-ot szeretné hozzáadni.",
+        "data": {
+          "device": "Készülék"
+        }
+      },
+      "user": {
+        "title": "Kézi konfiguráció",
+        "description": "Adja meg Boks hitelesítő adatait.\n\n**Preferencia sorrend:**\n1. **Mesterkulcs (64 kar.):** Teljes hozzáférés.\n2. **Konfigurációs kulcs (8 kar.):** Normál hozzáférés.",
+        "data": {
+          "mac": "Bluetooth cím",
+          "master_code": "Mesterkód",
+          "credential": "Hitelesítő adat (ConfigKey vagy MasterKey)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nem sikerült csatlakozni a Boks API-hoz.",
+      "invalid_auth": "Érvénytelen e-mail cím vagy jelszó.",
+      "boks_not_found": "Nem található a MAC-címnek megfelelő Boks ezen a fiókon.",
+      "cannot_retrieve_key": "Nem sikerült lekérni a konfigurációs kulcsot a felhőből.",
+      "device_not_found": "A készülék nem található a listában.",
+      "device_not_in_cache": "A készülék nem található a Bluetooth gyorsítótárban. Nincs elérhető csatlakozási útvonal.",
+      "no_devices_found": "Nem található Boks készülék ezen a fiókon.",
+      "connection_error": "Csatlakozási hiba a készülékek lekérésekor.",
+      "invalid_credential_format": "Érvénytelen hitelesítő adat formátum. 8/64 hex karakternek kell lennie",
+      "invalid_master_code_format": "Érvénytelen mesterkód formátum. 6 jegyű kódnak kell lennie (0-9, A, B).",
+      "unknown": "Ismeretlen hiba történt.",
+      "pin_code_invalid_length": "A PIN kódnak 6 karakterből kell állnia",
+      "pin_code_invalid": "Érvénytelen PIN kód",
+      "unauthorized": "Jogosulatlan",
+      "config_key_required": "Konfigurációs kulcs szükséges ehhez a művelethez",
+      "invalid_code_format": "Érvénytelen kódformátum (6 karakternek kell lennie: 0-9, A, B)",
+      "create_code_failed": "A kód létrehozása sikertelen (az eszköz hibát jelzett)",
+      "change_master_code_failed": "A mesterkód módosítása sikertelen (az eszköz hibát jelzett)",
+      "unknown_code_type": "Ismeretlen kód típus",
+      "unknown_device": "A Bluetooth adapter nem látja az eszközt.",
+      "not_connectable": "Az észlelt eszköz nem csatlakoztatható (valószínűleg passzív proxyn keresztül).",
+      "todo_entity_not_found_for_device": "Nem található teendő entitás a(z) {target_device_id} eszközhöz",
+      "target_devices_not_boks": "A(z) {device_ids} céleszköz(ök) nem Boks eszközök.",
+      "target_entities_not_boks": "A(z) {entity_ids} célentitás(ok) nem Boks eszközökhöz tartoznak.",
+      "target_device_missing": "A cél Boks eszköz nem található vagy nincs megadva. Kérjük, adjon meg egy device_id-t vagy entity_id-t.",
+      "multiple_devices_found": "Több Boks eszköz található. Kérjük, adjon meg egy célentitást vagy eszközt.",
+      "no_devices_configured": "Nincs beállítva Boks eszköz.",
+      "cannot_resolve_todo": "Nem sikerült feloldani a cél Boks teendőlistát.",
+      "todo_integration_not_loaded": "A Todo integráció nincs betöltve.",
+      "todo_entity_not_found": "A(z) {target_entity_id} Todo entitás nem található vagy nincs betöltve.",
+      "config_key_invalid_length": "A konfigurációs kulcsnak pontosan 8 karakter hosszúnak kell lennie.",
+      "ble_client_none": "A BLE kliens Nincs, nem lehet parancsot küldeni",
+      "timeout_waiting_response": "Időtúllépés a válaszra várva a(z) {opcode} opkódhoz",
+      "ble_error": "BLE hiba: {error}",
+      "ble_internal_error": "BLE belső hiba: {error}",
+      "entity_not_parcel_list": "A(z) {target_entity_id} entitás nem egy Boks csomaglista.",
+      "maintenance_already_running": "Egy karbantartási feladat már folyamatban van. Kérjük, várja meg, amíg befejeződik.",
+      "delete_code_failed": "A kód törlése sikertelen (az eszköz hibát jelzett)",
+      "set_configuration_failed": "A konfiguráció {config_type} beállítása sikertelen (az eszköz hibát jelzett)"
+    },
+    "abort": {
+      "already_configured": "Ez a Boks már konfigurálva van.",
+      "not_connectable": "Az észlelt eszköz nem csatlakoztatható (valószínűleg passzív proxyn keresztül).",
+      "cannot_connect": "Nem sikerült csatlakozni az eszközhöz. Ellenőrizze, hogy hatótávolságon belül van-e és csatlakoztatható-e."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Lekérdezési időköz (perc)",
+          "full_refresh_interval": "Teljes frissítési időköz (óra)",
+          "master_code": "Mesterkód a nyitáshoz (opcionális)",
+          "anonymize_logs": "Naplók anonimizálása (Kulcsok és PIN kódok cseréje hamis értékekre megosztáshoz)"
+        },
+        "description": "Konfigurálja, milyen gyakran csatlakozzon a Home Assistant a Bokshoz az állapot frissítéséhez."
+      }
+    }
+  },
+  "selector": {
+      "setup_method": {
+          "options": {
+              "cloud": "Felhő bejelentkezés (Automatikus - érvényes hitelesítő adatok szükségesek a hivatalos Boks alkalmazáshoz)",
+              "manual": "Kézi bevitel"
+          }
+      }
+  },
+  "entity": {
+    "button": {
+      "sync_logs": {
+        "name": "Naplók szinkronizálása"
+      }
+    },
+    "lock": {
+      "door": {
+        "name": "Ajtó"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Akkumulátor"
+      },
+      "last_connection": {
+        "name": "Utolsó csatlakozás"
+      },
+      "last_event": {
+        "name": "Utolsó esemény",
+        "state": {
+          "no_events": "Nincs esemény",
+          "code_ble_valid": "Érvényes BLE kód használva",
+          "code_key_valid": "Érvényes billentyűzet kód használva",
+          "code_ble_invalid": "Érvénytelen BLE parancs",
+          "code_key_invalid": "Érvénytelen billentyűzet kód használva",
+          "door_closed": "Ajtó zárva",
+          "door_opened": "Ajtó nyitva",
+          "history_erase": "Előzmények törölve",
+          "power_off": "Kikapcsolás",
+          "block_reset": "Blokk visszaállítás",
+          "power_on": "Bekapcsolás",
+          "ble_reboot": "BLE újraindítás",
+          "scale_measure": "Folyamatos mérleg mérés",
+          "nfc_error_transaction": "NFC tranzakciós hiba (0x99)",
+          "error": "Hiba (Diagnosztika)",
+          "nfc_opening": "NFC nyitás",
+          "nfc_tag_registering": "NFC címke regisztrációs szkennelés",
+          "unknown": "Ismeretlen esemény"
+        }
+      },
+      "master_codes_count": {
+        "name": "Mesterkódok"
+      },
+      "single_use_codes_count": {
+        "name": "Egyszer használatos kódok"
+      },
+      "battery_format": {
+        "name": "Akkumulátor formátum",
+        "state": {
+          "measures-first-min-mean-max-last": "Részletes (Min/Átlag/Max)",
+          "measures-t1-t5-t10": "Részletes (T1/T5/T10)",
+          "measure-single": "Egyszerű",
+          "unknown": "Ismeretlen",
+          "other": "Egyéb"
+        }
+      },
+      "battery_type": {
+        "name": "Akkumulátor típus",
+        "state": {
+          "lsh14": "LSH14 (Lítium)",
+          "8x_aaa": "8x AAA (Alkári)",
+          "unknown": "Ismeretlen",
+          "other": "Egyéb"
+        }
+      },
+      "battery_level_first": {
+        "name": "Akkumulátor feszültség (Első)"
+      },
+      "battery_level_min": {
+        "name": "Akkumulátor feszültség (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Akkumulátor feszültség (Átlag)"
+      },
+      "battery_level_max": {
+        "name": "Akkumulátor feszültség (Max)"
+      },
+      "battery_level_last": {
+        "name": "Akkumulátor feszültség (Utolsó)"
+      },
+      "battery_level_t1": {
+        "name": "Akkumulátor feszültség (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Akkumulátor feszültség (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Akkumulátor feszültség (T10)"
+      },
+      "maintenance_status": {
+        "name": "Karbantartási állapot",
+        "state": {
+          "idle": "Tétlen",
+          "cleaning": "Mesterkódok tisztítása"
+        }
+      },
+      "log_count": {
+        "name": "Naplók száma"
+      }
+    },
+    "todo": {
+      "parcels": {
+        "name": "Csomagok"
+      }
+    },
+    "event": {
+      "logs": {
+        "name": "Naplók",
+        "state": {
+          "code_ble_valid": "Érvényes BLE kód használva",
+          "code_key_valid": "Érvényes billentyűzet kód használva",
+          "code_ble_invalid": "Érvénytelen BLE parancs",
+          "code_key_invalid": "Érvénytelen billentyűzet kód használva",
+          "door_closed": "Ajtó zárva",
+          "door_opened": "Ajtó nyitva",
+          "history_erase": "Előzmények törölve",
+          "power_off": "Kikapcsolás",
+          "block_reset": "Blokk visszaállítás",
+          "power_on": "Bekapcsolás",
+          "ble_reboot": "BLE újraindítás",
+          "scale_measure": "Folyamatos mérleg mérés",
+          "nfc_error_transaction": "NFC tranzakciós hiba",
+          "error": "Hiba (Diagnosztika)",
+          "nfc_opening": "NFC nyitás",
+          "nfc_tag_registering": "NFC címke regisztrációs szkennelés",
+          "unknown": "Ismeretlen esemény"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_parcel": {
+      "name": "Csomag hozzáadása",
+      "description": "Új csomag hozzáadása a listához",
+      "fields": {
+        "description": {
+          "name": "Leírás",
+          "description": "Leírás hozzáadása a csomaghoz",
+          "example": "Könyv kézbesítés"
+        }
+      }
+    },
+    "open_door": {
+      "name": "Ajtó nyitása",
+      "description": "Kinyitja a Boks ajtaját, opcionálisan PIN kóddal.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "A nyitáshoz használandó 6 karakteres PIN kód (0-9, A, B).",
+          "example": "123456"
+        }
+      }
+    },
+    "add_master_code": {
+      "name": "Mesterkód hozzáadása",
+      "description": "Új mesterkód hozzáadása a Bokshoz egy adott indexen. Felülírja az adott indexen lévő meglévő kódot.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "A 6 karakteres PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        },
+        "index": {
+          "name": "Index",
+          "description": "A mesterkód tárolási indexe (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "Mesterkód törlése",
+      "description": "Mesterkód törlése a Boksból az indexe alapján.",
+      "fields": {
+        "index": {
+          "name": "Index",
+          "description": "A törlendő mesterkód indexe (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "Egyszer használatos kód hozzáadása",
+      "description": "Új egyszer használatos kód hozzáadása a Bokshoz.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "A 6 karakteres PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "Egyszer használatos kód törlése",
+      "description": "Egyszer használatos kód törlése a Boksból az értéke alapján.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "A törlendő 6 karakteres PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "Többször használatos kód hozzáadása",
+      "description": "Új többször használatos kód hozzáadása a Bokshoz.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "A 6 karakteres PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "Többször használatos kód törlése",
+      "description": "Többször használatos kód törlése a Boksból az értéke alapján.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "A törlendő 6 karakteres PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "Mesterkódok tisztítása",
+      "description": "Mesterkódok keresése és törlése egy adott indextartományban a fantomok eltávolítása érdekében. Korlát: 100 index futásonként.",
+      "fields": {
+        "start_index": {
+          "name": "Kezdő index",
+          "description": "Az index, ahonnan a tisztítás kezdődik (0-255)."
+        },
+        "range": {
+          "name": "Tartomány",
+          "description": "A beolvasandó indexek száma (Max 100)."
+        }
+      }
+    },
+    "sync_logs": {
+      "name": "Naplók szinkronizálása",
+      "description": "Naplók kézi lekérése a Boksból és a kapcsolódó események kiváltása."
+    },
+    "set_configuration": {
+      "name": "Konfiguráció beállítása",
+      "description": "Boks konfigurációs beállítások módosítása (NFC, hardver stb.).",
+      "fields": {
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "La Poste címke felismerés engedélyezése vagy letiltása."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,351 @@
+{
+  "config": {
+    "step": {
+      "cloud": {
+        "title": "Boks Login",
+        "description": "Voer uw Boks-app-inloggegevens in om uw apparaatsleutels automatisch op te halen.",
+        "data": {
+          "username": "E-mail",
+          "password": "Wachtwoord"
+        }
+      },
+      "device_selection": {
+        "title": "Selecteer uw Boks",
+        "description": "Selecteer welke Boks u wilt toevoegen.",
+        "data": {
+          "device": "Apparaat"
+        }
+      },
+      "user": {
+        "title": "Handmatige configuratie",
+        "description": "Voer uw Boks-inloggegevens in.\n\n**Voorkeursvolgorde:**\n1. **Master Key (64 tekens):** Volledige toegang.\n2. **Config Key (8 tekens):** Standaardtoegang.",
+        "data": {
+          "mac": "Bluetooth-adres",
+          "master_code": "Mastercode",
+          "credential": "Inloggegeven (ConfigKey of MasterKey)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met de Boks API.",
+      "invalid_auth": "Ongeldig e-mailadres of wachtwoord.",
+      "boks_not_found": "Geen Boks gevonden op dit account die overeenkomt met het MAC-adres.",
+      "cannot_retrieve_key": "Kan de configuratiesleutel niet ophalen uit de cloud.",
+      "device_not_found": "Apparaat niet gevonden in de lijst.",
+      "device_not_in_cache": "Apparaat niet gevonden in Bluetooth-cache. Geen verbindingspad beschikbaar.",
+      "no_devices_found": "Geen Boks-apparaten gevonden op dit account.",
+      "connection_error": "Verbindingsfout bij het ophalen van apparaten.",
+      "invalid_credential_format": "Ongeldig inloggegevenformaat. Moet 8/64 hex-tekens zijn",
+      "invalid_master_code_format": "Ongeldig mastercodeformaat. Moet een 6-cijferige code zijn (0-9, A, B).",
+      "unknown": "Er is een onbekende fout opgetreden.",
+      "pin_code_invalid_length": "Pincode moet 6 tekens lang zijn",
+      "pin_code_invalid": "Ongeldige pincode",
+      "unauthorized": "Niet geautoriseerd",
+      "config_key_required": "Configuratiesleutel vereist voor deze bewerking",
+      "invalid_code_format": "Ongeldig codeformaat (moet 6 tekens zijn van 0-9, A, B)",
+      "create_code_failed": "Kan code niet maken (apparaat heeft fout geretourneerd)",
+      "change_master_code_failed": "Kan mastercode niet wijzigen (apparaat heeft fout geretourneerd)",
+      "unknown_code_type": "Onbekend codetype",
+      "unknown_device": "Apparaat niet gezien door Bluetooth-adapter.",
+      "not_connectable": "Het gedetecteerde apparaat is niet verbindbaar (waarschijnlijk via een passieve proxy).",
+      "todo_entity_not_found_for_device": "Geen Todo-entiteit gevonden voor apparaat {target_device_id}",
+      "target_devices_not_boks": "Doelappara(a)t(en) {device_ids} zijn geen Boks-apparaten.",
+      "target_entities_not_boks": "Doelentiteit(en) {entity_ids} behoren tot niet-Boks-apparaten.",
+      "target_device_missing": "Doel-Boks-apparaat niet gevonden of niet opgegeven. Geef een device_id of entity_id op.",
+      "multiple_devices_found": "Meerdere Boks-apparaten gevonden. Geef een doelentiteit of apparaat op.",
+      "no_devices_configured": "Geen Boks-apparaten geconfigureerd.",
+      "cannot_resolve_todo": "Kan een doel-Boks-takenlijst niet oplossen.",
+      "todo_integration_not_loaded": "Todo-integratie niet geladen.",
+      "todo_entity_not_found": "Todo-entiteit {target_entity_id} niet gevonden of niet geladen.",
+      "config_key_invalid_length": "Configuratiesleutel moet exact 8 tekens lang zijn.",
+      "ble_client_none": "BLE-client is Geen, kan geen opdracht verzenden",
+      "timeout_waiting_response": "Time-out bij wachten op reactie op opcode {opcode}",
+      "ble_error": "BLE-fout: {error}",
+      "ble_internal_error": "BLE interne fout: {error}",
+      "entity_not_parcel_list": "Entiteit {target_entity_id} is geen Boks-pakketlijst.",
+      "maintenance_already_running": "Er wordt al een onderhoudstaak uitgevoerd. Wacht tot deze is voltooid.",
+      "delete_code_failed": "Kan code niet verwijderen (apparaat heeft fout geretourneerd)",
+      "set_configuration_failed": "Kan configuratie {config_type} niet instellen (apparaat heeft fout geretourneerd)"
+    },
+    "abort": {
+      "already_configured": "Deze Boks is al geconfigureerd.",
+      "not_connectable": "Het gedetecteerde apparaat is niet verbindbaar (waarschijnlijk via een passieve proxy).",
+      "cannot_connect": "Kan geen verbinding maken met het apparaat. Controleer of het binnen bereik is en verbindbaar is."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Polling-interval (minuten)",
+          "full_refresh_interval": "Volledig vernieuwingsinterval (uren)",
+          "master_code": "Mastercode voor openen (optioneel)",
+          "anonymize_logs": "Logboeken anonimiseren (vervang sleutels en pincodes door nepwaarden om te delen)"
+        },
+        "description": "Configureer hoe vaak Home Assistant verbinding maakt met de Boks om de status bij te werken."
+      }
+    }
+  },
+  "selector": {
+      "setup_method": {
+          "options": {
+              "cloud": "Cloud-login (automatisch - vereist geldige inloggegevens voor de officiële Boks-app)",
+              "manual": "Handmatige invoer"
+          }
+      }
+  },
+  "entity": {
+    "button": {
+      "sync_logs": {
+        "name": "Logboeken synchroniseren"
+      }
+    },
+    "lock": {
+      "door": {
+        "name": "Deur"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Batterij"
+      },
+      "last_connection": {
+        "name": "Laatste verbinding"
+      },
+      "last_event": {
+        "name": "Laatste gebeurtenis",
+        "state": {
+          "no_events": "Geen gebeurtenissen",
+          "code_ble_valid": "Geldige BLE-code gebruikt",
+          "code_key_valid": "Geldige toetsenbordcode gebruikt",
+          "code_ble_invalid": "Ongeldige BLE-opdracht",
+          "code_key_invalid": "Ongeldige toetsenbordcode gebruikt",
+          "door_closed": "Deur gesloten",
+          "door_opened": "Deur geopend",
+          "history_erase": "Geschiedenis gewist",
+          "power_off": "Uitschakelen",
+          "block_reset": "Blokreset",
+          "power_on": "Inschakelen",
+          "ble_reboot": "BLE opnieuw opstarten",
+          "scale_measure": "Continue weegschaalmeting",
+          "nfc_error_transaction": "NFC-transactiefout (0x99)",
+          "error": "Fout (diagnostisch)",
+          "nfc_opening": "NFC openen",
+          "nfc_tag_registering": "NFC-tagregistratiescan",
+          "unknown": "Onbekende gebeurtenis"
+        }
+      },
+      "master_codes_count": {
+        "name": "Mastercodes"
+      },
+      "single_use_codes_count": {
+        "name": "Codes voor eenmalig gebruik"
+      },
+      "battery_format": {
+        "name": "Batterijformaat",
+        "state": {
+          "measures-first-min-mean-max-last": "Gedetailleerd (Min/Gem/Max)",
+          "measures-t1-t5-t10": "Gedetailleerd (T1/T5/T10)",
+          "measure-single": "Eenvoudig",
+          "unknown": "Onbekend",
+          "other": "Overig"
+        }
+      },
+      "battery_type": {
+        "name": "Batterijtype",
+        "state": {
+          "lsh14": "LSH14 (lithium)",
+          "8x_aaa": "8x AAA (alkaline)",
+          "unknown": "Onbekend",
+          "other": "Overig"
+        }
+      },
+      "battery_level_first": {
+        "name": "Batterijspanning (eerste)"
+      },
+      "battery_level_min": {
+        "name": "Batterijspanning (min)"
+      },
+      "battery_level_mean": {
+        "name": "Batterijspanning (gemiddeld)"
+      },
+      "battery_level_max": {
+        "name": "Batterijspanning (max)"
+      },
+      "battery_level_last": {
+        "name": "Batterijspanning (laatste)"
+      },
+      "battery_level_t1": {
+        "name": "Batterijspanning (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Batterijspanning (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Batterijspanning (T10)"
+      },
+      "maintenance_status": {
+        "name": "Onderhoudsstatus",
+        "state": {
+          "idle": "Inactief",
+          "cleaning": "Mastercodes opschonen"
+        }
+      },
+      "log_count": {
+        "name": "Aantal logboeken"
+      }
+    },
+    "todo": {
+      "parcels": {
+        "name": "Pakketten"
+      }
+    },
+    "event": {
+      "logs": {
+        "name": "Logboeken",
+        "state": {
+          "code_ble_valid": "Geldige BLE-code gebruikt",
+          "code_key_valid": "Geldige toetsenbordcode gebruikt",
+          "code_ble_invalid": "Ongeldige BLE-opdracht",
+          "code_key_invalid": "Ongeldige toetsenbordcode gebruikt",
+          "door_closed": "Deur gesloten",
+          "door_opened": "Deur geopend",
+          "history_erase": "Geschiedenis gewist",
+          "power_off": "Uitschakelen",
+          "block_reset": "Blokreset",
+          "power_on": "Inschakelen",
+          "ble_reboot": "BLE opnieuw opstarten",
+          "scale_measure": "Continue weegschaalmeting",
+          "nfc_error_transaction": "NFC-transactiefout",
+          "error": "Fout (diagnostisch)",
+          "nfc_opening": "NFC openen",
+          "nfc_tag_registering": "NFC-tagregistratiescan",
+          "unknown": "Onbekende gebeurtenis"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_parcel": {
+      "name": "Pakket toevoegen",
+      "description": "Voegt een nieuw pakket toe aan de lijst",
+      "fields": {
+        "description": {
+          "name": "Beschrijving",
+          "description": "Voegt een beschrijving toe aan het pakket",
+          "example": "Boeklevering"
+        }
+      }
+    },
+    "open_door": {
+      "name": "Deur openen",
+      "description": "Opent de Boks-deur, optioneel met een pincode.",
+      "fields": {
+        "code": {
+          "name": "Pincode",
+          "description": "De 6-cijferige pincode die moet worden gebruikt voor het openen (0-9, A, B).",
+          "example": "123456"
+        }
+      }
+    },
+    "add_master_code": {
+      "name": "Mastercode toevoegen",
+      "description": "Voegt een nieuwe mastercode toe aan de Boks op een specifieke index. Overschrijft elke bestaande code op die index.",
+      "fields": {
+        "code": {
+          "name": "Pincode",
+          "description": "De 6-cijferige pincode (0-9, A, B).",
+          "example": "1234AB"
+        },
+        "index": {
+          "name": "Index",
+          "description": "De opslagindex voor de mastercode (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "Mastercode verwijderen",
+      "description": "Verwijdert een mastercode uit de Boks met behulp van de index.",
+      "fields": {
+        "index": {
+          "name": "Index",
+          "description": "De index van de te verwijderen mastercode (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "Code voor eenmalig gebruik toevoegen",
+      "description": "Voegt een nieuwe code voor eenmalig gebruik toe aan de Boks.",
+      "fields": {
+        "code": {
+          "name": "Pincode",
+          "description": "De 6-cijferige pincode (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "Code voor eenmalig gebruik verwijderen",
+      "description": "Verwijdert een code voor eenmalig gebruik uit de Boks met behulp van de waarde.",
+      "fields": {
+        "code": {
+          "name": "Pincode",
+          "description": "De 6-cijferige pincode (0-9, A, B) die moet worden verwijderd.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "Code voor meervoudig gebruik toevoegen",
+      "description": "Voegt een nieuwe code voor meervoudig gebruik toe aan de Boks.",
+      "fields": {
+        "code": {
+          "name": "Pincode",
+          "description": "De 6-cijferige pincode (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "Code voor meervoudig gebruik verwijderen",
+      "description": "Verwijdert een code voor meervoudig gebruik uit de Boks met behulp van de waarde.",
+      "fields": {
+        "code": {
+          "name": "Pincode",
+          "description": "De 6-cijferige pincode (0-9, A, B) die moet worden verwijderd.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "Mastercodes opschonen",
+      "description": "Scant en verwijdert mastercodes in een opgegeven indexbereik om ghosts te verwijderen. Limiet: 100 indices per keer.",
+      "fields": {
+        "start_index": {
+          "name": "Startindex",
+          "description": "De index van waaruit moet worden opgeschoond (0-255)."
+        },
+        "range": {
+          "name": "Bereik",
+          "description": "Aantal te scannen indices (Max 100)."
+        }
+      }
+    },
+    "sync_logs": {
+      "name": "Logboeken synchroniseren",
+      "description": "Haal handmatig logboeken op van de Boks en activeer bijbehorende gebeurtenissen."
+    },
+    "set_configuration": {
+      "name": "Configuratie instellen",
+      "description": "Wijzig de Boks-configuratie-instellingen (NFC, hardware, enz.).",
+      "fields": {
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "Schakel La Poste-tagherkenning in of uit."
+        }
+      }
+    }
+  }
+}

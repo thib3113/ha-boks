@@ -1,0 +1,351 @@
+{
+  "config": {
+    "step": {
+      "cloud": {
+        "title": "Conectare Boks",
+        "description": "Introduceți datele de autentificare ale aplicației Boks pentru a prelua automat cheile dispozitivului.",
+        "data": {
+          "username": "E-mail",
+          "password": "Parolă"
+        }
+      },
+      "device_selection": {
+        "title": "Selectați Boks-ul dvs.",
+        "description": "Selectați ce Boks doriți să adăugați.",
+        "data": {
+          "device": "Dispozitiv"
+        }
+      },
+      "user": {
+        "title": "Configurare manuală",
+        "description": "Introduceți datele de autentificare Boks.\n\n**Ordinea preferințelor:**\n1. **Cheia Master (64 caractere):** Acces complet.\n2. **Cheia de configurare (8 caractere):** Acces standard.",
+        "data": {
+          "mac": "Adresă Bluetooth",
+          "master_code": "Cod Master",
+          "credential": "Date de autentificare (ConfigKey sau MasterKey)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nu se poate conecta la API-ul Boks.",
+      "invalid_auth": "E-mail sau parolă invalidă.",
+      "boks_not_found": "Niciun Boks găsit pe acest cont care să corespundă adresei MAC.",
+      "cannot_retrieve_key": "Nu s-a putut prelua cheia de configurare din cloud.",
+      "device_not_found": "Dispozitivul nu a fost găsit în listă.",
+      "device_not_in_cache": "Dispozitivul nu a fost găsit în memoria cache Bluetooth. Nicio cale conectabilă disponibilă.",
+      "no_devices_found": "Nu s-au găsit dispozitive Boks pe acest cont.",
+      "connection_error": "Eroare de conexiune la preluarea dispozitivelor.",
+      "invalid_credential_format": "Format invalid al datelor de autentificare. Trebuie să fie 8/64 caractere hexadecimale",
+      "invalid_master_code_format": "Format invalid al codului master. Trebuie să fie un cod din 6 cifre (0-9, A, B).",
+      "unknown": "A apărut o eroare necunoscută.",
+      "pin_code_invalid_length": "Codul PIN trebuie să aibă 6 caractere",
+      "pin_code_invalid": "Cod PIN invalid",
+      "unauthorized": "Neautorizat",
+      "config_key_required": "Cheie de configurare necesară pentru această operațiune",
+      "invalid_code_format": "Format cod invalid (trebuie să fie 6 caractere din 0-9, A, B)",
+      "create_code_failed": "Crearea codului a eșuat (dispozitivul a returnat eroare)",
+      "change_master_code_failed": "Schimbarea codului master a eșuat (dispozitivul a returnat eroare)",
+      "unknown_code_type": "Tip de cod necunoscut",
+      "unknown_device": "Dispozitivul nu este văzut de adaptorul Bluetooth.",
+      "not_connectable": "Dispozitivul detectat nu este conectabil (probabil printr-un proxy pasiv).",
+      "todo_entity_not_found_for_device": "Nu s-a găsit nicio entitate Todo pentru dispozitivul {target_device_id}",
+      "target_devices_not_boks": "Dispozitivul(ele) țintă {device_ids} nu sunt dispozitive Boks.",
+      "target_entities_not_boks": "Entitatea(ile) țintă {entity_ids} aparțin unor dispozitive non-Boks.",
+      "target_device_missing": "Dispozitivul Boks țintă nu a fost găsit sau nu a fost specificat. Vă rugăm să specificați un device_id sau entity_id.",
+      "multiple_devices_found": "S-au găsit mai multe dispozitive Boks. Vă rugăm să specificați o entitate sau un dispozitiv țintă.",
+      "no_devices_configured": "Niciun dispozitiv Boks configurat.",
+      "cannot_resolve_todo": "Nu s-a putut rezolva o listă de sarcini Boks țintă.",
+      "todo_integration_not_loaded": "Integrarea Todo nu este încărcată.",
+      "todo_entity_not_found": "Entitatea Todo {target_entity_id} nu a fost găsită sau nu a fost încărcată.",
+      "config_key_invalid_length": "Cheia de configurare trebuie să aibă exact 8 caractere.",
+      "ble_client_none": "Clientul BLE este Niciunul, nu se poate trimite comanda",
+      "timeout_waiting_response": "Timeout la așteptarea răspunsului pentru opcode {opcode}",
+      "ble_error": "Eroare BLE: {error}",
+      "ble_internal_error": "Eroare internă BLE: {error}",
+      "entity_not_parcel_list": "Entitatea {target_entity_id} nu este o listă de colete Boks.",
+      "maintenance_already_running": "O sarcină de întreținere este deja în curs. Vă rugăm să așteptați să se termine.",
+      "delete_code_failed": "Ștergerea codului a eșuat (dispozitivul a returnat eroare)",
+      "set_configuration_failed": "Setarea configurației {config_type} a eșuat (dispozitivul a returnat eroare)"
+    },
+    "abort": {
+      "already_configured": "Acest Boks este deja configurat.",
+      "not_connectable": "Dispozitivul detectat nu este conectabil (probabil printr-un proxy pasiv).",
+      "cannot_connect": "Nu se poate conecta la dispozitiv. Verificați dacă este în raza de acțiune și dacă este conectabil."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Interval de interogare (minute)",
+          "full_refresh_interval": "Interval de reîmprospătare completă (ore)",
+          "master_code": "Cod Master pentru deschidere (opțional)",
+          "anonymize_logs": "Anonimizare jurnale (Înlocuiește cheile și PIN-urile cu valori false pentru partajare)"
+        },
+        "description": "Configurați cât de des se conectează Home Assistant la Boks pentru a actualiza starea."
+      }
+    }
+  },
+  "selector": {
+      "setup_method": {
+          "options": {
+              "cloud": "Conectare Cloud (Automat - necesită date de autentificare valide pentru aplicația oficială Boks)",
+              "manual": "Introducere manuală"
+          }
+      }
+  },
+  "entity": {
+    "button": {
+      "sync_logs": {
+        "name": "Sincronizare jurnale"
+      }
+    },
+    "lock": {
+      "door": {
+        "name": "Ușă"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Baterie"
+      },
+      "last_connection": {
+        "name": "Ultima conexiune"
+      },
+      "last_event": {
+        "name": "Ultimul eveniment",
+        "state": {
+          "no_events": "Niciun eveniment",
+          "code_ble_valid": "Cod BLE valid utilizat",
+          "code_key_valid": "Cod tastatură valid utilizat",
+          "code_ble_invalid": "Comandă BLE invalidă",
+          "code_key_invalid": "Cod tastatură invalid utilizat",
+          "door_closed": "Ușă închisă",
+          "door_opened": "Ușă deschisă",
+          "history_erase": "Istoric șters",
+          "power_off": "Oprire",
+          "block_reset": "Resetare bloc",
+          "power_on": "Pornire",
+          "ble_reboot": "Repornire BLE",
+          "scale_measure": "Măsurare continuă cântar",
+          "nfc_error_transaction": "Eroare tranzacție NFC (0x99)",
+          "error": "Eroare (Diagnostic)",
+          "nfc_opening": "Deschidere NFC",
+          "nfc_tag_registering": "Scanare înregistrare etichetă NFC",
+          "unknown": "Eveniment necunoscut"
+        }
+      },
+      "master_codes_count": {
+        "name": "Coduri master"
+      },
+      "single_use_codes_count": {
+        "name": "Coduri de unică folosință"
+      },
+      "battery_format": {
+        "name": "Format baterie",
+        "state": {
+          "measures-first-min-mean-max-last": "Detaliat (Min/Med/Max)",
+          "measures-t1-t5-t10": "Detaliat (T1/T5/T10)",
+          "measure-single": "Simplu",
+          "unknown": "Necunoscut",
+          "other": "Altele"
+        }
+      },
+      "battery_type": {
+        "name": "Tip baterie",
+        "state": {
+          "lsh14": "LSH14 (Litiu)",
+          "8x_aaa": "8x AAA (Alcaline)",
+          "unknown": "Necunoscut",
+          "other": "Altele"
+        }
+      },
+      "battery_level_first": {
+        "name": "Tensiune baterie (Prima)"
+      },
+      "battery_level_min": {
+        "name": "Tensiune baterie (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Tensiune baterie (Medie)"
+      },
+      "battery_level_max": {
+        "name": "Tensiune baterie (Max)"
+      },
+      "battery_level_last": {
+        "name": "Tensiune baterie (Ultima)"
+      },
+      "battery_level_t1": {
+        "name": "Tensiune baterie (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Tensiune baterie (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Tensiune baterie (T10)"
+      },
+      "maintenance_status": {
+        "name": "Stare întreținere",
+        "state": {
+          "idle": "Inactiv",
+          "cleaning": "Curățare coduri master"
+        }
+      },
+      "log_count": {
+        "name": "Număr jurnale"
+      }
+    },
+    "todo": {
+      "parcels": {
+        "name": "Colete"
+      }
+    },
+    "event": {
+      "logs": {
+        "name": "Jurnale",
+        "state": {
+          "code_ble_valid": "Cod BLE valid utilizat",
+          "code_key_valid": "Cod tastatură valid utilizat",
+          "code_ble_invalid": "Comandă BLE invalidă",
+          "code_key_invalid": "Cod tastatură invalid utilizat",
+          "door_closed": "Ușă închisă",
+          "door_opened": "Ușă deschisă",
+          "history_erase": "Istoric șters",
+          "power_off": "Oprire",
+          "block_reset": "Resetare bloc",
+          "power_on": "Pornire",
+          "ble_reboot": "Repornire BLE",
+          "scale_measure": "Măsurare continuă cântar",
+          "nfc_error_transaction": "Eroare tranzacție NFC",
+          "error": "Eroare (Diagnostic)",
+          "nfc_opening": "Deschidere NFC",
+          "nfc_tag_registering": "Scanare înregistrare etichetă NFC",
+          "unknown": "Eveniment necunoscut"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_parcel": {
+      "name": "Adăugare colet",
+      "description": "Adaugă un colet nou în listă",
+      "fields": {
+        "description": {
+          "name": "Descriere",
+          "description": "Adaugă o descriere coletului",
+          "example": "Livrare carte"
+        }
+      }
+    },
+    "open_door": {
+      "name": "Deschidere ușă",
+      "description": "Deschide ușa Boks, opțional cu un cod PIN.",
+      "fields": {
+        "code": {
+          "name": "Cod PIN",
+          "description": "Codul PIN din 6 caractere de utilizat pentru deschidere (0-9, A, B).",
+          "example": "123456"
+        }
+      }
+    },
+    "add_master_code": {
+      "name": "Adăugare cod master",
+      "description": "Adaugă un nou cod master la Boks la un index specific. Suprascrie orice cod existent la acel index.",
+      "fields": {
+        "code": {
+          "name": "Cod PIN",
+          "description": "Codul PIN din 6 caractere (0-9, A, B).",
+          "example": "1234AB"
+        },
+        "index": {
+          "name": "Index",
+          "description": "Indexul de stocare pentru codul master (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "Ștergere cod master",
+      "description": "Șterge un cod master din Boks folosind indexul acestuia.",
+      "fields": {
+        "index": {
+          "name": "Index",
+          "description": "Indexul codului master de șters (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "Adăugare cod de unică folosință",
+      "description": "Adaugă un nou cod de unică folosință la Boks.",
+      "fields": {
+        "code": {
+          "name": "Cod PIN",
+          "description": "Codul PIN din 6 caractere (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "Ștergere cod de unică folosință",
+      "description": "Șterge un cod de unică folosință din Boks folosind valoarea acestuia.",
+      "fields": {
+        "code": {
+          "name": "Cod PIN",
+          "description": "Codul PIN din 6 caractere (0-9, A, B) de șters.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "Adăugare cod de folosință multiplă",
+      "description": "Adaugă un nou cod de folosință multiplă la Boks.",
+      "fields": {
+        "code": {
+          "name": "Cod PIN",
+          "description": "Codul PIN din 6 caractere (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "Ștergere cod de folosință multiplă",
+      "description": "Șterge un cod de folosință multiplă din Boks folosind valoarea acestuia.",
+      "fields": {
+        "code": {
+          "name": "Cod PIN",
+          "description": "Codul PIN din 6 caractere (0-9, A, B) de șters.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "Curățare coduri master",
+      "description": "Scanează și șterge codurile master într-un interval de index specificat pentru a elimina fantomele. Limită: 100 de indecși pe rulare.",
+      "fields": {
+        "start_index": {
+          "name": "Index de pornire",
+          "description": "Indexul de la care se începe curățarea (0-255)."
+        },
+        "range": {
+          "name": "Interval",
+          "description": "Numărul de indecși de scanat (Max 100)."
+        }
+      }
+    },
+    "sync_logs": {
+      "name": "Sincronizare jurnale",
+      "description": "Preluare manuală a jurnalelor din Boks și declanșarea evenimentelor asociate."
+    },
+    "set_configuration": {
+      "name": "Setare configurare",
+      "description": "Modifică setările de configurare Boks (NFC, hardware, etc.).",
+      "fields": {
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "Activează sau dezactivează recunoașterea etichetelor La Poste."
+        }
+      }
+    }
+  }
+}

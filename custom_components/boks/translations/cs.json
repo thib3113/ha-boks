@@ -1,0 +1,351 @@
+{
+  "config": {
+    "step": {
+      "cloud": {
+        "title": "Přihlášení Boks",
+        "description": "Zadejte své přihlašovací údaje k aplikaci Boks pro automatické získání klíčů k zařízení.",
+        "data": {
+          "username": "E-mail",
+          "password": "Heslo"
+        }
+      },
+      "device_selection": {
+        "title": "Vyberte svůj Boks",
+        "description": "Vyberte, který Boks chcete přidat.",
+        "data": {
+          "device": "Zařízení"
+        }
+      },
+      "user": {
+        "title": "Ruční konfigurace",
+        "description": "Zadejte své přihlašovací údaje Boks.\n\n**Pořadí preferencí:**\n1. **Hlavní klíč (64 znaků):** Úplný přístup.\n2. **Konfigurační klíč (8 znaků):** Standardní přístup.",
+        "data": {
+          "mac": "Bluetooth adresa",
+          "master_code": "Hlavní kód",
+          "credential": "Přihlašovací údaje (ConfigKey nebo MasterKey)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nelze se připojit k Boks API.",
+      "invalid_auth": "Neplatný e-mail nebo heslo.",
+      "boks_not_found": "Na tomto účtu nebyl nalezen žádný Boks odpovídající MAC adrese.",
+      "cannot_retrieve_key": "Nelze získat konfigurační klíč z cloudu.",
+      "device_not_found": "Zařízení nebylo v seznamu nalezeno.",
+      "device_not_in_cache": "Zařízení nebylo nalezeno v mezipaměti Bluetooth. Není k dispozici žádná připojitelná cesta.",
+      "no_devices_found": "Na tomto účtu nebyla nalezena žádná zařízení Boks.",
+      "connection_error": "Chyba připojení při načítání zařízení.",
+      "invalid_credential_format": "Neplatný formát pověření. Musí být 8/64 hex znaků",
+      "invalid_master_code_format": "Neplatný formát hlavního kódu. Musí to být 6místný kód (0-9, A, B).",
+      "unknown": "Došlo k neznámé chybě.",
+      "pin_code_invalid_length": "PIN kód musí mít 6 znaků",
+      "pin_code_invalid": "Neplatný PIN kód",
+      "unauthorized": "Neautorizováno",
+      "config_key_required": "Pro tuto operaci je vyžadován konfigurační klíč",
+      "invalid_code_format": "Neplatný formát kódu (musí být 6 znaků z 0-9, A, B)",
+      "create_code_failed": "Nepodařilo se vytvořit kód (zařízení vrátilo chybu)",
+      "change_master_code_failed": "Nepodařilo se změnit hlavní kód (zařízení vrátilo chybu)",
+      "unknown_code_type": "Neznámý typ kódu",
+      "unknown_device": "Adaptér Bluetooth zařízení nevidí.",
+      "not_connectable": "Detekované zařízení není připojitelné (pravděpodobně přes pasivní proxy).",
+      "todo_entity_not_found_for_device": "Pro zařízení {target_device_id} nebyla nalezena žádná entita úkolů",
+      "target_devices_not_boks": "Cílová zařízení {device_ids} nejsou zařízení Boks.",
+      "target_entities_not_boks": "Cílové entity {entity_ids} patří zařízením, která nejsou Boks.",
+      "target_device_missing": "Cílové zařízení Boks nebylo nalezeno nebo nebylo specifikováno. Zadejte prosím device_id nebo entity_id.",
+      "multiple_devices_found": "Nalezeno více zařízení Boks. Zadejte prosím cílovou entitu nebo zařízení.",
+      "no_devices_configured": "Nekonfigurována žádná zařízení Boks.",
+      "cannot_resolve_todo": "Nelze vyřešit cílový seznam úkolů Boks.",
+      "todo_integration_not_loaded": "Integrace Todo není načtena.",
+      "todo_entity_not_found": "Entita Todo {target_entity_id} nebyla nalezena nebo nebyla načtena.",
+      "config_key_invalid_length": "Konfigurační klíč musí mít přesně 8 znaků.",
+      "ble_client_none": "Klient BLE je Žádný, nelze odeslat příkaz",
+      "timeout_waiting_response": "Časový limit čekání na odpověď na opcode {opcode}",
+      "ble_error": "Chyba BLE: {error}",
+      "ble_internal_error": "Interní chyba BLE: {error}",
+      "entity_not_parcel_list": "Entita {target_entity_id} není seznam balíků Boks.",
+      "maintenance_already_running": "Úloha údržby již probíhá. Počkejte prosím na její dokončení.",
+      "delete_code_failed": "Nepodařilo se smazat kód (zařízení vrátilo chybu)",
+      "set_configuration_failed": "Nepodařilo se nastavit konfiguraci {config_type} (zařízení vrátilo chybu)"
+    },
+    "abort": {
+      "already_configured": "Tento Boks je již nakonfigurován.",
+      "not_connectable": "Detekované zařízení není připojitelné (pravděpodobně přes pasivní proxy).",
+      "cannot_connect": "Nelze se připojit k zařízení. Zkontrolujte, zda je v dosahu a připojitelné."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Interval dotazování (minuty)",
+          "full_refresh_interval": "Interval úplného obnovení (hodiny)",
+          "master_code": "Hlavní kód pro otevření (volitelné)",
+          "anonymize_logs": "Anonymizovat záznamy (pro sdílení nahradí klíče a PIN kódy falešnými hodnotami)"
+        },
+        "description": "Nakonfigurujte, jak často se Home Assistant připojuje k Boksu pro aktualizaci stavu."
+      }
+    }
+  },
+  "selector": {
+      "setup_method": {
+          "options": {
+              "cloud": "Cloud Login (Automaticky - vyžaduje platné přihlašovací údaje pro oficiální aplikaci Boks)",
+              "manual": "Ruční zadání"
+          }
+      }
+  },
+  "entity": {
+    "button": {
+      "sync_logs": {
+        "name": "Synchronizovat záznamy"
+      }
+    },
+    "lock": {
+      "door": {
+        "name": "Dveře"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Baterie"
+      },
+      "last_connection": {
+        "name": "Poslední připojení"
+      },
+      "last_event": {
+        "name": "Poslední událost",
+        "state": {
+          "no_events": "Žádné události",
+          "code_ble_valid": "Použit platný BLE kód",
+          "code_key_valid": "Použit platný kód klávesnice",
+          "code_ble_invalid": "Neplatný příkaz BLE",
+          "code_key_invalid": "Použit neplatný kód klávesnice",
+          "door_closed": "Dveře zavřené",
+          "door_opened": "Dveře otevřené",
+          "history_erase": "Historie vymazána",
+          "power_off": "Vypnutí",
+          "block_reset": "Reset bloku",
+          "power_on": "Zapnutí",
+          "ble_reboot": "Restart BLE",
+          "scale_measure": "Průběžné měření váhy",
+          "nfc_error_transaction": "Chyba transakce NFC (0x99)",
+          "error": "Chyba (Diagnostika)",
+          "nfc_opening": "Otevření NFC",
+          "nfc_tag_registering": "Skenování registrace NFC tagu",
+          "unknown": "Neznámá událost"
+        }
+      },
+      "master_codes_count": {
+        "name": "Hlavní kódy"
+      },
+      "single_use_codes_count": {
+        "name": "Jednorázové kódy"
+      },
+      "battery_format": {
+        "name": "Formát baterie",
+        "state": {
+          "measures-first-min-mean-max-last": "Podrobné (Min/Prům/Max)",
+          "measures-t1-t5-t10": "Podrobné (T1/T5/T10)",
+          "measure-single": "Jednoduché",
+          "unknown": "Neznámé",
+          "other": "Jiné"
+        }
+      },
+      "battery_type": {
+        "name": "Typ baterie",
+        "state": {
+          "lsh14": "LSH14 (Lithium)",
+          "8x_aaa": "8x AAA (Alkalické)",
+          "unknown": "Neznámé",
+          "other": "Jiné"
+        }
+      },
+      "battery_level_first": {
+        "name": "Napětí baterie (První)"
+      },
+      "battery_level_min": {
+        "name": "Napětí baterie (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Napětí baterie (Prům)"
+      },
+      "battery_level_max": {
+        "name": "Napětí baterie (Max)"
+      },
+      "battery_level_last": {
+        "name": "Napětí baterie (Poslední)"
+      },
+      "battery_level_t1": {
+        "name": "Napětí baterie (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Napětí baterie (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Napětí baterie (T10)"
+      },
+      "maintenance_status": {
+        "name": "Stav údržby",
+        "state": {
+          "idle": "Nečinný",
+          "cleaning": "Čištění hlavních kódů"
+        }
+      },
+      "log_count": {
+        "name": "Počet záznamů"
+      }
+    },
+    "todo": {
+      "parcels": {
+        "name": "Balíky"
+      }
+    },
+    "event": {
+      "logs": {
+        "name": "Záznamy",
+        "state": {
+          "code_ble_valid": "Použit platný BLE kód",
+          "code_key_valid": "Použit platný kód klávesnice",
+          "code_ble_invalid": "Neplatný příkaz BLE",
+          "code_key_invalid": "Použit neplatný kód klávesnice",
+          "door_closed": "Dveře zavřené",
+          "door_opened": "Dveře otevřené",
+          "history_erase": "Historie vymazána",
+          "power_off": "Vypnutí",
+          "block_reset": "Reset bloku",
+          "power_on": "Zapnutí",
+          "ble_reboot": "Restart BLE",
+          "scale_measure": "Průběžné měření váhy",
+          "nfc_error_transaction": "Chyba transakce NFC",
+          "error": "Chyba (Diagnostika)",
+          "nfc_opening": "Otevření NFC",
+          "nfc_tag_registering": "Skenování registrace NFC tagu",
+          "unknown": "Neznámá událost"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_parcel": {
+      "name": "Přidat balík",
+      "description": "Přidá nový balík do seznamu",
+      "fields": {
+        "description": {
+          "name": "Popis",
+          "description": "Přidá popis k balíku",
+          "example": "Doručení knihy"
+        }
+      }
+    },
+    "open_door": {
+      "name": "Otevřít dveře",
+      "description": "Otevře dveře Boks, volitelně pomocí PIN kódu.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "6místný PIN kód pro otevření (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "add_master_code": {
+      "name": "Přidat hlavní kód",
+      "description": "Přidá do Boksu nový hlavní kód na konkrétní index. Přepíše jakýkoli existující kód na tomto indexu.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "6místný PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        },
+        "index": {
+          "name": "Index",
+          "description": "Úložný index pro hlavní kód (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "Smazat hlavní kód",
+      "description": "Smaže hlavní kód z Boksu pomocí jeho indexu.",
+      "fields": {
+        "index": {
+          "name": "Index",
+          "description": "Index hlavního kódu, který se má smazat (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "Přidat jednorázový kód",
+      "description": "Přidá do Boksu nový jednorázový kód.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "6místný PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "Smazat jednorázový kód",
+      "description": "Smaže jednorázový kód z Boksu pomocí jeho hodnoty.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "6místný PIN kód (0-9, A, B), který se má smazat.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "Přidat vícenásobný kód",
+      "description": "Přidá do Boksu nový kód pro vícenásobné použití.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "6místný PIN kód (0-9, A, B).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "Smazat vícenásobný kód",
+      "description": "Smaže kód pro vícenásobné použití z Boksu pomocí jeho hodnoty.",
+      "fields": {
+        "code": {
+          "name": "PIN kód",
+          "description": "6místný PIN kód (0-9, A, B), který se má smazat.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "Vyčistit hlavní kódy",
+      "description": "Prohledá a smaže hlavní kódy v zadaném rozsahu indexů, aby se odstranily duchové. Limit: 100 indexů na spuštění.",
+      "fields": {
+        "start_index": {
+          "name": "Počáteční index",
+          "description": "Index, od kterého se má začít čistit (0-255)."
+        },
+        "range": {
+          "name": "Rozsah",
+          "description": "Počet indexů ke skenování (Max 100)."
+        }
+      }
+    },
+    "sync_logs": {
+      "name": "Synchronizovat záznamy",
+      "description": "Ručně načíst záznamy z Boksu a spustit související události."
+    },
+    "set_configuration": {
+      "name": "Nastavit konfiguraci",
+      "description": "Upravit nastavení konfigurace Boks (NFC, hardware atd.).",
+      "fields": {
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "Povolit nebo zakázat rozpoznávání tagů La Poste."
+        }
+      }
+    }
+  }
+}

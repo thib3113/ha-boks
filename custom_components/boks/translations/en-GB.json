@@ -244,7 +244,7 @@
         "code": {
           "name": "PIN Code",
           "description": "The 6-character PIN code to use for opening (0-9, A, B).",
-          "example": "123456"
+          "example": "1234AB"
         }
       }
     },

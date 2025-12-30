@@ -2,9 +2,9 @@
 
 Ce document détaille les fonctionnalités fournies par l'intégration Boks pour Home Assistant.
 
-## Fonctionnalités de Base (Disponibles avec Code Maître uniquement)
+## Fonctionnalités de Base (Disponibles avec Code Permanent uniquement)
 
-Ces fonctionnalités sont accessibles dès que le Code Maître (PIN) est configuré.
+Ces fonctionnalités sont accessibles dès que le Code Permanent (PIN) est configuré.
 
 ### 🔓 Contrôle d'Accès
 *   **Entité Verrou (Lock)** : Déverrouillez votre Boks depuis Home Assistant.
@@ -12,7 +12,7 @@ Ces fonctionnalités sont accessibles dès que le Code Maître (PIN) est configu
 ### 📊 Surveillance et Capteurs
 *   **Niveau de batterie** : Surveillez l'état de la batterie.
 *   **Température de batterie** : Surveillez la température de la batterie.
-*   **Comptage des codes** : Visualisez combien de codes (Maître, à usage unique) sont stockés sur la boîte.
+*   **Comptage des codes** : Visualisez combien de codes (permanents, à usage unique) sont stockés sur la boîte.
 *   **Nombre de journaux** : Visualisez combien de journaux sont stockés sur la boîte.
 *   **Dernière connexion** : Visualisez l'horodatage de la dernière connexion réussie à l'appareil.
 *   **Dernier événement** : Visualisez le dernier événement de l'appareil.
@@ -23,7 +23,7 @@ Ces fonctionnalités sont accessibles dès que le Code Maître (PIN) est configu
 
 ### 📜 Journalisation (Logs)
 L'intégration récupère automatiquement l'historique de la Boks et émet des événements (`event.boks_log_entry`) :
-*   Ouvertures (Bluetooth, Clavier, Clé)
+*   Ouvertures (Bluetooth, Clavier, Clef)
 *   Fermetures
 *   Erreurs et tentatives invalides
 
@@ -34,9 +34,9 @@ L'entité `todo.parcels` est disponible pour lister vos colis attendus.
 
 ---
 
-## Fonctionnalités Avancées (Nécessite la Clé de Configuration)
+## Fonctionnalités Avancées (Nécessite la Clef de Configuration)
 
-Ces fonctionnalités nécessitent d'avoir renseigné la **Clé de Configuration** (8 caractères).
+Ces fonctionnalités nécessitent d'avoir renseigné la **Clef de Configuration** (8 caractères).
 
 ### ✨ Gestion Automatique des Codes
 C'est la véritable puissance de l'intégration.

@@ -5,5 +5,28 @@
   "zip_release": true,
   "filename": "boks.zip",
   "homeassistant": "2024.1.0",
-  "country": "FR"
+  "country": [
+    "DE",
+    "BH",
+    "BE",
+    "CA",
+    "ES",
+    "FI",
+    "FR",
+    "GP",
+    "HU",
+    "IE",
+    "IT",
+    "LV",
+    "LU",
+    "MC",
+    "NL",
+    "PL",
+    "PT",
+    "RO",
+    "GB",
+    "SK",
+    "CH",
+    "CZ"
+  ]
 }

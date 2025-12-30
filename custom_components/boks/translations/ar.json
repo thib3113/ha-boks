@@ -1,0 +1,351 @@
+{
+  "config": {
+    "step": {
+      "cloud": {
+        "title": "تسجيل دخول Boks",
+        "description": "أدخل بيانات اعتماد تطبيق Boks الخاص بك لاسترداد مفاتيح جهازك تلقائيًا.",
+        "data": {
+          "username": "البريد الإلكتروني",
+          "password": "كلمة المرور"
+        }
+      },
+      "device_selection": {
+        "title": "اختر Boks الخاص بك",
+        "description": "اختر Boks الذي تريد إضافته.",
+        "data": {
+          "device": "الجهاز"
+        }
+      },
+      "user": {
+        "title": "التكوين اليدوي",
+        "description": "أدخل بيانات اعتماد Boks الخاصة بك.\n\n**ترتيب الأفضلية:**\n1. **المفتاح الرئيسي (64 حرفًا):** وصول كامل.\n2. **مفتاح التكوين (8 أحرف):** وصول قياسي.",
+        "data": {
+          "mac": "عنوان البلوتوث",
+          "master_code": "الرمز الرئيسي",
+          "credential": "بيانات الاعتماد (ConfigKey أو MasterKey)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "غير قادر على الاتصال بـ Boks API.",
+      "invalid_auth": "بريد إلكتروني أو كلمة مرور غير صالحة.",
+      "boks_not_found": "لم يتم العثور على Boks في هذا الحساب يطابق عنوان MAC.",
+      "cannot_retrieve_key": "تعذر استرداد مفتاح التكوين من السحابة.",
+      "device_not_found": "الجهاز غير موجود في القائمة.",
+      "device_not_in_cache": "الجهاز غير موجود في ذاكرة التخزين المؤقت للبلوتوث. لا يوجد مسار قابل للاتصال.",
+      "no_devices_found": "لم يتم العثور على أجهزة Boks في هذا الحساب.",
+      "connection_error": "خطأ في الاتصال أثناء جلب الأجهزة.",
+      "invalid_credential_format": "تنسيق بيانات الاعتماد غير صالح. يجب أن يكون 8/64 حرفًا سداسيًا عشريًا",
+      "invalid_master_code_format": "تنسيق الرمز الرئيسي غير صالح. يجب أن يكون رمزًا مكونًا من 6 أرقام (0-9 ، أ ، ب).",
+      "unknown": "حدث خطأ غير معروف.",
+      "pin_code_invalid_length": "يجب أن يتكون رمز PIN من 6 أحرف",
+      "pin_code_invalid": "رمز PIN غير صالح",
+      "unauthorized": "غير مصرح به",
+      "config_key_required": "مفتاح التكوين مطلوب لهذه العملية",
+      "invalid_code_format": "تنسيق الرمز غير صالح (يجب أن يكون 6 أحرف من 0-9 ، أ ، ب)",
+      "create_code_failed": "فشل في إنشاء الرمز (أرجع الجهاز خطأ)",
+      "change_master_code_failed": "فشل في تغيير الرمز الرئيسي (أرجع الجهاز خطأ)",
+      "unknown_code_type": "نوع رمز غير معروف",
+      "unknown_device": "الجهاز غير مرئي بواسطة محول البلوتوث.",
+      "not_connectable": "الجهاز المكتشف غير قابل للاتصال (ربما عبر وكيل سلبي).",
+      "todo_entity_not_found_for_device": "لم يتم العثور على كيان Todo للجهاز {target_device_id}",
+      "target_devices_not_boks": "الجهاز (الأجهزة) المستهدفة {device_ids} ليست أجهزة Boks.",
+      "target_entities_not_boks": "الكيان (الكيانات) المستهدفة {entity_ids} تنتمي إلى أجهزة غير Boks.",
+      "target_device_missing": "جهاز Boks المستهدف غير موجود أو غير محدد. يرجى تحديد device_id أو entity_id.",
+      "multiple_devices_found": "تم العثور على عدة أجهزة Boks. يرجى تحديد كيان أو جهاز مستهدف.",
+      "no_devices_configured": "لا توجد أجهزة Boks مهيأة.",
+      "cannot_resolve_todo": "تعذر حل قائمة Boks Todo المستهدفة.",
+      "todo_integration_not_loaded": "لم يتم تحميل تكامل Todo.",
+      "todo_entity_not_found": "لم يتم العثور على كيان Todo {target_entity_id} أو لم يتم تحميله.",
+      "config_key_invalid_length": "يجب أن يكون طول مفتاح التكوين 8 أحرف بالضبط.",
+      "ble_client_none": "عميل BLE هو None ، لا يمكن إرسال الأمر",
+      "timeout_waiting_response": "انتهت مهلة انتظار الاستجابة لـ opcode {opcode}",
+      "ble_error": "خطأ BLE: {error}",
+      "ble_internal_error": "خطأ BLE داخلي: {error}",
+      "entity_not_parcel_list": "الكيان {target_entity_id} ليس قائمة طرود Boks.",
+      "maintenance_already_running": "مهمة صيانة قيد التقدم بالفعل. يرجى الانتظار حتى تنتهي.",
+      "delete_code_failed": "فشل في حذف الرمز (أرجع الجهاز خطأ)",
+      "set_configuration_failed": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)"
+    },
+    "abort": {
+      "already_configured": "تم تكوين Boks هذا بالفعل.",
+      "not_connectable": "الجهاز المكتشف غير قابل للاتصال (ربما عبر وكيل سلبي).",
+      "cannot_connect": "غير قادر على الاتصال بالجهاز. تأكد من أنه في النطاق وقابل للاتصال."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "فاصل الاستقصاء (بالدقائق)",
+          "full_refresh_interval": "فاصل التحديث الكامل (بالساعات)",
+          "master_code": "الرمز الرئيسي للفتح (اختياري)",
+          "anonymize_logs": "إخفاء هوية السجلات (استبدل المفاتيح وأرقام التعريف الشخصية بقيم مزيفة للمشاركة)"
+        },
+        "description": "قم بتكوين عدد المرات التي يتصل فيها Home Assistant بـ Boks لتحديث الحالة."
+      }
+    }
+  },
+  "selector": {
+      "setup_method": {
+          "options": {
+              "cloud": "تسجيل الدخول إلى السحابة (تلقائي - يتطلب بيانات اعتماد صالحة لتطبيق Boks الرسمي)",
+              "manual": "إدخال يدوي"
+          }
+      }
+  },
+  "entity": {
+    "button": {
+      "sync_logs": {
+        "name": "مزامنة السجلات"
+      }
+    },
+    "lock": {
+      "door": {
+        "name": "الباب"
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "البطارية"
+      },
+      "last_connection": {
+        "name": "آخر اتصال"
+      },
+      "last_event": {
+        "name": "آخر حدث",
+        "state": {
+          "no_events": "لا توجد أحداث",
+          "code_ble_valid": "تم استخدام رمز BLE صالح",
+          "code_key_valid": "تم استخدام رمز لوحة مفاتيح صالح",
+          "code_ble_invalid": "أمر BLE غير صالح",
+          "code_key_invalid": "تم استخدام رمز لوحة مفاتيح غير صالح",
+          "door_closed": "الباب مغلق",
+          "door_opened": "الباب مفتوح",
+          "history_erase": "تم مسح السجل",
+          "power_off": "إيقاف التشغيل",
+          "block_reset": "إعادة تعيين الكتلة",
+          "power_on": "تشغيل",
+          "ble_reboot": "إعادة تشغيل BLE",
+          "scale_measure": "قياس مستمر للمقياس",
+          "nfc_error_transaction": "خطأ في معاملة NFC (0x99)",
+          "error": "خطأ (تشخيصي)",
+          "nfc_opening": "فتح NFC",
+          "nfc_tag_registering": "مسح تسجيل علامة NFC",
+          "unknown": "حدث غير معروف"
+        }
+      },
+      "master_codes_count": {
+        "name": "الرموز الرئيسية"
+      },
+      "single_use_codes_count": {
+        "name": "رموز الاستخدام الفردي"
+      },
+      "battery_format": {
+        "name": "تنسيق البطارية",
+        "state": {
+          "measures-first-min-mean-max-last": "مفصل (أدنى / متوسط ​​/ أقصى)",
+          "measures-t1-t5-t10": "مفصل (T1 / T5 / T10)",
+          "measure-single": "بسيط",
+          "unknown": "غير معروف",
+          "other": "آخر"
+        }
+      },
+      "battery_type": {
+        "name": "نوع البطارية",
+        "state": {
+          "lsh14": "LSH14 (ليثيوم)",
+          "8x_aaa": "8x AAA (قلوي)",
+          "unknown": "غير معروف",
+          "other": "آخر"
+        }
+      },
+      "battery_level_first": {
+        "name": "جهد البطارية (الأول)"
+      },
+      "battery_level_min": {
+        "name": "جهد البطارية (أدنى)"
+      },
+      "battery_level_mean": {
+        "name": "جهد البطارية (متوسط)"
+      },
+      "battery_level_max": {
+        "name": "جهد البطارية (أقصى)"
+      },
+      "battery_level_last": {
+        "name": "جهد البطارية (الأخير)"
+      },
+      "battery_level_t1": {
+        "name": "جهد البطارية (T1)"
+      },
+      "battery_level_t5": {
+        "name": "جهد البطارية (T5)"
+      },
+      "battery_level_t10": {
+        "name": "جهد البطارية (T10)"
+      },
+      "maintenance_status": {
+        "name": "حالة الصيانة",
+        "state": {
+          "idle": "خامل",
+          "cleaning": "تنظيف الرموز الرئيسية"
+        }
+      },
+      "log_count": {
+        "name": "عدد السجلات"
+      }
+    },
+    "todo": {
+      "parcels": {
+        "name": "الطرود"
+      }
+    },
+    "event": {
+      "logs": {
+        "name": "السجلات",
+        "state": {
+          "code_ble_valid": "تم استخدام رمز BLE صالح",
+          "code_key_valid": "تم استخدام رمز لوحة مفاتيح صالح",
+          "code_ble_invalid": "أمر BLE غير صالح",
+          "code_key_invalid": "تم استخدام رمز لوحة مفاتيح غير صالح",
+          "door_closed": "الباب مغلق",
+          "door_opened": "الباب مفتوح",
+          "history_erase": "تم مسح السجل",
+          "power_off": "إيقاف التشغيل",
+          "block_reset": "إعادة تعيين الكتلة",
+          "power_on": "تشغيل",
+          "ble_reboot": "إعادة تشغيل BLE",
+          "scale_measure": "قياس مستمر للمقياس",
+          "nfc_error_transaction": "خطأ في معاملة NFC",
+          "error": "خطأ (تشخيصي)",
+          "nfc_opening": "فتح NFC",
+          "nfc_tag_registering": "مسح تسجيل علامة NFC",
+          "unknown": "حدث غير معروف"
+        }
+      }
+    }
+  },
+  "services": {
+    "add_parcel": {
+      "name": "إضافة طرد",
+      "description": "يضيف طردًا جديدًا إلى القائمة",
+      "fields": {
+        "description": {
+          "name": "الوصف",
+          "description": "يضيف وصفًا إلى الطرد",
+          "example": "تسليم كتاب"
+        }
+      }
+    },
+    "open_door": {
+      "name": "افتح الباب",
+      "description": "يفتح باب Boks ، اختياريًا باستخدام رمز PIN.",
+      "fields": {
+        "code": {
+          "name": "رمز PIN",
+          "description": "رمز PIN المكون من 6 أحرف لاستخدامه للفتح (أبجدي رقمي).",
+          "example": "123456"
+        }
+      }
+    },
+    "add_master_code": {
+      "name": "إضافة رمز رئيسي",
+      "description": "يضيف رمزًا رئيسيًا جديدًا إلى Boks في فهرس معين. يكتب فوق أي رمز موجود في هذا الفهرس.",
+      "fields": {
+        "code": {
+          "name": "رمز PIN",
+          "description": "رمز PIN المكون من 6 أحرف (0-9 ، أ ، ب).",
+          "example": "1234AB"
+        },
+        "index": {
+          "name": "الفهرس",
+          "description": "فهرس التخزين للرمز الرئيسي (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "delete_master_code": {
+      "name": "حذف الرمز الرئيسي",
+      "description": "يحذف رمزًا رئيسيًا من Boks باستخدام فهرسه.",
+      "fields": {
+        "index": {
+          "name": "الفهرس",
+          "description": "فهرس الرمز الرئيسي المراد حذفه (0-255).",
+          "example": "2"
+        }
+      }
+    },
+    "add_single_code": {
+      "name": "إضافة رمز استخدام فردي",
+      "description": "يضيف رمز استخدام فردي جديدًا إلى Boks.",
+      "fields": {
+        "code": {
+          "name": "رمز PIN",
+          "description": "رمز PIN المكون من 6 أحرف (0-9 ، أ ، ب).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_single_code": {
+      "name": "حذف رمز استخدام فردي",
+      "description": "يحذف رمز استخدام فردي من Boks باستخدام قيمته.",
+      "fields": {
+        "code": {
+          "name": "رمز PIN",
+          "description": "رمز PIN المكون من 6 أحرف (0-9 ، أ ، ب) المراد حذفه.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "add_multi_code": {
+      "name": "إضافة رمز استخدام متعدد",
+      "description": "يضيف رمز استخدام متعدد جديدًا إلى Boks.",
+      "fields": {
+        "code": {
+          "name": "رمز PIN",
+          "description": "رمز PIN المكون من 6 أحرف (0-9 ، أ ، ب).",
+          "example": "1234AB"
+        }
+      }
+    },
+    "delete_multi_code": {
+      "name": "حذف رمز استخدام متعدد",
+      "description": "يحذف رمز استخدام متعدد من Boks باستخدام قيمته.",
+      "fields": {
+        "code": {
+          "name": "رمز PIN",
+          "description": "رمز PIN المكون من 6 أحرف (0-9 ، أ ، ب) المراد حذفه.",
+          "example": "1234AB"
+        }
+      }
+    },
+    "clean_master_codes": {
+      "name": "تنظيف الرموز الرئيسية",
+      "description": "يمسح ويحذف الرموز الرئيسية في نطاق فهرس محدد لإزالة الأشباح. الحد: 100 فهرس لكل تشغيل.",
+      "fields": {
+        "start_index": {
+          "name": "فهرس البدء",
+          "description": "الفهرس الذي سيبدأ منه التنظيف (0-255)."
+        },
+        "range": {
+          "name": "النطاق",
+          "description": "عدد الفهارس المراد مسحها (بحد أقصى 100)."
+        }
+      }
+    },
+    "sync_logs": {
+      "name": "مزامنة السجلات",
+      "description": "استرداد السجلات يدويًا من Boks وتشغيل الأحداث المرتبطة بها."
+    },
+    "set_configuration": {
+      "name": "تعيين التكوين",
+      "description": "تعديل إعدادات تكوين Boks (NFC ، الأجهزة ، إلخ).",
+      "fields": {
+        "laposte": {
+          "name": "La Poste (Vigik)",
+          "description": "تمكين أو تعطيل التعرف على علامة La Poste."
+        }
+      }
+    }
+  }
+}

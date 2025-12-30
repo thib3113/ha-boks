@@ -4,7 +4,7 @@ Ce document fournit des conseils sur la façon de dépanner les problèmes coura
 
 ## Activation de la Journalisation de Débogage
 
-> **⚠️ Avertissement de Sécurité :** L'activation du mode debug affichera des informations sensibles dans vos journaux. **Avant de partager vos logs publiquement**, veuillez activer l'option **"Anonymiser les logs"** dans les réglages de l'intégration. Cela remplacera automatiquement vos données privées (clés, codes PIN) par des valeurs factices (ex: `1234AB`, `1A3B5C7E`).
+> **⚠️ Avertissement de Sécurité :** L'activation du mode debug affichera des informations sensibles dans vos journaux. **Avant de partager vos logs publiquement**, veuillez activer l'option **"Anonymiser les logs"** dans les réglages de l'intégration. Cela remplacera automatiquement vos données privées (clefs, codes PIN) par des valeurs factices (ex: `1234AB`, `1A3B5C7E`).
 
 Lorsque vous rencontrez des problèmes avec l'intégration Boks, l'activation de la journalisation de débogage peut fournir des informations précieuses sur son fonctionnement et aider à identifier la cause première des problèmes.
 
@@ -30,14 +30,14 @@ Après avoir ajouté cela, redémarrez votre instance Home Assistant. Une fois r
 
 ### 2. Impossible de se connecter ou de contrôler le Boks
 
-*   **Code Maître/Authentifiant** : Vérifiez attentivement que le Code Maître et tout Authentifiant optionnel (Clé de Configuration/Clé Maître) sont correctement saisis dans la configuration de l'intégration. Les fautes de frappe sont courantes.
+*   **Code Permanent/Authentifiant** : Vérifiez attentivement que le Code Permanent et tout Authentifiant optionnel (Clef de Configuration/Clef Maître) sont correctement saisis dans la configuration de l'intégration. Les fautes de frappe sont courantes.
 *   **Statut du Boks** : Assurez-vous que votre appareil Boks est sous tension et que son Bluetooth est actif.
 *   **Autres Connexions** : Assurez-vous qu'aucun autre appareil (par exemple, l'application mobile officielle Boks) n'est actuellement connecté à votre Boks via Bluetooth, car cela peut empêcher Home Assistant de se connecter.
 *   **Interférences** : Minimisez les interférences Bluetooth potentielles provenant d'autres appareils.
 
 ### 3. Fonctionnalités ne fonctionnant pas (par exemple, pas de journaux, pas de comptage de codes)
 
-*   **Authentifiant Fourni** : Ces fonctionnalités nécessitent la fourniture d'une Clé de Configuration ou d'une Clé Maître lors de la configuration. Si vous n'en avez pas fourni, ou si vous en avez fourni une incorrecte, ces fonctionnalités ne fonctionneront pas.
+*   **Authentifiant Fourni** : Ces fonctionnalités nécessitent la fourniture d'une Clef de Configuration ou d'une Clef Maître lors de la configuration. Si vous n'en avez pas fourni, ou si vous en avez fourni une incorrecte, ces fonctionnalités ne fonctionneront pas.
 *   **Permissions** : Assurez-vous que l'Authentifiant fourni dispose des autorisations nécessaires pour l'appareil Boks.
 *   **Firmware de l'Appareil** : Un très ancien firmware Boks pourrait ne pas prendre en charge certaines fonctionnalités ou mécanismes de journalisation. Assurez-vous que le firmware de votre Boks est à jour si possible.
 

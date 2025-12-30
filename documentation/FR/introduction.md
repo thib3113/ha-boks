@@ -11,7 +11,7 @@ Ce guide est divisé en plusieurs sections pour vous accompagner de l'installati
 
 *   **[Introduction](introduction.md)** : Vue d'ensemble du projet.
 *   **[Fonctionnalités](features.md)** : Découvrez ce que cette intégration permet de faire (Contrôle, Capteurs, Suivi de Colis...).
-*   **[Prérequis](prerequisites.md)** : Matériel (Bluetooth Proxy) et Identifiants (Code Maître vs Clés) nécessaires.
+*   **[Prérequis](prerequisites.md)** : Matériel (Bluetooth Proxy) et Identifiants (Code Permanent vs Clefs) nécessaires.
 *   **[Installation](installation.md)** : Guide pas à pas (HACS ou Manuel).
 *   **[Configuration](configuration.md)** : Comment paramétrer l'intégration et activer les fonctions avancées.
 *   **[Utilisation (Événements & Automatisations)](usage.md)** : Exemples pour créer des automatisations basées sur les ouvertures de colis.
@@ -25,7 +25,7 @@ Ceci est une intégration personnalisée pour **Home Assistant** qui vous permet
 
 Elle vous permet d'ouvrir votre Boks directement depuis Home Assistant sans avoir besoin de l'application mobile officielle ou d'une connexion internet (une fois configurée), en tirant parti des capacités Bluetooth de Home Assistant (adaptateur local ou proxys ESPHome).
 
-## Fonctionnalités Clés
+## Fonctionnalités Clefs
 
 *   🔓 **Déverrouillage local** via Bluetooth.
 *   📦 **Suivi de Colis Intelligent** : Liste de tâches interactive avec génération automatique de codes (nécessite la clé de configuration).

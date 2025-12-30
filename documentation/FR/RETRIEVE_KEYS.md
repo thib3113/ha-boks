@@ -1,13 +1,13 @@
-# Comment récupérer votre Clé de Configuration (Configuration Key)
+# Comment récupérer votre Clef de Configuration (Configuration Key)
 
 Pour débloquer les fonctionnalités avancées de l'intégration Boks (notamment la **gestion des colis** et la **création de codes**), vous avez besoin de la **Configuration Key**.
 
-> **Note :** Cette clé n'est **PAS** nécessaire pour l'utilisation basique (Ouverture de la porte, lecture des logs, niveau de batterie). Le Code Maître (PIN) suffit pour cela.
+> **Note :** Cette clef n'est **PAS** nécessaire pour l'utilisation basique (Ouverture de la porte, lecture des logs, niveau de batterie). Le Code Permanent (PIN) suffit pour cela.
 
 ## Qu'est-ce que la Configuration Key ?
 
 C'est une chaîne de 8 caractères hexadécimaux (ex: `A1B2C3D4`).
-Techniquement, il s'agit des **8 derniers caractères** de la **Master Key** (une clé de 64 caractères).
+Techniquement, il s'agit des **8 derniers caractères** de la **Master Key** (une clef de 64 caractères).
 
 > **A propos de la Master Key :**
 > La Master Key complète (64 caractères) ne peut être obtenue que lors de l'initialisation de la Boks (premier appairage) ou lors d'une procédure de "re-génération" des codes (qui nécessite elle-même la Config Key précédente).
@@ -16,7 +16,7 @@ Techniquement, il s'agit des **8 derniers caractères** de la **Master Key** (un
 
 ## Méthode 1 : Via le script Cloud (Recommandé)
 
-Un script Python est fourni dans le dossier `scripts/` de cette intégration. Il se connecte à votre compte Boks (via l'API cloud) pour récupérer vos appareils et leurs clés.
+Un script Python est fourni dans le dossier `scripts/` de cette intégration. Il se connecte à votre compte Boks (via l'API cloud) pour récupérer vos appareils et leurs clefs.
 
 **Avantage :** Pas besoin d'accès physique à la Boks, ni d'Android, ni de câbles. Fonctionne avec votre email et mot de passe Boks.
 

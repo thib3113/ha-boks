@@ -10,7 +10,7 @@ Ce document fournit des informations exhaustives sur la configuration, l'utilisa
 
 1.  **Introduction à l'environnement de développement Home Assistant**
     *   Présentation de Home Assistant et son rôle dans Boks.
-    *   Structure du répertoire et fichiers clés.
+    *   Structure du répertoire et fichiers clefs.
 2.  **Installation et Configuration**
     *   Prérequis système.
     *   Étapes d'installation (Docker, dépendances).
