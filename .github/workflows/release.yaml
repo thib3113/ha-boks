@@ -64,7 +64,7 @@ jobs:
           subject-checksums: checksums.txt # Attesting via checksums file
 
       - name: Create and Populate Release
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           TAG_NAME: ${{ github.ref_name }}
           # Use the official output URL from the attest action
