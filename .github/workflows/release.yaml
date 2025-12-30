@@ -12,7 +12,6 @@ permissions:
   artifact-metadata: write
 
 jobs:
-  # Call the existing test workflow to ensure code quality before building
   test:
     uses: ./.github/workflows/tests.yaml
 
@@ -27,24 +26,25 @@ jobs:
       - name: Create ZIP archive
         run: |
           cd custom_components/boks
-          zip -r ../../boks.zip .
+          zip -r "../../boks.zip" .
 
       - name: Verify ZIP structure
         run: |
-          # Check if manifest.json exists at the root of the ZIP
           if ! unzip -l boks.zip | grep -q " manifest.json$"; then
             echo "Error: manifest.json not found at the root of the ZIP archive."
-            echo "Current ZIP structure:"
-            unzip -l boks.zip
             exit 1
           fi
-          echo "ZIP structure verified: manifest.json is at the root."
 
-      - name: Upload Build Artifact
+      - name: Generate Checksums
+        run: shasum -a 256 boks.zip > checksums.txt
+
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: boks-bundle
-          path: boks.zip
+          path: |
+            boks.zip
+            checksums.txt
           retention-days: 1
 
   publish:
@@ -52,23 +52,23 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download Build Artifact
+      - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: boks-bundle
 
       - name: Attest Build Provenance
         id: attest
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v3 # Upgraded to v3
         with:
-          subject-path: boks.zip
+          subject-checksums: checksums.txt # Attesting via checksums file
 
       - name: Create and Populate Release
         uses: actions/github-script@v7
         env:
-          # Using environment variables for security
           TAG_NAME: ${{ github.ref_name }}
-          ATTESTATION_ID: ${{ steps.attest.outputs.attestation-id }}
+          # Use the official output URL from the attest action
+          ATTESTATION_URL: ${{ steps.attest.outputs.attestation-url }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
           RUN_ID: ${{ github.run_id }}
@@ -76,14 +76,9 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
             const { 
-              TAG_NAME, 
-              ATTESTATION_ID, 
-              REPO_OWNER, 
-              REPO_NAME, 
-              RUN_ID, 
-              SERVER_URL 
+              TAG_NAME, ATTESTATION_URL, REPO_OWNER, 
+              REPO_NAME, RUN_ID, SERVER_URL 
             } = process.env;
 
             // 1. Create the final Release
@@ -97,32 +92,33 @@ jobs:
               make_latest: 'true'
             });
 
-            // 2. Upload the ZIP asset
-            const filePath = 'boks.zip';
-            const fileData = fs.readFileSync(filePath);
-            const fileStats = fs.statSync(filePath);
+            // 2. Upload both ZIP and Checksums
+            const filesToUpload = ['boks.zip', 'checksums.txt'];
+            for (const fileName of filesToUpload) {
+              await github.rest.repos.uploadReleaseAsset({
+                owner: REPO_OWNER,
+                repo: REPO_NAME,
+                release_id: release.data.id,
+                name: fileName,
+                data: fs.readFileSync(fileName),
+                headers: {
+                  'content-type': fileName.endsWith('.zip') ? 'application/zip' : 'text/plain',
+                  'content-length': fs.statSync(fileName).size
+                }
+              });
+            }
 
-            await github.rest.repos.uploadReleaseAsset({
-              owner: REPO_OWNER,
-              repo: REPO_NAME,
-              release_id: release.data.id,
-              name: 'boks.zip',
-              data: fileData,
-              headers: {
-                'content-type': 'application/zip',
-                'content-length': fileStats.size
-              }
-            });
-
-            // 3. Add security details to the body
-            const attestationUrl = `${SERVER_URL}/${REPO_OWNER}/${REPO_NAME}/attestations/${ATTESTATION_ID}`;
+            // 3. Update body with the official attestation link
             const footer = `
             ---
             ### 🛡️ Security & Provenance
-            This release asset has been digitally signed and attested.
-            - **Official Attestation**: [Verify on GitHub](${attestationUrl})
+            This release includes signed build provenance attestations.
+            - **Official Attestation**: [Verify on GitHub](${ATTESTATION_URL})
             - **Manual Verification**:
               \`\`\`bash
+              # Verify the zip using the checksums file
+              shasum -a 256 -c checksums.txt
+              # Verify the attestation via GitHub CLI
               gh attestation verify boks.zip --repo ${REPO_OWNER}/${REPO_NAME}
               \`\`\`
             **Workflow Run**: [Execution #${RUN_ID}](${SERVER_URL}/${REPO_OWNER}/${REPO_NAME}/actions/runs/${RUN_ID})`;
