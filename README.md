@@ -37,7 +37,7 @@ It allows you to open your Boks directly from Home Assistant without needing the
 *   **Smart Parcel Tracking (To-Do List)**:
     *   **Auto-Generation (Requires Config Key)**: Automatically creates a PIN code for each delivery added to the list.
     *   **Auto-Completion**: Marks tasks as done when the code is used.
-    *   **Web Extension**: Compatible with the **[Boks Web Extension](https://github.com/thib3113/ha-boks-webextension)**.
+    *   **Web Extension**: Compatible with the **[Boks Web Extension](https://github.com/thib3113/ha-boks-webextension)** ([chrome webstore](https://chromewebstore.google.com/detail/ha-boks-extension/ooncmebodohcpmljlgpbhoeobcandnaf)).
 
 ## Prerequisites
 
