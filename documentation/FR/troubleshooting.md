@@ -53,4 +53,10 @@ Après avoir ajouté cela, redémarrez votre instance Home Assistant. Une fois r
 *   **Distance/Obstructions** : Une distance trop importante ou des obstructions physiques (murs, métal) entre votre adaptateur/proxy Bluetooth Home Assistant et le Boks peuvent entraîner des déconnexions.
 *   **Niveau de Batterie** : Un niveau de batterie faible dans votre appareil Boks peut affecter la connectivité Bluetooth. Vérifiez le capteur de niveau de batterie.
 
+### 6. La porte ne se ferme pas correctement après plusieurs ouvertures rapides
+
+**Q:** "J'ai ouvert la porte trop rapidement deux fois (soit avec cette app, soit plusieurs), et elle refuse de se fermer ?"
+
+**A:** "Il faut maintenir la porte fermée, puis taper un code permanent (master code en anglais), la serrure va refaire son cycle complet, et ensuite on devrait pouvoir la fermer correctement."
+
 Si vous continuez à rencontrer des problèmes après avoir suivi ces étapes et examiné les journaux de débogage, veuillez ouvrir une issue sur le [dépôt GitHub](https://github.com/thib3113/ha-boks/issues), en fournissant vos journaux de débogage (expurgés des informations sensibles) et une description détaillée du problème.

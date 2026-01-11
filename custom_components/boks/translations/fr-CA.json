@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Lentité {target_entity_id} nest pas une liste de colis Boks.",
       "maintenance_already_running": "Une tâche de maintenance est déjà en cours. Veuillez attendre quelle se termine.",
       "delete_code_failed": "Échec de la suppression du code (lappareil a renvoyé une erreur)",
-      "set_configuration_failed": "Échec de la configuration {config_type} (lappareil a renvoyé une erreur)"
+      "set_configuration_failed": "Échec de la configuration {config_type} (lappareil a renvoyé une erreur)",
+      "laposte_firmware_version_required": "La version du micrologiciel doit être supérieure à {required_version} pour activer la fonctionnalité La Poste. Version actuelle : {current_version}",
+      "door_opened_recently": "La porte a été ouverte récemment. Veuillez patienter {seconds} secondes avant de rouvrir.",
+      "opening_failed_no_code": "Échec de louverture : aucun code PIN fourni, aucun code maître stocké et impossible de générer un PIN à usage unique.",
+      "opening_failed_no_code_no_key": "Échec de louverture : aucun code PIN fourni, aucun code maître stocké et impossible de générer un PIN à usage unique (aucune clé de configuration disponible)."
     },
     "abort": {
       "already_configured": "Cette Boks est déjà configurée.",

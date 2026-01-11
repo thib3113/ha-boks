@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Kokonaisuus {target_entity_id} ei ole Boks-pakettiluettelo.",
       "maintenance_already_running": "Huoltotehtävä on jo käynnissä. Odota, että se valmistuu.",
       "delete_code_failed": "Koodin poistaminen epäonnistui (laite palautti virheen)",
-      "set_configuration_failed": "Määrityksen {config_type} asettaminen epäonnistui (laite palautti virheen)"
+      "set_configuration_failed": "Määrityksen {config_type} asettaminen epäonnistui (laite palautti virheen)",
+      "laposte_firmware_version_required": "Laiteohjelmiston version on oltava suurempi kuin {required_version}, jotta La Poste -ominaisuus voidaan ottaa käyttöön. Nykyinen versio: {current_version}",
+      "door_opened_recently": "Ovi avattiin äskettäin. Odota {seconds} sekuntia ennen kuin avaat uudelleen.",
+      "opening_failed_no_code": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda.",
+      "opening_failed_no_code_no_key": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda (määritysavainta ei saatavilla)."
     },
     "abort": {
       "already_configured": "Tämä Boks on jo määritetty.",

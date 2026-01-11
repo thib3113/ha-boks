@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "A(z) {target_entity_id} entitás nem egy Boks csomaglista.",
       "maintenance_already_running": "Egy karbantartási feladat már folyamatban van. Kérjük, várja meg, amíg befejeződik.",
       "delete_code_failed": "A kód törlése sikertelen (az eszköz hibát jelzett)",
-      "set_configuration_failed": "A konfiguráció {config_type} beállítása sikertelen (az eszköz hibát jelzett)"
+      "set_configuration_failed": "A konfiguráció {config_type} beállítása sikertelen (az eszköz hibát jelzett)",
+      "laposte_firmware_version_required": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}",
+      "door_opened_recently": "Az ajtót nemrég nyitották ki. Kérjük, várjon {seconds} másodpercet az újbóli nyitás előtt.",
+      "opening_failed_no_code": "Nyitás sikertelen: Nincs megadva PIN kód, nincs tárolva mesterkód, és nem sikerült egyszer használatos PIN kódot generálni.",
+      "opening_failed_no_code_no_key": "Nyitás sikertelen: Nincs megadva PIN kód, nincs tárolva mesterkód, és nem sikerült egyszer használatos PIN kódot generálni (Nincs elérhető konfigurációs kulcs)."
     },
     "abort": {
       "already_configured": "Ez a Boks már konfigurálva van.",

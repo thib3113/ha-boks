@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Entitatea {target_entity_id} nu este o listă de colete Boks.",
       "maintenance_already_running": "O sarcină de întreținere este deja în curs. Vă rugăm să așteptați să se termine.",
       "delete_code_failed": "Ștergerea codului a eșuat (dispozitivul a returnat eroare)",
-      "set_configuration_failed": "Setarea configurației {config_type} a eșuat (dispozitivul a returnat eroare)"
+      "set_configuration_failed": "Setarea configurației {config_type} a eșuat (dispozitivul a returnat eroare)",
+      "laposte_firmware_version_required": "Versiunea firmware-ului trebuie să fie mai mare de {required_version} pentru a activa funcția La Poste. Versiunea curentă: {current_version}",
+      "door_opened_recently": "Ușa a fost deschisă recent. Vă rugăm să așteptați {seconds} secunde înainte de a deschide din nou.",
+      "opening_failed_no_code": "Deschidere eșuată: Niciun cod PIN furnizat, niciun cod Master stocat și nu s-a putut genera un PIN de unică folosință.",
+      "opening_failed_no_code_no_key": "Deschidere eșuată: Niciun cod PIN furnizat, niciun cod Master stocat și nu s-a putut genera un PIN de unică folosință (Nicio cheie de configurare disponibilă)."
     },
     "abort": {
       "already_configured": "Acest Boks este deja configurat.",

@@ -62,10 +62,20 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         )
         self.data = {} # Initialize data to an empty dictionary after super init
         self._maintenance_status = {"running": False}
+        self._device_info = None
 
     @property
     def maintenance_status(self):
         return self._maintenance_status
+
+    @property
+    def device_info(self):
+        """Return device info."""
+        if self._device_info is None:
+            # Get base info using shared utility
+            device_info_service = self.data.get("device_info_service") if self.data else None
+            self._device_info = process_device_info(self.entry.data, device_info_service)
+        return self._device_info
 
     def set_maintenance_status(self, running: bool, current_index: int = 0, total_to_clean: int = 0, message: str = ""):
         """Update the maintenance status and notify listeners."""
@@ -292,7 +302,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             device_entry = device_registry.async_get_device(
                                 identifiers={(DOMAIN, self.entry.data[CONF_ADDRESS])},
                             )
-
+       
                             if device_entry:
                                 processed_info = process_device_info(self.entry.data, device_info)
                                 update_kwargs = {}
@@ -304,13 +314,13 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                                     update_kwargs["manufacturer"] = processed_info["manufacturer"]
                                 if "model" in processed_info:
                                     update_kwargs["model"] = processed_info["model"]
-
+       
                                 if update_kwargs:
                                     device_registry.async_update_device(
                                         device_entry.id, **update_kwargs
                                     )
                                     _LOGGER.info("Device registry updated with new info: %s", update_kwargs)
-
+       
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch device information: %s", e)
 

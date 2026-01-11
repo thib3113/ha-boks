@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "A entidade {target_entity_id} não é uma lista de encomendas Boks.",
       "maintenance_already_running": "Uma tarefa de manutenção já está em curso. Aguarde que termine.",
       "delete_code_failed": "Falha ao eliminar código (o dispositivo devolveu erro)",
-      "set_configuration_failed": "Falha ao definir configuração {config_type} (o dispositivo devolveu erro)"
+      "set_configuration_failed": "Falha ao definir configuração {config_type} (o dispositivo devolveu erro)",
+      "laposte_firmware_version_required": "A versão do firmware deve ser superior a {required_version} para ativar a funcionalidade La Poste. Versão atual: {current_version}",
+      "door_opened_recently": "A porta foi aberta recentemente. Aguarde {seconds} segundos antes de abrir novamente.",
+      "opening_failed_no_code": "Falha na abertura: Nenhum código PIN fornecido, nenhum Código Mestre armazenado e não foi possível gerar um PIN de uso único.",
+      "opening_failed_no_code_no_key": "Falha na abertura: Nenhum código PIN fornecido, nenhum Código Mestre armazenado e não foi possível gerar um PIN de uso único (Nenhuma Chave de Configuração disponível)."
     },
     "abort": {
       "already_configured": "Este Boks já está configurado.",

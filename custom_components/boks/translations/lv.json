@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Vienība {target_entity_id} nav Boks paku saraksts.",
       "maintenance_already_running": "Uzturēšanas uzdevums jau tiek veikts. Lūdzu, uzgaidiet, līdz tas beigsies.",
       "delete_code_failed": "Neizdevās izdzēst kodu (ierīce atgrieza kļūdu)",
-      "set_configuration_failed": "Neizdevās iestatīt konfigurāciju {config_type} (ierīce atgrieza kļūdu)"
+      "set_configuration_failed": "Neizdevās iestatīt konfigurāciju {config_type} (ierīce atgrieza kļūdu)",
+      "laposte_firmware_version_required": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai iespējotu La Poste funkciju. Pašreizējā versija: {current_version}",
+      "door_opened_recently": "Durvis nesen tika atvērtas. Lūdzu, uzgaidiet {seconds} sekundes pirms atkārtotas atvēršanas.",
+      "opening_failed_no_code": "Atvēršana neizdevās: nav norādīts PIN kods, nav saglabāts galvenais kods, un nevarēja ģenerēt vienreizējās lietošanas PIN.",
+      "opening_failed_no_code_no_key": "Atvēršana neizdevās: nav norādīts PIN kods, nav saglabāts galvenais kods, un nevarēja ģenerēt vienreizējās lietošanas PIN (nav pieejama konfigurācijas atslēga)."
     },
     "abort": {
       "already_configured": "Šis Boks jau ir konfigurēts.",

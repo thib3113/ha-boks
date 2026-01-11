@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Encja {target_entity_id} nie jest listą paczek Boks.",
       "maintenance_already_running": "Zadanie konserwacji jest już w toku. Poczekaj na jego zakończenie.",
       "delete_code_failed": "Nie udało się usunąć kodu (urządzenie zwróciło błąd)",
-      "set_configuration_failed": "Nie udało się ustawić konfiguracji {config_type} (urządzenie zwróciło błąd)"
+      "set_configuration_failed": "Nie udało się ustawić konfiguracji {config_type} (urządzenie zwróciło błąd)",
+      "laposte_firmware_version_required": "Wersja oprogramowania układowego musi być wyższa niż {required_version}, aby włączyć funkcję La Poste. Obecna wersja: {current_version}",
+      "door_opened_recently": "Drzwi zostały niedawno otwarte. Poczekaj {seconds} sekund przed ponownym otwarciem.",
+      "opening_failed_no_code": "Otwarcie nie powiodło się: nie podano kodu PIN, nie zapisano kodu głównego i nie można wygenerować jednorazowego kodu PIN.",
+      "opening_failed_no_code_no_key": "Otwarcie nie powiodło się: nie podano kodu PIN, nie zapisano kodu głównego i nie można wygenerować jednorazowego kodu PIN (brak dostępnego klucza konfiguracji)."
     },
     "abort": {
       "already_configured": "Ten Boks jest już skonfigurowany.",

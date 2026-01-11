@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "الكيان {target_entity_id} ليس قائمة طرود Boks.",
       "maintenance_already_running": "مهمة صيانة قيد التقدم بالفعل. يرجى الانتظار حتى تنتهي.",
       "delete_code_failed": "فشل في حذف الرمز (أرجع الجهاز خطأ)",
-      "set_configuration_failed": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)"
+      "set_configuration_failed": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)",
+      "laposte_firmware_version_required": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}",
+      "door_opened_recently": "Door was opened recently. Please wait {seconds} seconds before opening again.",
+      "opening_failed_no_code": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN.",
+      "opening_failed_no_code_no_key": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available)."
     },
     "abort": {
       "already_configured": "تم تكوين Boks هذا بالفعل.",

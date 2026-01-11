@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Entiteit {target_entity_id} is geen Boks-pakketlijst.",
       "maintenance_already_running": "Er wordt al een onderhoudstaak uitgevoerd. Wacht tot deze is voltooid.",
       "delete_code_failed": "Kan code niet verwijderen (apparaat heeft fout geretourneerd)",
-      "set_configuration_failed": "Kan configuratie {config_type} niet instellen (apparaat heeft fout geretourneerd)"
+      "set_configuration_failed": "Kan configuratie {config_type} niet instellen (apparaat heeft fout geretourneerd)",
+      "laposte_firmware_version_required": "Firmwareversie moet hoger zijn dan {required_version} om de La Poste-functie in te schakelen. Huidige versie: {current_version}",
+      "door_opened_recently": "De deur is onlangs geopend. Wacht {seconds} seconden voordat u opnieuw opent.",
+      "opening_failed_no_code": "Openen mislukt: geen pincode opgegeven, geen mastercode opgeslagen en kan geen pincode voor eenmalig gebruik genereren.",
+      "opening_failed_no_code_no_key": "Openen mislukt: geen pincode opgegeven, geen mastercode opgeslagen en kan geen pincode voor eenmalig gebruik genereren (geen configuratiesleutel beschikbaar)."
     },
     "abort": {
       "already_configured": "Deze Boks is al geconfigureerd.",

@@ -1,5 +1,6 @@
 """Utility functions for Boks integration."""
 from typing import Any
+from packaging import version
 
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
 
@@ -66,3 +67,20 @@ def process_device_info(entry_data: dict, device_info_service: dict = None) -> d
         # User requested to ignore model '2.0' for now, so we keep it simple.
 
     return info
+
+def is_firmware_version_greater_than(current_version: str, required_version: str) -> bool:
+    """
+    Check if the current firmware version is greater than the required version.
+    
+    Args:
+        current_version: Current firmware version string (e.g., "4.3.3")
+        required_version: Required firmware version string (e.g., "4.3.3")
+        
+    Returns:
+        bool: True if current version is greater than required version, False otherwise
+    """
+    try:
+        return version.parse(current_version) > version.parse(required_version)
+    except Exception:
+        # If parsing fails, assume version is not sufficient
+        return False

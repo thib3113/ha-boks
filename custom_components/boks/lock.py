@@ -2,6 +2,7 @@
 from typing import Any
 import logging
 import asyncio
+from datetime import datetime, timedelta
 
 from homeassistant.components import bluetooth
 from homeassistant.components.lock import LockEntity, LockEntityFeature
@@ -10,14 +11,18 @@ from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN, CONF_MASTER_CODE, TIMEOUT_DOOR_CLOSE, DELAY_POST_DOOR_CLOSE_SYNC
 from .coordinator import BoksDataUpdateCoordinator
 from .ble import BoksBluetoothDevice
 from .ble.const import BoksHistoryEvent, LOG_EVENT_TYPES
+from .entity import BoksEntity
+from .errors.boks_command_error import BoksCommandError
 
 _LOGGER = logging.getLogger(__name__)
+
+# Minimum time between door openings (30 seconds)
+MIN_DOOR_OPEN_INTERVAL = timedelta(seconds=30)
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -28,53 +33,23 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([BoksLock(coordinator, entry)])
 
-class BoksLock(CoordinatorEntity, LockEntity):
+class BoksLock(BoksEntity, LockEntity):
     """Representation of a Boks Lock."""
 
-    _attr_has_entity_name = True
     _attr_translation_key = "door"
     _attr_supported_features = LockEntityFeature.OPEN
 
     def __init__(self, coordinator: BoksDataUpdateCoordinator, entry: ConfigEntry) -> None:
         """Initialize the lock."""
-        super().__init__(coordinator)
-        self._entry = entry
+        super().__init__(coordinator, entry)
         self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_lock"
+        # Track the last time the door was opened
+        self._last_open_time: datetime | None = None
 
     @property
     def suggested_object_id(self) -> str | None:
         """Return the suggested object id."""
         return "door"
-
-    @property
-    def device_info(self):
-        """Return device info."""
-        info = {
-            "identifiers": {(DOMAIN, self._entry.data[CONF_ADDRESS])},
-            "connections": {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_ADDRESS])},
-            "name": self._entry.data.get(CONF_NAME) or f"Boks {self._entry.data[CONF_ADDRESS]}",
-            "manufacturer": "Boks",
-            "model": "Boks ONE",
-        }
-
-        # Update with data from coordinator if available
-        if self.coordinator.data:
-            if "sw_version" in self.coordinator.data:
-                info["sw_version"] = self.coordinator.data["sw_version"]
-
-            # Also check device_info_service for more details
-            dev_info = self.coordinator.data.get("device_info_service", {})
-            if dev_info:
-                if dev_info.get("software_revision"):
-                    info["sw_version"] = dev_info["software_revision"]
-                if dev_info.get("hardware_revision"):
-                    info["hw_version"] = dev_info["hardware_revision"]
-                if dev_info.get("manufacturer_name"):
-                    info["manufacturer"] = dev_info["manufacturer_name"]
-                if dev_info.get("model_number"):
-                    info["model"] = dev_info["model_number"]
-
-        return info
 
     @property
     def is_locked(self) -> bool:
@@ -111,6 +86,16 @@ class BoksLock(CoordinatorEntity, LockEntity):
 
     async def async_open(self, **kwargs: Any) -> None:
         """Open the door."""
+        # Check if enough time has passed since last opening
+        if self._last_open_time is not None:
+            time_since_last_open = datetime.now() - self._last_open_time
+            if time_since_last_open < MIN_DOOR_OPEN_INTERVAL:
+                remaining_time = MIN_DOOR_OPEN_INTERVAL - time_since_last_open
+                raise BoksCommandError(
+                    "door_opened_recently",
+                    {"seconds": str(remaining_time.seconds)}
+                )
+
         code = kwargs.get("code")
         if code:
             code = code.strip().upper()
@@ -122,7 +107,7 @@ class BoksLock(CoordinatorEntity, LockEntity):
             self.hass, self._entry.data[CONF_ADDRESS], connectable=True
         )
         if not device:
-            raise ValueError(f"Device {self._entry.data[CONF_ADDRESS]} not found in Bluetooth cache. No connectable path available.")
+            raise BoksCommandError("device_not_in_cache")
         await ble_device.connect(device)
 
         success = False
@@ -148,10 +133,10 @@ class BoksLock(CoordinatorEntity, LockEntity):
 
             if not code:
                 # Detailed error message for user
-                msg = "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN."
                 if not ble_device.config_key_str:
-                     msg += " (No Config Key available)"
-                raise ValueError(msg)
+                    raise BoksCommandError("opening_failed_no_code_no_key")
+
+                raise BoksCommandError("opening_failed_no_code")
 
             # 3. Open the door
             await ble_device.open_door(code)
@@ -159,6 +144,9 @@ class BoksLock(CoordinatorEntity, LockEntity):
             # Update state immediately
             self.coordinator.data["door_open"] = True
             self.async_write_ha_state()
+
+            # Record the time of successful door opening
+            self._last_open_time = datetime.now()
 
             # Launch background task to wait for close and disconnect
             # We do NOT trigger a refresh here because it would disconnect the device immediately,

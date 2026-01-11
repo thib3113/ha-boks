@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Entita {target_entity_id} nie je zoznam balíkov Boks.",
       "maintenance_already_running": "Úloha údržby už prebieha. Počkajte prosím na jej dokončenie.",
       "delete_code_failed": "Nepodarilo sa vymazať kód (zariadenie vrátilo chybu)",
-      "set_configuration_failed": "Nepodarilo sa nastaviť konfiguráciu {config_type} (zariadenie vrátilo chybu)"
+      "set_configuration_failed": "Nepodarilo sa nastaviť konfiguráciu {config_type} (zariadenie vrátilo chybu)",
+      "laposte_firmware_version_required": "Verzia firmvéru musí byť vyššia ako {required_version}, aby sa povolila funkcia La Poste. Aktuálna verzia: {current_version}",
+      "door_opened_recently": "Dvere boli nedávno otvorené. Počkajte {seconds} sekúnd pred opätovným otvorením.",
+      "opening_failed_no_code": "Otvorenie zlyhalo: Nebol poskytnutý žiadny PIN kód, nebol uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN.",
+      "opening_failed_no_code_no_key": "Otvorenie zlyhalo: Nebol poskytnutý žiadny PIN kód, nebol uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN (nie je k dispozícii žiadny konfiguračný kľúč)."
     },
     "abort": {
       "already_configured": "Tento Boks je už nakonfigurovaný.",

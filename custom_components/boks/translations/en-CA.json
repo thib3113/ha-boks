@@ -65,7 +65,11 @@
       "entity_not_parcel_list": "Entity {target_entity_id} is not a Boks Parcel List.",
       "maintenance_already_running": "A maintenance task is already in progress. Please wait for it to finish.",
       "delete_code_failed": "Failed to delete code (Device returned error)",
-      "set_configuration_failed": "Failed to set configuration {config_type} (Device returned error)"
+      "set_configuration_failed": "Failed to set configuration {config_type} (Device returned error)",
+      "laposte_firmware_version_required": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}",
+      "door_opened_recently": "Door was opened recently. Please wait {seconds} seconds before opening again.",
+      "opening_failed_no_code": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN.",
+      "opening_failed_no_code_no_key": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available)."
     },
     "abort": {
       "already_configured": "This Boks is already configured.",

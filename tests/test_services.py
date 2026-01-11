@@ -42,6 +42,7 @@ def mock_coordinator():
     """Create a mock coordinator."""
     coordinator = MagicMock(spec=BoksDataUpdateCoordinator)
     coordinator.maintenance_status = {"running": False}
+    coordinator.data = {}
     coordinator.ble_device = MagicMock()
     coordinator.ble_device.connect = AsyncMock()
     coordinator.ble_device.disconnect = AsyncMock()
@@ -539,17 +540,20 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
 
 
     """Test handle_set_configuration service success."""
-
-
+    
+    
     # Set up hass.data with a coordinator
-
-
+    
+    
     entry_id = "test_entry_id"
-
-
+    
+    
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-
-
+    
+    # Mock the device_info property
+    mock_coordinator.device_info = {"sw_version": "4.5.1"}
+    
+    
     
 
 
