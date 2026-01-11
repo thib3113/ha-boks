@@ -45,6 +45,8 @@ class BoksLock(BoksEntity, LockEntity):
         self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_lock"
         # Track the last time the door was opened
         self._last_open_time: datetime | None = None
+        # Lock to prevent concurrent unlock requests
+        self._unlock_lock = asyncio.Lock()
 
     @property
     def suggested_object_id(self) -> str | None:
@@ -86,79 +88,81 @@ class BoksLock(BoksEntity, LockEntity):
 
     async def async_open(self, **kwargs: Any) -> None:
         """Open the door."""
-        # Check if enough time has passed since last opening
-        if self._last_open_time is not None:
-            time_since_last_open = datetime.now() - self._last_open_time
-            if time_since_last_open < MIN_DOOR_OPEN_INTERVAL:
-                remaining_time = MIN_DOOR_OPEN_INTERVAL - time_since_last_open
-                raise BoksCommandError(
-                    "door_opened_recently",
-                    {"seconds": str(remaining_time.seconds)}
-                )
+        # Use the unlock lock to prevent concurrent unlock requests
+        async with self._unlock_lock:
+            # Check if enough time has passed since last opening
+            if self._last_open_time is not None:
+                time_since_last_open = datetime.now() - self._last_open_time
+                if time_since_last_open < MIN_DOOR_OPEN_INTERVAL:
+                    remaining_time = MIN_DOOR_OPEN_INTERVAL - time_since_last_open
+                    raise BoksCommandError(
+                        "door_opened_recently",
+                        {"seconds": str(remaining_time.seconds)}
+                    )
 
-        code = kwargs.get("code")
-        if code:
-            code = code.strip().upper()
-        ble_device: BoksBluetoothDevice = self.coordinator.ble_device
+            code = kwargs.get("code")
+            if code:
+                code = code.strip().upper()
+            ble_device: BoksBluetoothDevice = self.coordinator.ble_device
 
-        # Always connect to increment reference counter
-        # Try with connectable=True first, then connectable=False
-        device = bluetooth.async_ble_device_from_address(
-            self.hass, self._entry.data[CONF_ADDRESS], connectable=True
-        )
-        if not device:
-            raise BoksCommandError("device_not_in_cache")
-        await ble_device.connect(device)
+            # Always connect to increment reference counter
+            # Try with connectable=True first, then connectable=False
+            device = bluetooth.async_ble_device_from_address(
+                self.hass, self._entry.data[CONF_ADDRESS], connectable=True
+            )
+            if not device:
+                raise BoksCommandError("device_not_in_cache")
+            await ble_device.connect(device)
 
-        success = False
-        try:
-            # 1. Priority: Use stored Master Code if available
-            if not code:
-                code = self._entry.data.get(CONF_MASTER_CODE)
-                if code:
-                    _LOGGER.info("Using stored Master Code for opening.")
+            success = False
+            try:
+                # 1. Priority: Use stored Master Code if available
+                if not code:
+                    code = self._entry.data.get(CONF_MASTER_CODE)
+                    if code:
+                        _LOGGER.info("Using stored Master Code for opening.")
 
-            # 2. Fallback: Try to generate a single-use code if no master code and we have the key
-            if not code and ble_device.config_key_str:
-                for attempt in range(2): # Try twice
-                    try:
-                        _LOGGER.debug(f"Attempting to generate single-use code (Attempt {attempt+1})...")
-                        code = await ble_device.create_pin_code(code_type="single")
-                        _LOGGER.debug("Generated single-use code successfully.")
-                        break
-                    except Exception as e:
-                        _LOGGER.warning(f"Failed to generate single-use code (Attempt {attempt+1}): {e}")
-                        if attempt == 0:
-                            await asyncio.sleep(2) # Wait a bit before retry
+                # 2. Fallback: Try to generate a single-use code if no master code and we have the key
+                if not code and ble_device.config_key_str:
+                    for attempt in range(2): # Try twice
+                        try:
+                            _LOGGER.debug(f"Attempting to generate single-use code (Attempt {attempt+1})...")
+                            code = await ble_device.create_pin_code(code_type="single")
+                            _LOGGER.debug("Generated single-use code successfully.")
+                            break
+                        except Exception as e:
+                            _LOGGER.warning(f"Failed to generate single-use code (Attempt {attempt+1}): {e}")
+                            if attempt == 0:
+                                await asyncio.sleep(2) # Wait a bit before retry
 
-            if not code:
-                # Detailed error message for user
-                if not ble_device.config_key_str:
-                    raise BoksCommandError("opening_failed_no_code_no_key")
+                if not code:
+                    # Detailed error message for user
+                    if not ble_device.config_key_str:
+                        raise BoksCommandError("opening_failed_no_code_no_key")
 
-                raise BoksCommandError("opening_failed_no_code")
+                    raise BoksCommandError("opening_failed_no_code")
 
-            # 3. Open the door
-            await ble_device.open_door(code)
+                # 3. Open the door
+                await ble_device.open_door(code)
 
-            # Update state immediately
-            self.coordinator.data["door_open"] = True
-            self.async_write_ha_state()
+                # Update state immediately
+                self.coordinator.data["door_open"] = True
+                self.async_write_ha_state()
 
-            # Record the time of successful door opening
-            self._last_open_time = datetime.now()
+                # Record the time of successful door opening
+                self._last_open_time = datetime.now()
 
-            # Launch background task to wait for close and disconnect
-            # We do NOT trigger a refresh here because it would disconnect the device immediately,
-            # breaking the wait_for_door_close logic. The refresh will be handled in _wait_and_disconnect.
-            self.hass.async_create_task(self._wait_and_disconnect(ble_device))
-            success = True
+                # Launch background task to wait for close and disconnect
+                # We do NOT trigger a refresh here because it would disconnect the device immediately,
+                # breaking the wait_for_door_close logic. The refresh will be handled in _wait_and_disconnect.
+                self.hass.async_create_task(self._wait_and_disconnect(ble_device))
+                success = True
 
-        finally:
-            # If we failed to launch the background task (e.g. open_door failed),
-            # we must disconnect (decrement reference counter) ourselves.
-            if not success:
-                await asyncio.shield(ble_device.disconnect())
+            finally:
+                # If we failed to launch the background task (e.g. open_door failed),
+                # we must disconnect (decrement reference counter) ourselves.
+                if not success:
+                    await asyncio.shield(ble_device.disconnect())
 
     async def _wait_and_disconnect(self, ble_device):
         """Keep connection alive to wait for door close and sync logs."""
