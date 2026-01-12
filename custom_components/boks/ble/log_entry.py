@@ -187,9 +187,9 @@ class BoksLogEntry:
              if len(stored_payload) >= 1:
                  extra_data["scale_data"] = stored_payload.hex()
 
-        elif event_opcode == BoksHistoryEvent.NFC_ERROR_99:
+        elif event_opcode == BoksHistoryEvent.KEY_OPENING:
              if len(stored_payload) >= 1:
-                 extra_data["error_info"] = stored_payload.hex()
+                 extra_data["data"] = stored_payload.hex()
 
         # Ensure extra_data is never None (safety check)
         if extra_data is None:

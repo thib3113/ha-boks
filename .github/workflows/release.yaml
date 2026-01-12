@@ -23,6 +23,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
+      - name: Update manifest version
+        run: |
+          # Extract version from tag (remove 'v' prefix if present)
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          echo "Updating manifest version to $VERSION"
+          
+          # Update manifest.json using python to ensure valid JSON
+          python3 -c "import json; file_path = 'custom_components/boks/manifest.json'; data = json.load(open(file_path)); data['version'] = '$VERSION'; json.dump(data, open(file_path, 'w'), indent=2); print(f'Updated {file_path} to version {data[\"version\"]}')"
+
       - name: Create ZIP archive
         run: |
           cd custom_components/boks

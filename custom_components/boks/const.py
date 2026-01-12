@@ -25,6 +25,7 @@ PCB_VERSIONS = {
 
 # Timeouts & Delays (Seconds)
 TIMEOUT_BLE_CONNECTION = 60.0
+TIMEOUT_DOOR_OPEN_MESSAGE = 5 # Time to keep lock held after opening (anti-spam)
 TIMEOUT_DOOR_CLOSE = 120.0 # Time to wait for door to close after opening
 TIMEOUT_COMMAND_RESPONSE = 10.0
 TIMEOUT_LOG_RETRIEVAL_BASE = 15.0 # Minimum timeout for logs

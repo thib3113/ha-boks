@@ -107,6 +107,19 @@ def test_parse_door_opened(mock_time):
     assert entry.opcode == BoksHistoryEvent.DOOR_OPENED
     assert entry.event_type == "door_opened"
 
+def test_parse_key_opening(mock_time):
+    """Test parsing a KEY_OPENING event (0x99)."""
+    # 0x99 = KEY_OPENING
+    # Payload: Age(3 bytes) + data
+    payload = bytes.fromhex("00000A112233")
+    
+    entry = BoksLogEntry.from_raw(0x99, bytearray(payload))
+    
+    assert entry is not None
+    assert entry.opcode == BoksHistoryEvent.KEY_OPENING
+    assert entry.event_type == "key_opening"
+    assert entry.extra_data["data"] == "112233"
+
 def test_parse_invalid_opcode():
     """Test parsing an unknown opcode."""
     payload = bytes.fromhex("000000")

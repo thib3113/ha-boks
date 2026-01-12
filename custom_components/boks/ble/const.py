@@ -79,7 +79,7 @@ class BoksHistoryEvent(IntEnum):
     POWER_ON = 0x96
     BLE_REBOOT = 0x97
     SCALE_CONTINUOUS_MEASURE = 0x98
-    NFC_ERROR_99 = 0x99
+    KEY_OPENING = 0x99
     ERROR = 0xA0
     NFC_OPENING = 0xA1
     NFC_TAG_REGISTERING_SCAN = 0xA2
@@ -125,7 +125,7 @@ LOG_EVENT_DESCRIPTIONS = {
     BoksHistoryEvent.POWER_ON: "power_on",
     BoksHistoryEvent.BLE_REBOOT: "ble_reboot",
     BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "scale_measure",
-    BoksHistoryEvent.NFC_ERROR_99: "nfc_error_99",
+    BoksHistoryEvent.KEY_OPENING: "key_opening",
     BoksHistoryEvent.ERROR: "error",
     BoksHistoryEvent.NFC_OPENING: "nfc_opening",
     BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "nfc_tag_registering_scan",
@@ -144,7 +144,7 @@ LOG_EVENT_TYPES = {
     BoksHistoryEvent.POWER_ON: "power_on",
     BoksHistoryEvent.BLE_REBOOT: "ble_reboot",
     BoksHistoryEvent.SCALE_CONTINUOUS_MEASURE: "scale_measure",
-    BoksHistoryEvent.NFC_ERROR_99: "nfc_error_transaction",
+    BoksHistoryEvent.KEY_OPENING: "key_opening",
     BoksHistoryEvent.ERROR: "error",
     BoksHistoryEvent.NFC_OPENING: "nfc_opening",
     BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "nfc_tag_registering",
