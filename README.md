@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/icon.png" width="200" alt="Boks Logo">
+  <img src="images/icon.png" width="200" alt="ha-boks icon">
 </p>
 
 # Home Assistant Boks Integration
