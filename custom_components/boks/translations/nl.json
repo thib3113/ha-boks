@@ -350,6 +350,22 @@
           "description": "Schakel La Poste-tagherkenning in of uit."
         }
       }
+    },
+    "firmware_update": {
+      "no_firmware_downloaded": "Geen firmware gedownload voor installatie",
+      "notification_title": "Boks firmware-update",
+      "firmware_ready": "Firmware-update {version} is gedownload.\nBestandslocatie: {file_path}\nDownload-URL: {download_url}\n\nBELANGRIJK: Neem contact op met de ontwikkelaar voor verdere instructies over het handmatig toepassen van deze update.\nProbeer dit bestand niet te flashen zonder specifieke begeleiding.",
+      "manual_action_required": "Boks firmware-update - Handmatige actie vereist",
+      "firmware_ready_info": "Firmware-update {version} is klaar op {file_path}",
+      "cannot_determine_revision": "Kan interne firmware-revisie niet bepalen voor update",
+      "no_firmware_mapping": "Geen firmware-toewijzing gevonden voor revisie {revision}",
+      "no_suitable_version": "Geen firmware-versie gevonden die voldoet aan vereiste {version}",
+      "download_failed": "Downloaden van firmware-versie {version} mislukt. HTTP-status: {status}\nControleer de firmware-URL of probeer het later opnieuw.",
+      "download_failed_title": "Boks firmware-update - Download mislukt",
+      "network_error": "Netwerkfout tijdens downloaden van firmware-versie {version}.\nFout: {error}\nControleer uw netwerkverbinding en probeer het opnieuw.",
+      "network_error_title": "Boks firmware-update - Netwerkfout",
+      "generic_error": "Fout tijdens downloaden van firmware-versie {version}.\nFout: {error}\nProbeer het opnieuw of neem contact op met ondersteuning.",
+      "generic_error_title": "Boks firmware-update - Fout"
     }
   }
 }

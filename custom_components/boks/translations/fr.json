@@ -67,6 +67,8 @@
       "delete_code_failed": "Échec de la suppression du code (l'appareil a renvoyé une erreur)",
       "set_configuration_failed": "Échec de la configuration {config_type} (l'appareil a renvoyé une erreur)",
       "laposte_firmware_version_required": "La version du logiciel doit être supérieure à {required_version} pour activer la fonction La Poste. Version actuelle : {current_version}",
+      "firmware_version_required": "La version du firmware doit être supérieure à {required_version} pour utiliser cette fonctionnalité. Version actuelle : {current_version}",
+      "firmware_update_failed": "Échec du déclenchement de la mise à jour du firmware pour la version {version}",
       "door_opened_recently": "La porte a été ouverte récemment. Veuillez patienter {seconds} secondes avant de l'ouvrir à nouveau.",
       "opening_failed_no_code": "Échec de l'ouverture : aucun code PIN fourni, aucun code permanent enregistré et impossible de générer un PIN à usage unique.",
       "opening_failed_no_code_no_key": "Échec de l'ouverture : aucun code PIN fourni, aucun code permanent enregistré et impossible de générer un PIN à usage unique (aucune clé de configuration disponible).",
@@ -230,6 +232,13 @@
       }
     }
   },
+  "entity": {
+    "update": {
+      "firmware_update": {
+        "name": "Mise à jour du firmware"
+      }
+    }
+  },
   "services": {
     "add_parcel": {
       "name": "Ajouter un colis",
@@ -352,5 +361,21 @@
         }
       }
     }
+  },
+  "firmware_update": {
+    "no_firmware_downloaded": "Aucun firmware téléchargé pour l'installation",
+    "notification_title": "Mise à jour du firmware Boks",
+    "firmware_ready": "La mise à jour du firmware {version} a été téléchargée.\nEmplacement du fichier : {file_path}\nURL de téléchargement : {download_url}\n\nIMPORTANT : Veuillez contacter le développeur pour obtenir des instructions supplémentaires sur l'application de cette mise à jour manuellement.\nN'essayez pas de flasher ce fichier sans conseils spécifiques.",
+    "manual_action_required": "Mise à jour du firmware Boks - Action manuelle requise",
+    "firmware_ready_info": "La mise à jour du firmware {version} est prête à l'emplacement {file_path}",
+    "cannot_determine_revision": "Impossible de déterminer la révision interne du firmware pour la mise à jour",
+    "no_firmware_mapping": "Aucun mappage de firmware trouvé pour la révision {revision}",
+    "no_suitable_version": "Aucune version de firmware trouvée répondant à l'exigence {version}",
+    "download_failed": "Échec du téléchargement de la version {version} du firmware. Statut HTTP : {status}\nVeuillez vérifier l'URL du firmware ou réessayer plus tard.",
+    "download_failed_title": "Mise à jour du firmware Boks - Échec du téléchargement",
+    "network_error": "Erreur réseau lors du téléchargement du firmware version {version}.\nErreur : {error}\nVeuillez vérifier votre connexion réseau et réessayer.",
+    "network_error_title": "Mise à jour du firmware Boks - Erreur réseau",
+    "generic_error": "Erreur lors du téléchargement du firmware version {version}.\nErreur : {error}\nVeuillez réessayer ou contacter le support.",
+    "generic_error_title": "Mise à jour du firmware Boks - Erreur"
   }
 }

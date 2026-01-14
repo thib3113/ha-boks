@@ -350,6 +350,22 @@
           "description": "Aktivieren oder deaktivieren Sie die Erkennung von La Poste-Tags."
         }
       }
+    },
+    "firmware_update": {
+      "no_firmware_downloaded": "Keine Firmware zum Installieren heruntergeladen",
+      "notification_title": "Boks Firmware-Update",
+      "firmware_ready": "Firmware-Update {version} wurde heruntergeladen.\nDateipfad: {file_path}\nDownload-URL: {download_url}\n\nWICHTIG: Bitte kontaktieren Sie den Entwickler für weitere Anweisungen zur manuellen Installation dieses Updates.\nVersuchen Sie nicht, diese Datei ohne spezifische Anleitung zu flashen.",
+      "manual_action_required": "Boks Firmware-Update - Manuelle Aktion erforderlich",
+      "firmware_ready_info": "Firmware-Update {version} ist bereit unter {file_path}",
+      "cannot_determine_revision": "Interne Firmware-Revision für Update konnte nicht bestimmt werden",
+      "no_firmware_mapping": "Kein Firmware-Mapping für Revision {revision} gefunden",
+      "no_suitable_version": "Keine Firmware-Version gefunden, die die Anforderung {version} erfüllt",
+      "download_failed": "Fehler beim Herunterladen der Firmware-Version {version}. HTTP-Status: {status}\nBitte überprüfen Sie die Firmware-URL oder versuchen Sie es später erneut.",
+      "download_failed_title": "Boks Firmware-Update - Download fehlgeschlagen",
+      "network_error": "Netzwerkfehler beim Herunterladen der Firmware-Version {version}.\nFehler: {error}\nBitte überprüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut.",
+      "network_error_title": "Boks Firmware-Update - Netzwerkfehler",
+      "generic_error": "Fehler beim Herunterladen der Firmware-Version {version}.\nFehler: {error}\nBitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
+      "generic_error_title": "Boks Firmware-Update - Fehler"
     }
   }
 }

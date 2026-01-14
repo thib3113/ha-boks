@@ -15,7 +15,6 @@ from .coordinator import BoksDataUpdateCoordinator
 from .errors import BoksError
 from .todo import BoksParcelTodoList
 from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
-from .util import is_firmware_version_greater_than
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -536,32 +535,19 @@ async def async_setup_services(hass: HomeAssistant):
     async def handle_set_configuration(call: ServiceCall):
         """Handle the set configuration service call."""
         coordinator = get_coordinator_from_call(hass, call)
-        
+
         # Check each supported configuration option
         # Initially only laposte
         laposte = call.data.get("laposte")
-        
+
         if laposte is not None:
             # Check software revision if trying to enable laposte
             if laposte:
-                # Get the software revision from the coordinator device_info using sw_version directly
-                software_revision = None
-                if coordinator.device_info:
-                    # Get software revision directly from device_info
-                    software_revision = coordinator.device_info.get("sw_version")
-                
-                # If we have a software revision, check if it's > 4.3.3
-                if software_revision:
-                    if not is_firmware_version_greater_than(software_revision, "4.3.3"):
-                        raise HomeAssistantError(
-                            translation_domain=DOMAIN,
-                            translation_key="laposte_firmware_version_required",
-                            translation_placeholders={"current_version": software_revision, "required_version": "4.3.3"}
-                        )
-                else:
-                    # If we can't determine the software revision, warn but allow
-                    _LOGGER.warning("Could not determine software revision for La Poste configuration check")
-            
+                await coordinator.ensure_min_firmware_version(
+                    "4.3.3",
+                    translation_key="laposte_firmware_version_required"
+                )
+
             _LOGGER.info(f"Setting La Poste configuration to {laposte}")
             await coordinator.ble_device.connect()
             try:

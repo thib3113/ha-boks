@@ -67,6 +67,8 @@
       "delete_code_failed": "Failed to delete code (Device returned error)",
       "set_configuration_failed": "Failed to set configuration {config_type} (Device returned error)",
       "laposte_firmware_version_required": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}",
+      "firmware_version_required": "Firmware version must be greater than {required_version} to use this feature. Current version: {current_version}",
+      "firmware_update_failed": "Failed to trigger firmware update for version {version}",
       "door_opened_recently": "Door was opened recently. Please wait {seconds} seconds before opening again.",
       "opening_failed_no_code": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN.",
       "opening_failed_no_code_no_key": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available).",
@@ -230,6 +232,13 @@
       }
     }
   },
+  "entity": {
+    "update": {
+      "firmware_update": {
+        "name": "Firmware Update"
+      }
+    }
+  },
   "services": {
     "add_parcel": {
       "name": "Add Parcel",
@@ -352,5 +361,21 @@
         }
       }
     }
+  },
+  "firmware_update": {
+    "no_firmware_downloaded": "No firmware downloaded for installation",
+    "notification_title": "Boks Firmware Update",
+    "firmware_ready": "Firmware update {version} has been downloaded.\nFile location: {file_path}\nDownload URL: {download_url}\n\nIMPORTANT: Please contact the developer for further instructions on how to apply this update manually.\nDo not attempt to flash this file without specific guidance.",
+    "manual_action_required": "Boks Firmware Update - Manual Action Required",
+    "firmware_ready_info": "Firmware update {version} is ready at {file_path}",
+    "cannot_determine_revision": "Could not determine internal firmware revision for update",
+    "no_firmware_mapping": "No firmware mapping found for revision {revision}",
+    "no_suitable_version": "No firmware version found that meets requirement {version}",
+    "download_failed": "Failed to download firmware version {version}. HTTP status: {status}\nPlease check the firmware URL or try again later.",
+    "download_failed_title": "Boks Firmware Update - Download Failed",
+    "network_error": "Network error during firmware download for version {version}.\nError: {error}\nPlease check your network connection and try again.",
+    "network_error_title": "Boks Firmware Update - Network Error",
+    "generic_error": "Error during firmware download for version {version}.\nError: {error}\nPlease try again or contact support.",
+    "generic_error_title": "Boks Firmware Update - Error"
   }
 }

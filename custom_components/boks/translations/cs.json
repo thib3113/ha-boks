@@ -350,6 +350,22 @@
           "description": "Povolit nebo zakázat rozpoznávání tagů La Poste."
         }
       }
+    },
+    "firmware_update": {
+      "no_firmware_downloaded": "Nebyl stažen žádný firmware pro instalaci",
+      "notification_title": "Aktualizace firmwaru Boks",
+      "firmware_ready": "Aktualizace firmwaru {version} byla stažena.\nUmístění souboru: {file_path}\nURL ke stažení: {download_url}\n\nDŮLEŽITÉ: Kontaktujte vývojáře pro další pokyny, jak tuto aktualizaci použít ručně.\nNepokoušejte se flashovat tento soubor bez konkrétního vedení.",
+      "manual_action_required": "Aktualizace firmwaru Boks - Vyžadována ruční akce",
+      "firmware_ready_info": "Aktualizace firmwaru {version} je připravena v {file_path}",
+      "cannot_determine_revision": "Nelze určit interní revizi firmwaru pro aktualizaci",
+      "no_firmware_mapping": "Pro revizi {revision} nebylo nalezeno žádné mapování firmwaru",
+      "no_suitable_version": "Nebyla nalezena žádná verze firmwaru, která by splňovala požadavek {version}",
+      "download_failed": "Stažení verze firmwaru {version} se nezdařilo. Stav HTTP: {status}\nZkontrolujte URL firmwaru nebo to zkuste později.",
+      "download_failed_title": "Aktualizace firmwaru Boks - Stažení se nezdařilo",
+      "network_error": "Chyba sítě při stahování verze firmwaru {version}.\nChyba: {error}\nZkontrolujte připojení k síti a zkuste to znovu.",
+      "network_error_title": "Aktualizace firmwaru Boks - Chyba sítě",
+      "generic_error": "Chyba při stahování verze firmwaru {version}.\nChyba: {error}\nZkuste to znovu nebo kontaktujte podporu.",
+      "generic_error_title": "Aktualizace firmwaru Boks - Chyba"
     }
   }
 }

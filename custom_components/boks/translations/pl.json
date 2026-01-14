@@ -350,6 +350,22 @@
           "description": "Włącz lub wyłącz rozpoznawanie tagów La Poste."
         }
       }
+    },
+    "firmware_update": {
+      "no_firmware_downloaded": "Nie pobrano oprogramowania układowego do instalacji",
+      "notification_title": "Aktualizacja oprogramowania układowego Boks",
+      "firmware_ready": "Aktualizacja oprogramowania układowego {version} została pobrana.\nLokalizacja pliku: {file_path}\nAdres URL pobierania: {download_url}\n\nWAŻNE: Skontaktuj się z deweloperem, aby uzyskać dalsze instrukcje dotyczące ręcznego zastosowania tej aktualizacji.\nNie próbuj flashować tego pliku bez konkretnej instrukcji.",
+      "manual_action_required": "Aktualizacja oprogramowania układowego Boks - wymagana ręczna interwencja",
+      "firmware_ready_info": "Aktualizacja oprogramowania układowego {version} jest gotowa w {file_path}",
+      "cannot_determine_revision": "Nie można określić wewnętrznej wersji oprogramowania układowego do aktualizacji",
+      "no_firmware_mapping": "Nie znaleziono mapowania oprogramowania układowego dla wersji {revision}",
+      "no_suitable_version": "Nie znaleziono wersji oprogramowania układowego spełniającej wymaganie {version}",
+      "download_failed": "Nie udało się pobrać wersji oprogramowania układowego {version}. Status HTTP: {status}\nSprawdź adres URL oprogramowania układowego lub spróbuj ponownie później.",
+      "download_failed_title": "Aktualizacja oprogramowania układowego Boks - pobieranie nie powiodło się",
+      "network_error": "Błąd sieci podczas pobierania wersji oprogramowania układowego {version}.\nBłąd: {error}\nSprawdź połączenie sieciowe i spróbuj ponownie.",
+      "network_error_title": "Aktualizacja oprogramowania układowego Boks - błąd sieci",
+      "generic_error": "Błąd podczas pobierania wersji oprogramowania układowego {version}.\nBłąd: {error}\nSpróbuj ponownie lub skontaktuj się z pomocą techniczną.",
+      "generic_error_title": "Aktualizacja oprogramowania układowego Boks - błąd"
     }
   }
 }

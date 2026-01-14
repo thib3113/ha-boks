@@ -23,6 +23,12 @@ PCB_VERSIONS = {
     "10/cd": "3.0"
 }
 
+FIRMWARE_MAPPING = {
+    "10/125": {
+        "4.3.3": "https://boks-dfu.s3.eu-west-3.amazonaws.com/4.3.3/boks_52833/boks_52833_4.3.3_app_dfu.zip"
+    }
+}
+
 # Timeouts & Delays (Seconds)
 TIMEOUT_BLE_CONNECTION = 60.0
 TIMEOUT_DOOR_OPEN_MESSAGE = 5 # Time to keep lock held after opening (anti-spam)

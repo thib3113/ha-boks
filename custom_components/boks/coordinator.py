@@ -3,7 +3,7 @@
 import asyncio
 import logging
 from datetime import timedelta, datetime
-from typing import Callable
+from typing import Callable, List
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.components import bluetooth
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers import translation # Import translation helper
@@ -21,7 +22,7 @@ from .ble import BoksBluetoothDevice
 from .errors import BoksError
 from .ble.log_entry import BoksLogEntry # Import BoksLogEntry
 from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS # Import DOMAIN and defaults
-from .util import process_device_info
+from .util import process_device_info, is_firmware_version_greater_than
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -360,3 +361,69 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
     def unregister_opcode_callback(self, opcode: int, callback: Callable[[bytearray], None]) -> None:
         """Unregister a callback for a specific opcode."""
         self.ble_device.unregister_opcode_callback(opcode, callback)
+
+    async def trigger_firmware_update_check(self, required_version: str) -> bool:
+        """
+        Trigger a firmware update check and download.
+        
+        Args:
+            required_version: The minimum firmware version required (e.g., "4.3.3")
+            
+        Returns:
+            bool: True if firmware was successfully downloaded, False otherwise
+        """
+        # Get the update entity for this coordinator
+        update_entity = None
+        for entity in self.hass.data.get("entity_components", {}).get("update", {}).entities:
+            if entity.unique_id == f"{self.entry.entry_id}_firmware_update":
+                update_entity = entity
+                break
+                
+        if not update_entity:
+            _LOGGER.error("Could not find firmware update entity")
+            return False
+            
+        # Trigger the update check on the update entity
+        return await update_entity.trigger_update_check(required_version)
+
+    async def ensure_min_firmware_version(self, required_version: str, translation_key: str = "firmware_version_required", update_target_version: str = None) -> None:
+        """
+        Ensure the device firmware version is greater than required_version.
+        If not, triggers an update check for update_target_version (defaults to required_version).
+        Raises HomeAssistantError if requirements aren't met.
+
+        Args:
+            required_version: The version that the current firmware must be greater than.
+            translation_key: The translation key for the error message if version is insufficient.
+            update_target_version: The version to check for update against. Defaults to required_version.
+        """
+        if update_target_version is None:
+            update_target_version = required_version
+
+        software_revision = None
+        if self.device_info:
+            software_revision = self.device_info.get("sw_version")
+
+        if software_revision:
+            if not is_firmware_version_greater_than(software_revision, required_version):
+                _LOGGER.warning(f"Firmware version {software_revision} is not greater than {required_version}. Triggering update check for {update_target_version}.")
+
+                update_triggered = await self.trigger_firmware_update_check(update_target_version)
+
+                if not update_triggered:
+                    raise HomeAssistantError(
+                        translation_domain=DOMAIN,
+                        translation_key="firmware_update_failed",
+                        translation_placeholders={"version": update_target_version}
+                    )
+
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key=translation_key,
+                    translation_placeholders={
+                        "current_version": software_revision,
+                        "required_version": required_version
+                    }
+                )
+        else:
+            _LOGGER.warning(f"Could not determine software revision to check against {required_version}")

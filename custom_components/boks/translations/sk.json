@@ -350,6 +350,22 @@
           "description": "Povoliť alebo zakázať rozpoznávanie tagov La Poste."
         }
       }
+    },
+    "firmware_update": {
+      "no_firmware_downloaded": "Nebol stiahnutý žiadny firmvér na inštaláciu",
+      "notification_title": "Aktualizácia firmvéru Boks",
+      "firmware_ready": "Aktualizácia firmvéru {version} bola stiahnutá.\nUmiestnenie súboru: {file_path}\nURL na stiahnutie: {download_url}\n\nDÔLEŽITÉ: Kontaktujte vývojára pre ďalšie pokyny, ako túto aktualizáciu použiť ručne.\nNepokúšajte sa flashovať tento súbor bez konkrétneho vedenia.",
+      "manual_action_required": "Aktualizácia firmvéru Boks - Vyžaduje sa ručná akcia",
+      "firmware_ready_info": "Aktualizácia firmvéru {version} je pripravená v {file_path}",
+      "cannot_determine_revision": "Nepodarilo sa určiť internú revíziu firmvéru pre aktualizáciu",
+      "no_firmware_mapping": "Pre revíziu {revision} sa nenašlo žiadne mapovanie firmvéru",
+      "no_suitable_version": "Nenašla sa žiadna verzia firmvéru, ktorá by spĺňala požiadavku {version}",
+      "download_failed": "Sťahovanie verzie firmvéru {version} zlyhalo. Stav HTTP: {status}\nSkontrolujte URL firmvéru alebo to skúste neskôr.",
+      "download_failed_title": "Aktualizácia firmvéru Boks - Sťahovanie zlyhalo",
+      "network_error": "Chyba siete pri sťahovaní verzie firmvéru {version}.\nChyba: {error}\nSkontrolujte sieťové pripojenie a skúste to znova.",
+      "network_error_title": "Aktualizácia firmvéru Boks - Chyba siete",
+      "generic_error": "Chyba pri sťahovaní verzie firmvéru {version}.\nChyba: {error}\nSkúste to znova alebo kontaktujte podporu.",
+      "generic_error_title": "Aktualizácia firmvéru Boks - Chyba"
     }
   }
 }

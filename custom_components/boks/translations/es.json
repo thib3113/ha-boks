@@ -350,6 +350,22 @@
           "description": "Habilite o deshabilite el reconocimiento de etiquetas de La Poste."
         }
       }
+    },
+    "firmware_update": {
+      "no_firmware_downloaded": "No se descargó firmware para la instalación",
+      "notification_title": "Actualización de firmware de Boks",
+      "firmware_ready": "Se ha descargado la actualización de firmware {version}.\nUbicación del archivo: {file_path}\nURL de descarga: {download_url}\n\nIMPORTANTE: Póngase en contacto con el desarrollador para obtener más instrucciones sobre cómo aplicar esta actualización manualmente.\nNo intente flashear este archivo sin orientación específica.",
+      "manual_action_required": "Actualización de firmware de Boks - Acción manual requerida",
+      "firmware_ready_info": "La actualización de firmware {version} está lista en {file_path}",
+      "cannot_determine_revision": "No se pudo determinar la revisión interna del firmware para la actualización",
+      "no_firmware_mapping": "No se encontró asignación de firmware para la revisión {revision}",
+      "no_suitable_version": "No se encontró ninguna versión de firmware que cumpla con el requisito {version}",
+      "download_failed": "Error al descargar la versión de firmware {version}. Estado HTTP: {status}\nVerifique la URL del firmware o inténtelo de nuevo más tarde.",
+      "download_failed_title": "Actualización de firmware de Boks - Error de descarga",
+      "network_error": "Error de red durante la descarga de la versión de firmware {version}.\nError: {error}\nVerifique su conexión de red e inténtelo de nuevo.",
+      "network_error_title": "Actualización de firmware de Boks - Error de red",
+      "generic_error": "Error durante la descarga de la versión de firmware {version}.\nError: {error}\nInténtelo de nuevo o póngase en contacto con el soporte.",
+      "generic_error_title": "Actualización de firmware de Boks - Error"
     }
   }
 }

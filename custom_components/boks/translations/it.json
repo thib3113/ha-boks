@@ -350,6 +350,22 @@
           "description": "Abilita o disabilita il riconoscimento dei tag La Poste."
         }
       }
+    },
+    "firmware_update": {
+      "no_firmware_downloaded": "Nessun firmware scaricato per l'installazione",
+      "notification_title": "Aggiornamento firmware Boks",
+      "firmware_ready": "L'aggiornamento del firmware {version} è stato scaricato.\nPosizione file: {file_path}\nURL download: {download_url}\n\nIMPORTANTE: Contatta lo sviluppatore per ulteriori istruzioni su come applicare questo aggiornamento manualmente.\nNon tentare di flashare questo file senza indicazioni specifiche.",
+      "manual_action_required": "Aggiornamento firmware Boks - Azione manuale richiesta",
+      "firmware_ready_info": "L'aggiornamento del firmware {version} è pronto in {file_path}",
+      "cannot_determine_revision": "Impossibile determinare la revisione interna del firmware per l'aggiornamento",
+      "no_firmware_mapping": "Nessuna mappatura firmware trovata per la revisione {revision}",
+      "no_suitable_version": "Nessuna versione firmware trovata che soddisfi il requisito {version}",
+      "download_failed": "Download della versione firmware {version} fallito. Stato HTTP: {status}\nControlla l'URL del firmware o riprova più tardi.",
+      "download_failed_title": "Aggiornamento firmware Boks - Download fallito",
+      "network_error": "Errore di rete durante il download della versione firmware {version}.\nErrore: {error}\nControlla la tua connessione di rete e riprova.",
+      "network_error_title": "Aggiornamento firmware Boks - Errore di rete",
+      "generic_error": "Errore durante il download della versione firmware {version}.\nErrore: {error}\nRiprova o contatta il supporto.",
+      "generic_error_title": "Aggiornamento firmware Boks - Errore"
     }
   }
 }
