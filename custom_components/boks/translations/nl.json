@@ -67,6 +67,8 @@
       "delete_code_failed": "Kan code niet verwijderen (apparaat heeft fout geretourneerd)",
       "set_configuration_failed": "Kan configuratie {config_type} niet instellen (apparaat heeft fout geretourneerd)",
       "laposte_firmware_version_required": "Firmwareversie moet hoger zijn dan {required_version} om de La Poste-functie in te schakelen. Huidige versie: {current_version}",
+      "firmware_version_required": "Firmwareversie moet hoger zijn dan {required_version} om deze functie te gebruiken. Huidige versie: {current_version}",
+      "firmware_update_failed": "Kan firmware-update niet activeren voor versie {version}",
       "door_opened_recently": "De deur is onlangs geopend. Wacht {seconds} seconden voordat u opnieuw opent.",
       "opening_failed_no_code": "Openen mislukt: geen pincode opgegeven, geen mastercode opgeslagen en kan geen pincode voor eenmalig gebruik genereren.",
       "opening_failed_no_code_no_key": "Openen mislukt: geen pincode opgegeven, geen mastercode opgeslagen en kan geen pincode voor eenmalig gebruik genereren (geen configuratiesleutel beschikbaar)."
@@ -227,6 +229,21 @@
           "unknown": "Onbekende gebeurtenis"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Firmware-update",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Schakel La Poste-tagherkenning in of uit."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Geen firmware gedownload voor installatie",
-      "notification_title": "Boks firmware-update",
-      "firmware_ready": "Firmware-update {version} is gedownload.\nBestandslocatie: {file_path}\nDownload-URL: {download_url}\n\nBELANGRIJK: Neem contact op met de ontwikkelaar voor verdere instructies over het handmatig toepassen van deze update.\nProbeer dit bestand niet te flashen zonder specifieke begeleiding.",
-      "manual_action_required": "Boks firmware-update - Handmatige actie vereist",
-      "firmware_ready_info": "Firmware-update {version} is klaar op {file_path}",
-      "cannot_determine_revision": "Kan interne firmware-revisie niet bepalen voor update",
-      "no_firmware_mapping": "Geen firmware-toewijzing gevonden voor revisie {revision}",
-      "no_suitable_version": "Geen firmware-versie gevonden die voldoet aan vereiste {version}",
-      "download_failed": "Downloaden van firmware-versie {version} mislukt. HTTP-status: {status}\nControleer de firmware-URL of probeer het later opnieuw.",
-      "download_failed_title": "Boks firmware-update - Download mislukt",
-      "network_error": "Netwerkfout tijdens downloaden van firmware-versie {version}.\nFout: {error}\nControleer uw netwerkverbinding en probeer het opnieuw.",
-      "network_error_title": "Boks firmware-update - Netwerkfout",
-      "generic_error": "Fout tijdens downloaden van firmware-versie {version}.\nFout: {error}\nProbeer het opnieuw of neem contact op met ondersteuning.",
-      "generic_error_title": "Boks firmware-update - Fout"
     }
   }
 }

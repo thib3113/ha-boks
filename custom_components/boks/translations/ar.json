@@ -66,10 +66,13 @@
       "maintenance_already_running": "مهمة صيانة قيد التقدم بالفعل. يرجى الانتظار حتى تنتهي.",
       "delete_code_failed": "فشل في حذف الرمز (أرجع الجهاز خطأ)",
       "set_configuration_failed": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)",
-      "laposte_firmware_version_required": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}",
-      "door_opened_recently": "Door was opened recently. Please wait {seconds} seconds before opening again.",
-      "opening_failed_no_code": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN.",
-      "opening_failed_no_code_no_key": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available)."
+      "laposte_firmware_version_required": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لتمكين ميزة La Poste. النسخة الحالية: {current_version}",
+      "firmware_version_required": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لاستخدام هذه الميزة. النسخة الحالية: {current_version}",
+      "firmware_update_failed": "فشل في تشغيل تحديث البرنامج الثابت للإصدار {version}",
+      "door_opened_recently": "تم فتح الباب مؤخرًا. يرجى الانتظار {seconds} ثانية قبل الفتح مرة أخرى.",
+      "opening_failed_no_code": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد.",
+      "opening_failed_no_code_no_key": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد (لا يوجد مفتاح تكوين متوفر).",
+      "door_opened_recently": "تم فتح الباب مؤخرًا. يرجى الانتظار {seconds} ثانية قبل الفتح مرة أخرى."
     },
     "abort": {
       "already_configured": "تم تكوين Boks هذا بالفعل.",
@@ -148,7 +151,7 @@
       "battery_format": {
         "name": "تنسيق البطارية",
         "state": {
-          "measures-first-min-mean-max-last": "مفصل (أدنى / متوسط ​​/ أقصى)",
+          "measures-first-min-mean-max-last": "مفصل (أدنى / متوسط / أقصى)",
           "measures-t1-t5-t10": "مفصل (T1 / T5 / T10)",
           "measure-single": "بسيط",
           "unknown": "غير معروف",
@@ -226,6 +229,21 @@
           "nfc_tag_registering": "مسح تسجيل علامة NFC",
           "unknown": "حدث غير معروف"
         }
+      }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "تحديث البرنامج الثابت",
+        "no_firmware_downloaded": "لم يتم تنزيل البرنامج الثابت للتثبيت",
+        "notification_title": "تحديث البرنامج الثابت Boks",
+        "firmware_ready_message": "تم تنزيل تحديث البرنامج الثابت {version}.\nموقع الملف: {path}\nعنوان URL للتنزيل: {url}\n\nمهم: يرجى الاتصال بالمطور للحصول على إرشادات إضافية حول كيفية تطبيق هذا التحديث يدويًا.\nلا تحاول تفليش هذا الملف بدون إرشادات محددة.",
+        "manual_action_required_title": "تحديث البرنامج الثابت Boks - مطلوب إجراء يدوي",
+        "download_failed_message": "فشل تنزيل البرنامج الثابت الإصدار {version}. حالة HTTP: {status}\nيرجى التحقق من عنوان URL للبرنامج الثابت أو المحاولة لاحقًا.",
+        "download_failed_title": "تحديث البرنامج الثابت Boks - فشل التنزيل",
+        "network_error_message": "خطأ في الشبكة أثناء تنزيل البرنامج الثابت الإصدار {version}.\nخطأ: {error}\nيرجى التحقق من اتصال الشبكة والمحاولة مرة أخرى.",
+        "network_error_title": "تحديث البرنامج الثابت Boks - خطأ في الشبكة",
+        "generic_error_message": "خطأ أثناء تنزيل البرنامج الثابت الإصدار {version}.\nخطأ: {error}\nيرجى المحاولة مرة أخرى أو الاتصال بالدعم.",
+        "generic_error_title": "تحديث البرنامج الثابت Boks - خطأ"
       }
     }
   },

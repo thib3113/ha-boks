@@ -230,12 +230,20 @@
           "unknown": "Unknown event"
         }
       }
-    }
-  },
-  "entity": {
+    },
     "update": {
       "firmware_update": {
-        "name": "Firmware Update"
+        "name": "Firmware Update",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
       }
     }
   },
@@ -361,21 +369,5 @@
         }
       }
     }
-  },
-  "firmware_update": {
-    "no_firmware_downloaded": "No firmware downloaded for installation",
-    "notification_title": "Boks Firmware Update",
-    "firmware_ready": "Firmware update {version} has been downloaded.\nFile location: {file_path}\nDownload URL: {download_url}\n\nIMPORTANT: Please contact the developer for further instructions on how to apply this update manually.\nDo not attempt to flash this file without specific guidance.",
-    "manual_action_required": "Boks Firmware Update - Manual Action Required",
-    "firmware_ready_info": "Firmware update {version} is ready at {file_path}",
-    "cannot_determine_revision": "Could not determine internal firmware revision for update",
-    "no_firmware_mapping": "No firmware mapping found for revision {revision}",
-    "no_suitable_version": "No firmware version found that meets requirement {version}",
-    "download_failed": "Failed to download firmware version {version}. HTTP status: {status}\nPlease check the firmware URL or try again later.",
-    "download_failed_title": "Boks Firmware Update - Download Failed",
-    "network_error": "Network error during firmware download for version {version}.\nError: {error}\nPlease check your network connection and try again.",
-    "network_error_title": "Boks Firmware Update - Network Error",
-    "generic_error": "Error during firmware download for version {version}.\nError: {error}\nPlease try again or contact support.",
-    "generic_error_title": "Boks Firmware Update - Error"
   }
 }

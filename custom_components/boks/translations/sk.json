@@ -67,6 +67,8 @@
       "delete_code_failed": "Nepodarilo sa vymazať kód (zariadenie vrátilo chybu)",
       "set_configuration_failed": "Nepodarilo sa nastaviť konfiguráciu {config_type} (zariadenie vrátilo chybu)",
       "laposte_firmware_version_required": "Verzia firmvéru musí byť vyššia ako {required_version}, aby sa povolila funkcia La Poste. Aktuálna verzia: {current_version}",
+      "firmware_version_required": "Verzia firmvéru musí byť vyššia ako {required_version}, aby sa použila táto funkcia. Aktuálna verzia: {current_version}",
+      "firmware_update_failed": "Nepodarilo sa aktivovať aktualizáciu firmvéru pre verziu {version}",
       "door_opened_recently": "Dvere boli nedávno otvorené. Počkajte {seconds} sekúnd pred opätovným otvorením.",
       "opening_failed_no_code": "Otvorenie zlyhalo: Nebol poskytnutý žiadny PIN kód, nebol uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN.",
       "opening_failed_no_code_no_key": "Otvorenie zlyhalo: Nebol poskytnutý žiadny PIN kód, nebol uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN (nie je k dispozícii žiadny konfiguračný kľúč)."
@@ -227,6 +229,21 @@
           "unknown": "Neznáma udalosť"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Aktualizácia firmvéru",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Povoliť alebo zakázať rozpoznávanie tagov La Poste."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Nebol stiahnutý žiadny firmvér na inštaláciu",
-      "notification_title": "Aktualizácia firmvéru Boks",
-      "firmware_ready": "Aktualizácia firmvéru {version} bola stiahnutá.\nUmiestnenie súboru: {file_path}\nURL na stiahnutie: {download_url}\n\nDÔLEŽITÉ: Kontaktujte vývojára pre ďalšie pokyny, ako túto aktualizáciu použiť ručne.\nNepokúšajte sa flashovať tento súbor bez konkrétneho vedenia.",
-      "manual_action_required": "Aktualizácia firmvéru Boks - Vyžaduje sa ručná akcia",
-      "firmware_ready_info": "Aktualizácia firmvéru {version} je pripravená v {file_path}",
-      "cannot_determine_revision": "Nepodarilo sa určiť internú revíziu firmvéru pre aktualizáciu",
-      "no_firmware_mapping": "Pre revíziu {revision} sa nenašlo žiadne mapovanie firmvéru",
-      "no_suitable_version": "Nenašla sa žiadna verzia firmvéru, ktorá by spĺňala požiadavku {version}",
-      "download_failed": "Sťahovanie verzie firmvéru {version} zlyhalo. Stav HTTP: {status}\nSkontrolujte URL firmvéru alebo to skúste neskôr.",
-      "download_failed_title": "Aktualizácia firmvéru Boks - Sťahovanie zlyhalo",
-      "network_error": "Chyba siete pri sťahovaní verzie firmvéru {version}.\nChyba: {error}\nSkontrolujte sieťové pripojenie a skúste to znova.",
-      "network_error_title": "Aktualizácia firmvéru Boks - Chyba siete",
-      "generic_error": "Chyba pri sťahovaní verzie firmvéru {version}.\nChyba: {error}\nSkúste to znova alebo kontaktujte podporu.",
-      "generic_error_title": "Aktualizácia firmvéru Boks - Chyba"
     }
   }
 }

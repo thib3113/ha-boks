@@ -67,6 +67,8 @@
       "delete_code_failed": "Eliminazione codice fallita (il dispositivo ha restituito un errore)",
       "set_configuration_failed": "Impostazione configurazione {config_type} fallita (il dispositivo ha restituito un errore)",
       "laposte_firmware_version_required": "La versione del software deve essere superiore a {required_version} per abilitare la funzione La Poste. Versione corrente: {current_version}",
+      "firmware_version_required": "La versione del firmware deve essere superiore a {required_version} per utilizzare questa funzione. Versione corrente: {current_version}",
+      "firmware_update_failed": "Impossibile attivare l'aggiornamento del firmware per la versione {version}",
       "door_opened_recently": "La porta è stata aperta di recente. Attendi {seconds} secondi prima di aprirla di nuovo.",
       "opening_failed_no_code": "Apertura fallita: nessun codice PIN fornito, nessun codice Master memorizzato e impossibile generare un PIN monouso.",
       "opening_failed_no_code_no_key": "Apertura fallita: nessun codice PIN fornito, nessun codice Master memorizzato e impossibile generare un PIN monouso (nessuna chiave di configurazione disponibile)."
@@ -227,6 +229,21 @@
           "unknown": "Evento sconosciuto"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Aggiornamento firmware",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Abilita o disabilita il riconoscimento dei tag La Poste."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Nessun firmware scaricato per l'installazione",
-      "notification_title": "Aggiornamento firmware Boks",
-      "firmware_ready": "L'aggiornamento del firmware {version} è stato scaricato.\nPosizione file: {file_path}\nURL download: {download_url}\n\nIMPORTANTE: Contatta lo sviluppatore per ulteriori istruzioni su come applicare questo aggiornamento manualmente.\nNon tentare di flashare questo file senza indicazioni specifiche.",
-      "manual_action_required": "Aggiornamento firmware Boks - Azione manuale richiesta",
-      "firmware_ready_info": "L'aggiornamento del firmware {version} è pronto in {file_path}",
-      "cannot_determine_revision": "Impossibile determinare la revisione interna del firmware per l'aggiornamento",
-      "no_firmware_mapping": "Nessuna mappatura firmware trovata per la revisione {revision}",
-      "no_suitable_version": "Nessuna versione firmware trovata che soddisfi il requisito {version}",
-      "download_failed": "Download della versione firmware {version} fallito. Stato HTTP: {status}\nControlla l'URL del firmware o riprova più tardi.",
-      "download_failed_title": "Aggiornamento firmware Boks - Download fallito",
-      "network_error": "Errore di rete durante il download della versione firmware {version}.\nErrore: {error}\nControlla la tua connessione di rete e riprova.",
-      "network_error_title": "Aggiornamento firmware Boks - Errore di rete",
-      "generic_error": "Errore durante il download della versione firmware {version}.\nErrore: {error}\nRiprova o contatta il supporto.",
-      "generic_error_title": "Aggiornamento firmware Boks - Errore"
     }
   }
 }

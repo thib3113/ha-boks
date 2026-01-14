@@ -67,6 +67,8 @@
       "delete_code_failed": "A kód törlése sikertelen (az eszköz hibát jelzett)",
       "set_configuration_failed": "A konfiguráció {config_type} beállítása sikertelen (az eszköz hibát jelzett)",
       "laposte_firmware_version_required": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}",
+      "firmware_version_required": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a funkció használatához. Jelenlegi verzió: {current_version}",
+      "firmware_update_failed": "A firmware frissítés indítása sikertelen a(z) {version} verzióhoz",
       "door_opened_recently": "Az ajtót nemrég nyitották ki. Kérjük, várjon {seconds} másodpercet az újbóli nyitás előtt.",
       "opening_failed_no_code": "Nyitás sikertelen: Nincs megadva PIN kód, nincs tárolva mesterkód, és nem sikerült egyszer használatos PIN kódot generálni.",
       "opening_failed_no_code_no_key": "Nyitás sikertelen: Nincs megadva PIN kód, nincs tárolva mesterkód, és nem sikerült egyszer használatos PIN kódot generálni (Nincs elérhető konfigurációs kulcs)."
@@ -227,6 +229,21 @@
           "unknown": "Ismeretlen esemény"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Firmware frissítés",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "La Poste címke felismerés engedélyezése vagy letiltása."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Nincs firmware letöltve a telepítéshez",
-      "notification_title": "Boks firmware frissítés",
-      "firmware_ready": "A(z) {version} firmware frissítés letöltve.\nFájl helye: {file_path}\nLetöltési URL: {download_url}\n\nFONTOS: Vegye fel a kapcsolatot a fejlesztővel a frissítés manuális alkalmazásával kapcsolatos további utasításokért.\nNe próbálja meg flashelni ezt a fájlt konkrét útmutatás nélkül.",
-      "manual_action_required": "Boks firmware frissítés - Manuális beavatkozás szükséges",
-      "firmware_ready_info": "A(z) {version} firmware frissítés készen áll a(z) {file_path} helyen",
-      "cannot_determine_revision": "Nem sikerült meghatározni a belső firmware verziót a frissítéshez",
-      "no_firmware_mapping": "Nem található firmware leképezés a(z) {revision} verzióhoz",
-      "no_suitable_version": "Nem található firmware verzió, amely megfelel a(z) {version} követelménynek",
-      "download_failed": "A(z) {version} firmware verzió letöltése sikertelen. HTTP állapot: {status}\nEllenőrizze a firmware URL-t, vagy próbálja újra később.",
-      "download_failed_title": "Boks firmware frissítés - Letöltés sikertelen",
-      "network_error": "Hálózati hiba a(z) {version} firmware verzió letöltése közben.\nHiba: {error}\nEllenőrizze a hálózati kapcsolatot, és próbálja újra.",
-      "network_error_title": "Boks firmware frissítés - Hálózati hiba",
-      "generic_error": "Hiba történt a(z) {version} firmware verzió letöltése közben.\nHiba: {error}\nPróbálja újra, vagy vegye fel a kapcsolatot az ügyfélszolgálattal.",
-      "generic_error_title": "Boks firmware frissítés - Hiba"
     }
   }
 }

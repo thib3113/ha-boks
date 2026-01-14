@@ -32,6 +32,11 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Check translation files
+        run: |
+          python .github/scripts/check_translations.py
+        working-directory: ha_dev_env
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

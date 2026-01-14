@@ -67,6 +67,8 @@
       "delete_code_failed": "Échec de la suppression du code (lappareil a renvoyé une erreur)",
       "set_configuration_failed": "Échec de la configuration {config_type} (lappareil a renvoyé une erreur)",
       "laposte_firmware_version_required": "La version du micrologiciel doit être supérieure à {required_version} pour activer la fonctionnalité La Poste. Version actuelle : {current_version}",
+      "firmware_version_required": "La version du micrologiciel doit être supérieure à {required_version} pour utiliser cette fonctionnalité. Version actuelle : {current_version}",
+      "firmware_update_failed": "Échec du déclenchement de la mise à jour du micrologiciel pour la version {version}",
       "door_opened_recently": "La porte a été ouverte récemment. Veuillez patienter {seconds} secondes avant de rouvrir.",
       "opening_failed_no_code": "Échec de louverture : aucun code PIN fourni, aucun code maître stocké et impossible de générer un PIN à usage unique.",
       "opening_failed_no_code_no_key": "Échec de louverture : aucun code PIN fourni, aucun code maître stocké et impossible de générer un PIN à usage unique (aucune clé de configuration disponible)."
@@ -223,9 +225,24 @@
           "key_opening": "Ouverture par clé",
           "error": "Erreur",
           "nfc_opening": "Ouverture NFC",
-          "nfc_tag_registering": "Scan denregistrement de tag NFC",
+          "nfc_tag_registering": "Scan d'enregistrement de tag NFC",
           "unknown": "Événement inconnu"
         }
+      }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Mise à jour du firmware",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
       }
     }
   },

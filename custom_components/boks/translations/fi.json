@@ -67,6 +67,8 @@
       "delete_code_failed": "Koodin poistaminen epäonnistui (laite palautti virheen)",
       "set_configuration_failed": "Määrityksen {config_type} asettaminen epäonnistui (laite palautti virheen)",
       "laposte_firmware_version_required": "Laiteohjelmiston version on oltava suurempi kuin {required_version}, jotta La Poste -ominaisuus voidaan ottaa käyttöön. Nykyinen versio: {current_version}",
+      "firmware_version_required": "Laiteohjelmiston version on oltava suurempi kuin {required_version}, jotta tätä ominaisuutta voidaan käyttää. Nykyinen versio: {current_version}",
+      "firmware_update_failed": "Laiteohjelmistopäivityksen käynnistäminen versiolle {version} epäonnistui",
       "door_opened_recently": "Ovi avattiin äskettäin. Odota {seconds} sekuntia ennen kuin avaat uudelleen.",
       "opening_failed_no_code": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda.",
       "opening_failed_no_code_no_key": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda (määritysavainta ei saatavilla)."
@@ -227,6 +229,21 @@
           "unknown": "Tuntematon tapahtuma"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Laiteohjelmistopäivitys",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Ota La Poste -tunnisteen tunnistus käyttöön tai poista se käytöstä."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Laiteohjelmistoa ei ladattu asennusta varten",
-      "notification_title": "Boks-laiteohjelmiston päivitys",
-      "firmware_ready": "Laiteohjelmiston päivitys {version} on ladattu.\nTiedoston sijainti: {file_path}\nLataus-URL: {download_url}\n\nTÄRKEÄÄ: Ota yhteyttä kehittäjään saadaksesi lisäohjeita tämän päivityksen manuaaliseen käyttöön.\nÄlä yritä flashata tätä tiedostoa ilman tarkkoja ohjeita.",
-      "manual_action_required": "Boks-laiteohjelmiston päivitys - Manuaalinen toiminta vaaditaan",
-      "firmware_ready_info": "Laiteohjelmiston päivitys {version} on valmis kohteessa {file_path}",
-      "cannot_determine_revision": "Laiteohjelmiston sisäisen version määrittäminen päivitystä varten epäonnistui",
-      "no_firmware_mapping": "Laiteohjelmiston kartoitusta ei löytynyt versiolle {revision}",
-      "no_suitable_version": "Laiteohjelmistoversiota, joka täyttää vaatimuksen {version}, ei löytynyt",
-      "download_failed": "Laiteohjelmistoversion {version} lataaminen epäonnistui. HTTP-tila: {status}\nTarkista laiteohjelmiston URL-osoite tai yritä myöhemmin uudelleen.",
-      "download_failed_title": "Boks-laiteohjelmiston päivitys - Lataus epäonnistui",
-      "network_error": "Verkkovirhe ladattaessa laiteohjelmistoversiota {version}.\nVirhe: {error}\nTarkista verkkoyhteytesi ja yritä uudelleen.",
-      "network_error_title": "Boks-laiteohjelmiston päivitys - Verkkovirhe",
-      "generic_error": "Virhe ladattaessa laiteohjelmistoversiota {version}.\nVirhe: {error}\nYritä uudelleen tai ota yhteyttä tukeen.",
-      "generic_error_title": "Boks-laiteohjelmiston päivitys - Virhe"
     }
   }
 }

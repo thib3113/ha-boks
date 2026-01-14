@@ -12,7 +12,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.components import persistent_notification
-from homeassistant.helpers import translation
 
 from .const import DOMAIN, FIRMWARE_MAPPING
 from .entity import BoksEntity
@@ -50,30 +49,7 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
     async def async_added_to_hass(self) -> None:
         """Run when entity is added to hass."""
         await super().async_added_to_hass()
-        # Load translations
-        try:
-            self._translations = await translation.async_get_translations(
-                self.hass, self.hass.config.language, "firmware_update", {DOMAIN}
-            )
-        except Exception as e:
-            _LOGGER.warning(f"Failed to load firmware update translations: {e}")
-            self._translations = {}
 
-    def _(self, key: str, **kwargs) -> str:
-        """Get translated string."""
-        if not self._translations:
-            return key
-
-        translated = self._translations.get(f"component.{DOMAIN}.firmware_update.{key}", key)
-
-        # Format with placeholders if provided
-        if kwargs:
-            try:
-                translated = translated.format(**kwargs)
-            except (KeyError, ValueError):
-                pass
-
-        return translated
 
     @property
     def installed_version(self) -> str | None:
@@ -115,8 +91,8 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
             _LOGGER.error("No firmware downloaded for installation")
             persistent_notification.async_create(
                 self.hass,
-                self._("no_firmware_downloaded"),
-                self._("notification_title")
+                self.hass.localize("component.boks.entity.update.firmware_update.no_firmware_downloaded"),
+                self.hass.localize("component.boks.entity.update.firmware_update.notification_title")
             )
             return
 
@@ -141,13 +117,19 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
             pass
 
         # Notify user that firmware is ready with instructions
+        firmware_ready_message = self.hass.localize(
+            "component.boks.entity.update.firmware_update.firmware_ready_message",
+            version=self._target_version,
+            path=self._firmware_path,
+            url=accessible_url
+        )
         persistent_notification.async_create(
             self.hass,
-            self._("firmware_ready", version=self._target_version, file_path=self._firmware_path, download_url=accessible_url),
-            self._("manual_action_required")
+            firmware_ready_message,
+            self.hass.localize("component.boks.entity.update.firmware_update.manual_action_required_title")
         )
 
-        _LOGGER.info(self._("firmware_ready_info", version=self._target_version, file_path=self._firmware_path))
+        _LOGGER.info(f"Firmware update {self._target_version} is ready at {self._firmware_path}")
 
         # Reset update state
         self._update_available = False
@@ -169,12 +151,12 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
         internal_revision = self._get_internal_firmware_revision()
 
         if not internal_revision:
-            _LOGGER.error(self._("cannot_determine_revision"))
+            _LOGGER.error("Could not determine internal firmware revision for update")
             return False
 
         # Check if we have mapping for this revision
         if internal_revision not in FIRMWARE_MAPPING:
-            _LOGGER.error(self._("no_firmware_mapping", revision=internal_revision))
+            _LOGGER.error(f"No firmware mapping found for revision {internal_revision}")
             return False
 
         # Find a suitable version (for now, we'll use the highest available version)
@@ -186,7 +168,7 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
         # We want the lowest version that is >= required_version
         suitable_versions = [v for v in available_versions if self._is_version_higher_or_equal(v, required_version)]
         if not suitable_versions:
-            _LOGGER.error(self._("no_suitable_version", version=required_version))
+            _LOGGER.error(f"No firmware version found that meets requirement {required_version}")
             return False
 
         # Select the lowest suitable version (closest to required_version)
@@ -208,10 +190,15 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
                     shutil.rmtree(temp_dir, ignore_errors=True)
 
                     # Notify user about the download failure
+                    download_failed_message = self.hass.localize(
+                        "component.boks.entity.update.firmware_update.download_failed_message",
+                        version=target_version,
+                        status=response.status
+                    )
                     persistent_notification.async_create(
                         self.hass,
-                        self._("download_failed", version=target_version, status=response.status),
-                        self._("download_failed_title")
+                        download_failed_message,
+                        self.hass.localize("component.boks.entity.update.firmware_update.download_failed_title")
                     )
                     return False
 
@@ -249,10 +236,15 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
             shutil.rmtree(temp_dir, ignore_errors=True)
 
             # Notify user about the network error
+            network_error_message = self.hass.localize(
+                "component.boks.entity.update.firmware_update.network_error_message",
+                version=target_version,
+                error=str(e)
+            )
             persistent_notification.async_create(
                 self.hass,
-                self._("network_error", version=target_version, error=str(e)),
-                self._("network_error_title")
+                network_error_message,
+                self.hass.localize("component.boks.entity.update.firmware_update.network_error_title")
             )
             return False
         except Exception as e:
@@ -261,10 +253,15 @@ class BoksUpdateEntity(BoksEntity, UpdateEntity):
             shutil.rmtree(temp_dir, ignore_errors=True)
 
             # Notify user about the error
+            generic_error_message = self.hass.localize(
+                "component.boks.entity.update.firmware_update.generic_error_message",
+                version=target_version,
+                error=str(e)
+            )
             persistent_notification.async_create(
                 self.hass,
-                self._("generic_error", version=target_version, error=str(e)),
-                self._("generic_error_title")
+                generic_error_message,
+                self.hass.localize("component.boks.entity.update.firmware_update.generic_error_title")
             )
             return False
 

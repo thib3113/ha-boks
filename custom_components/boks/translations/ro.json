@@ -67,6 +67,8 @@
       "delete_code_failed": "Ștergerea codului a eșuat (dispozitivul a returnat eroare)",
       "set_configuration_failed": "Setarea configurației {config_type} a eșuat (dispozitivul a returnat eroare)",
       "laposte_firmware_version_required": "Versiunea firmware-ului trebuie să fie mai mare de {required_version} pentru a activa funcția La Poste. Versiunea curentă: {current_version}",
+      "firmware_version_required": "Versiunea firmware-ului trebuie să fie mai mare de {required_version} pentru a folosi această funcție. Versiunea curentă: {current_version}",
+      "firmware_update_failed": "Nu s-a putut activa actualizarea firmware-ului pentru versiunea {version}",
       "door_opened_recently": "Ușa a fost deschisă recent. Vă rugăm să așteptați {seconds} secunde înainte de a deschide din nou.",
       "opening_failed_no_code": "Deschidere eșuată: Niciun cod PIN furnizat, niciun cod Master stocat și nu s-a putut genera un PIN de unică folosință.",
       "opening_failed_no_code_no_key": "Deschidere eșuată: Niciun cod PIN furnizat, niciun cod Master stocat și nu s-a putut genera un PIN de unică folosință (Nicio cheie de configurare disponibilă)."
@@ -227,6 +229,21 @@
           "unknown": "Eveniment necunoscut"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Actualizare firmware",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Activează sau dezactivează recunoașterea etichetelor La Poste."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Niciun firmware descărcat pentru instalare",
-      "notification_title": "Actualizare firmware Boks",
-      "firmware_ready": "Actualizarea firmware {version} a fost descărcată.\nLocația fișierului: {file_path}\nURL descărcare: {download_url}\n\nIMPORTANT: Contactați dezvoltatorul pentru instrucțiuni suplimentare despre cum să aplicați manual această actualizare.\nNu încercați să flash-uiți acest fișier fără îndrumare specifică.",
-      "manual_action_required": "Actualizare firmware Boks - Acțiune manuală necesară",
-      "firmware_ready_info": "Actualizarea firmware {version} este gata în {file_path}",
-      "cannot_determine_revision": "Nu se poate determina revizia internă a firmware-ului pentru actualizare",
-      "no_firmware_mapping": "Nu s-a găsit mapare firmware pentru revizia {revision}",
-      "no_suitable_version": "Nu s-a găsit nicio versiune firmware care să îndeplinească cerința {version}",
-      "download_failed": "Descărcarea versiunii firmware {version} a eșuat. Stare HTTP: {status}\nVerificați URL-ul firmware-ului sau încercați din nou mai târziu.",
-      "download_failed_title": "Actualizare firmware Boks - Descărcare eșuată",
-      "network_error": "Eroare de rețea în timpul descărcării versiunii firmware {version}.\nEroare: {error}\nVerificați conexiunea la rețea și încercați din nou.",
-      "network_error_title": "Actualizare firmware Boks - Eroare de rețea",
-      "generic_error": "Eroare în timpul descărcării versiunii firmware {version}.\nEroare: {error}\nÎncercați din nou sau contactați asistența.",
-      "generic_error_title": "Actualizare firmware Boks - Eroare"
     }
   }
 }

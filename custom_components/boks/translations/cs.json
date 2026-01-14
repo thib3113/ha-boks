@@ -66,10 +66,12 @@
       "maintenance_already_running": "Úloha údržby již probíhá. Počkejte prosím na její dokončení.",
       "delete_code_failed": "Nepodařilo se smazat kód (zařízení vrátilo chybu)",
       "set_configuration_failed": "Nepodařilo se nastavit konfiguraci {config_type} (zařízení vrátilo chybu)",
-      "laposte_firmware_version_required": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}",
-      "door_opened_recently": "Door was opened recently. Please wait {seconds} seconds before opening again.",
-      "opening_failed_no_code": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN.",
-      "opening_failed_no_code_no_key": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available)."
+      "laposte_firmware_version_required": "Verze firmwaru musí být vyšší než {required_version}, aby bylo možné povolit funkci La Poste. Aktuální verze: {current_version}",
+      "firmware_version_required": "Verze firmwaru musí být vyšší než {required_version}, aby bylo možné použít tuto funkci. Aktuální verze: {current_version}",
+      "firmware_update_failed": "Nepodařilo se spustit aktualizaci firmwaru pro verzi {version}",
+      "door_opened_recently": "Dveře byly nedávno otevřeny. Před dalším otevřením prosím počkejte {seconds} sekund.",
+      "opening_failed_no_code": "Otevření se nezdařilo: Nebyl zadán žádný PIN kód, není uložen žádný hlavní kód a nepodařilo se vygenerovat jednorázový PIN.",
+      "opening_failed_no_code_no_key": "Otevření se nezdařilo: Nebyl zadán žádný PIN kód, není uložen žádný hlavní kód a nepodařilo se vygenerovat jednorázový PIN (není k dispozici konfigurační klíč)."
     },
     "abort": {
       "already_configured": "Tento Boks je již nakonfigurován.",
@@ -227,6 +229,21 @@
           "unknown": "Neznámá událost"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Aktualizace firmwaru",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Povolit nebo zakázat rozpoznávání tagů La Poste."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Nebyl stažen žádný firmware pro instalaci",
-      "notification_title": "Aktualizace firmwaru Boks",
-      "firmware_ready": "Aktualizace firmwaru {version} byla stažena.\nUmístění souboru: {file_path}\nURL ke stažení: {download_url}\n\nDŮLEŽITÉ: Kontaktujte vývojáře pro další pokyny, jak tuto aktualizaci použít ručně.\nNepokoušejte se flashovat tento soubor bez konkrétního vedení.",
-      "manual_action_required": "Aktualizace firmwaru Boks - Vyžadována ruční akce",
-      "firmware_ready_info": "Aktualizace firmwaru {version} je připravena v {file_path}",
-      "cannot_determine_revision": "Nelze určit interní revizi firmwaru pro aktualizaci",
-      "no_firmware_mapping": "Pro revizi {revision} nebylo nalezeno žádné mapování firmwaru",
-      "no_suitable_version": "Nebyla nalezena žádná verze firmwaru, která by splňovala požadavek {version}",
-      "download_failed": "Stažení verze firmwaru {version} se nezdařilo. Stav HTTP: {status}\nZkontrolujte URL firmwaru nebo to zkuste později.",
-      "download_failed_title": "Aktualizace firmwaru Boks - Stažení se nezdařilo",
-      "network_error": "Chyba sítě při stahování verze firmwaru {version}.\nChyba: {error}\nZkontrolujte připojení k síti a zkuste to znovu.",
-      "network_error_title": "Aktualizace firmwaru Boks - Chyba sítě",
-      "generic_error": "Chyba při stahování verze firmwaru {version}.\nChyba: {error}\nZkuste to znovu nebo kontaktujte podporu.",
-      "generic_error_title": "Aktualizace firmwaru Boks - Chyba"
     }
   }
 }

@@ -66,10 +66,12 @@
       "maintenance_already_running": "Eine Wartungsaufgabe wird bereits ausgeführt. Bitte warten Sie, bis sie abgeschlossen ist.",
       "delete_code_failed": "Code konnte nicht gelöscht werden (Gerät hat Fehler zurückgegeben).",
       "set_configuration_failed": "Konfiguration {config_type} konnte nicht festgelegt werden (Gerät hat Fehler zurückgegeben).",
-      "laposte_firmware_version_required": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}",
-      "door_opened_recently": "Door was opened recently. Please wait {seconds} seconds before opening again.",
-      "opening_failed_no_code": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN.",
-      "opening_failed_no_code_no_key": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available)."
+      "laposte_firmware_version_required": "Die Firmware-Version muss größer als {required_version} sein, um die La Poste-Funktion zu aktivieren. Aktuelle Version: {current_version}",
+      "firmware_version_required": "Die Firmware-Version muss größer als {required_version} sein, um diese Funktion zu verwenden. Aktuelle Version: {current_version}",
+      "firmware_update_failed": "Firmware-Update für Version {version} konnte nicht ausgelöst werden",
+      "door_opened_recently": "Die Tür wurde kürzlich geöffnet. Bitte warten Sie {seconds} Sekunden, bevor Sie sie erneut öffnen.",
+      "opening_failed_no_code": "Öffnung fehlgeschlagen: Kein PIN-Code angegeben, kein Master-Code gespeichert und es konnte kein Einmal-PIN generiert werden.",
+      "opening_failed_no_code_no_key": "Öffnung fehlgeschlagen: Kein PIN-Code angegeben, kein Master-Code gespeichert und es konnte kein Einmal-PIN generiert werden (Kein Konfigurationsschlüssel verfügbar)."
     },
     "abort": {
       "already_configured": "Diese Boks ist bereits konfiguriert.",
@@ -227,6 +229,21 @@
           "unknown": "Unbekanntes Ereignis"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Firmware-Update",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Aktivieren oder deaktivieren Sie die Erkennung von La Poste-Tags."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Keine Firmware zum Installieren heruntergeladen",
-      "notification_title": "Boks Firmware-Update",
-      "firmware_ready": "Firmware-Update {version} wurde heruntergeladen.\nDateipfad: {file_path}\nDownload-URL: {download_url}\n\nWICHTIG: Bitte kontaktieren Sie den Entwickler für weitere Anweisungen zur manuellen Installation dieses Updates.\nVersuchen Sie nicht, diese Datei ohne spezifische Anleitung zu flashen.",
-      "manual_action_required": "Boks Firmware-Update - Manuelle Aktion erforderlich",
-      "firmware_ready_info": "Firmware-Update {version} ist bereit unter {file_path}",
-      "cannot_determine_revision": "Interne Firmware-Revision für Update konnte nicht bestimmt werden",
-      "no_firmware_mapping": "Kein Firmware-Mapping für Revision {revision} gefunden",
-      "no_suitable_version": "Keine Firmware-Version gefunden, die die Anforderung {version} erfüllt",
-      "download_failed": "Fehler beim Herunterladen der Firmware-Version {version}. HTTP-Status: {status}\nBitte überprüfen Sie die Firmware-URL oder versuchen Sie es später erneut.",
-      "download_failed_title": "Boks Firmware-Update - Download fehlgeschlagen",
-      "network_error": "Netzwerkfehler beim Herunterladen der Firmware-Version {version}.\nFehler: {error}\nBitte überprüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut.",
-      "network_error_title": "Boks Firmware-Update - Netzwerkfehler",
-      "generic_error": "Fehler beim Herunterladen der Firmware-Version {version}.\nFehler: {error}\nBitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
-      "generic_error_title": "Boks Firmware-Update - Fehler"
     }
   }
 }

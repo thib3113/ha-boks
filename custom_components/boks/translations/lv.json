@@ -67,6 +67,8 @@
       "delete_code_failed": "Neizdevās izdzēst kodu (ierīce atgrieza kļūdu)",
       "set_configuration_failed": "Neizdevās iestatīt konfigurāciju {config_type} (ierīce atgrieza kļūdu)",
       "laposte_firmware_version_required": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai iespējotu La Poste funkciju. Pašreizējā versija: {current_version}",
+      "firmware_version_required": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai izmantotu šo funkciju. Pašreizējā versija: {current_version}",
+      "firmware_update_failed": "Neizdevās aktivizēt programmaparatūras atjauninājumu versijai {version}",
       "door_opened_recently": "Durvis nesen tika atvērtas. Lūdzu, uzgaidiet {seconds} sekundes pirms atkārtotas atvēršanas.",
       "opening_failed_no_code": "Atvēršana neizdevās: nav norādīts PIN kods, nav saglabāts galvenais kods, un nevarēja ģenerēt vienreizējās lietošanas PIN.",
       "opening_failed_no_code_no_key": "Atvēršana neizdevās: nav norādīts PIN kods, nav saglabāts galvenais kods, un nevarēja ģenerēt vienreizējās lietošanas PIN (nav pieejama konfigurācijas atslēga)."
@@ -227,6 +229,21 @@
           "unknown": "Nezināms notikums"
         }
       }
+    },
+    "update": {
+      "firmware_update": {
+        "name": "Programmaparatūras atjauninājums",
+        "no_firmware_downloaded": "No firmware downloaded for installation",
+        "notification_title": "Boks Firmware Update",
+        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
+        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
+        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
+        "download_failed_title": "Boks Firmware Update - Download Failed",
+        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
+        "network_error_title": "Boks Firmware Update - Network Error",
+        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
+        "generic_error_title": "Boks Firmware Update - Error"
+      }
     }
   },
   "services": {
@@ -350,22 +367,6 @@
           "description": "Iespējot vai atspējot La Poste tagu atpazīšanu."
         }
       }
-    },
-    "firmware_update": {
-      "no_firmware_downloaded": "Nav lejupielādēta programmaparatūra instalēšanai",
-      "notification_title": "Boks programmaparatūras atjauninājums",
-      "firmware_ready": "Programmaparatūras atjauninājums {version} ir lejupielādēts.\nFaila atrašanās vieta: {file_path}\nLejupielādes URL: {download_url}\n\nSVARĪGI: Sazinieties ar izstrādātāju, lai iegūtu papildu norādījumus par šī atjauninājuma manuālu lietošanu.\nNemēģiniet uzstādīt šo failu bez konkrētām norādēm.",
-      "manual_action_required": "Boks programmaparatūras atjauninājums - Nepieciešama manuāla darbība",
-      "firmware_ready_info": "Programmaparatūras atjauninājums {version} ir gatavs vietnē {file_path}",
-      "cannot_determine_revision": "Nevar noteikt iekšējo programmaparatūras versiju atjauninājumam",
-      "no_firmware_mapping": "Nav atrasta programmaparatūras kartēšana versijai {revision}",
-      "no_suitable_version": "Nav atrasta programmaparatūras versija, kas atbilstu prasībai {version}",
-      "download_failed": "Neizdevās lejupielādēt programmaparatūras versiju {version}. HTTP statuss: {status}\nPārbaudiet programmaparatūras URL vai mēģiniet vēlreiz vēlāk.",
-      "download_failed_title": "Boks programmaparatūras atjauninājums - Lejupielāde neizdevās",
-      "network_error": "Tīkla kļūda, lejupielādējot programmaparatūras versiju {version}.\nKļūda: {error}\nPārbaudiet tīkla savienojumu un mēģiniet vēlreiz.",
-      "network_error_title": "Boks programmaparatūras atjauninājums - Tīkla kļūda",
-      "generic_error": "Kļūda, lejupielādējot programmaparatūras versiju {version}.\nKļūda: {error}\nMēģiniet vēlreiz vai sazinieties ar atbalstu.",
-      "generic_error_title": "Boks programmaparatūras atjauninājums - Kļūda"
     }
   }
 }
