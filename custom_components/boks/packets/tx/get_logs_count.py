@@ -1,6 +1,7 @@
 """TX Packet: Get Logs Count."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
+from ..base import BoksTXPacket
+
 
 class GetLogsCountPacket(BoksTXPacket):
     """Simple command to request the number of available logs."""

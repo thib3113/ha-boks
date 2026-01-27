@@ -2,21 +2,20 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
-from homeassistant.const import CONF_ADDRESS, CONF_NAME
-from homeassistant.data_entry_flow import FlowResult
-from homeassistant.core import callback
 from homeassistant.components import bluetooth
+from homeassistant.const import CONF_ADDRESS, CONF_NAME
+from homeassistant.core import callback
+from homeassistant.data_entry_flow import FlowResult
 
 from ..const import (
-    DOMAIN, 
-    CONF_CONFIG_KEY, 
-    CONF_MASTER_CODE, 
-    BOKS_CHAR_MAP, 
-    CONF_MASTER_KEY, 
-    DEFAULT_SCAN_INTERVAL, 
-    DEFAULT_FULL_REFRESH_INTERVAL
+    BOKS_CHAR_MAP,
+    CONF_CONFIG_KEY,
+    CONF_MASTER_CODE,
+    CONF_MASTER_KEY,
+    DEFAULT_FULL_REFRESH_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
 )
 from .options import BoksOptionsFlowHandler
 
@@ -68,7 +67,7 @@ class BoksConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             raw_addr = user_input[CONF_ADDRESS]
             # Remove all non-alphanumeric characters
             clean_addr = "".join(c for c in raw_addr if c.isalnum()).upper()
-            
+
             if len(clean_addr) == 12:
                 # Reformat to XX:XX:XX:XX:XX:XX
                 address = ":".join(clean_addr[i:i+2] for i in range(0, 12, 2))

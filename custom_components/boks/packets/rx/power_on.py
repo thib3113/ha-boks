@@ -1,6 +1,7 @@
 """RX Packet: Power On."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class PowerOnPacket(BoksHistoryLogPacket):
     """Log entry for power on event."""

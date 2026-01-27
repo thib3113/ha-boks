@@ -1,6 +1,7 @@
 """TX Packet: Request Logs."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
+from ..base import BoksTXPacket
+
 
 class RequestLogsPacket(BoksTXPacket):
     """Simple command to request the log history."""

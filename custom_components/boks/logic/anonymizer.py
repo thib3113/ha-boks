@@ -1,5 +1,4 @@
 """Anonymization utilities for Boks."""
-from typing import Optional
 
 from ..ble.const import BoksCommandOpcode, BoksHistoryEvent, BoksNotificationOpcode
 from ..ble.protocol import BoksProtocol
@@ -15,7 +14,7 @@ class BoksAnonymizer:
     """Helper class to anonymize sensitive data in packets and strings."""
 
     @staticmethod
-    def anonymize_uid(uid: Optional[str], anonymize: bool = True) -> Optional[str]:
+    def anonymize_uid(uid: str | None, anonymize: bool = True) -> str | None:
         """Mask an NFC UID (e.g. 5A3EDAE0 -> 5A...E0) for display if anonymize is True."""
         if not uid or not anonymize:
             return uid or "None" if not uid else uid
@@ -25,21 +24,21 @@ class BoksAnonymizer:
         return f"{uid[:2]}...{uid[-2:]}"
 
     @staticmethod
-    def anonymize_pin(pin: Optional[str], anonymize: bool = True) -> Optional[str]:
+    def anonymize_pin(pin: str | None, anonymize: bool = True) -> str | None:
         """Mask a 6-character PIN if anonymize is True."""
         if not pin or not anonymize:
             return pin
         return FAKE_PIN_STR
 
     @staticmethod
-    def anonymize_key(key: Optional[str], anonymize: bool = True) -> Optional[str]:
+    def anonymize_key(key: str | None, anonymize: bool = True) -> str | None:
         """Mask an 8-character Config Key if anonymize is True."""
         if not key or not anonymize:
             return key
         return FAKE_KEY_STR
 
     @staticmethod
-    def anonymize_packet(data: Optional[bytearray], anonymize: bool = True) -> Optional[bytearray]:
+    def anonymize_packet(data: bytearray | None, anonymize: bool = True) -> bytearray | None:
         """
         Create a version of the packet with sensitive data replaced by placeholders.
         Only performs anonymization if anonymize is True.
@@ -99,9 +98,9 @@ class BoksAnonymizer:
         """Anonymize commands starting with an 8-byte ConfigKey."""
         if length < 8:
             return False
-            
+
         faked[2:10] = FAKE_KEY_BYTES
-        
+
         # Dispatch to specific sub-anonymizers
         if opcode in (BoksCommandOpcode.CREATE_MASTER_CODE, BoksCommandOpcode.CREATE_SINGLE_USE_CODE, BoksCommandOpcode.CREATE_MULTI_USE_CODE):
             BoksAnonymizer._mask_pin_at_offset(faked, length, 10)
@@ -109,7 +108,7 @@ class BoksAnonymizer:
             BoksAnonymizer._mask_pin_at_offset(faked, length, 11)
         elif opcode in (BoksCommandOpcode.REGISTER_NFC_TAG, BoksCommandOpcode.UNREGISTER_NFC_TAG):
             BoksAnonymizer._mask_uid_at_offset(faked, length, 10)
-            
+
         return True
 
     @staticmethod
@@ -153,13 +152,13 @@ class BoksAnonymizer:
         return False
 
     @staticmethod
-    def get_packet_log_info(data: Optional[bytearray], anonymize: bool = True) -> dict[str, str]:
+    def get_packet_log_info(data: bytearray | None, anonymize: bool = True) -> dict[str, str]:
         """Get formatted hex strings and suffix for logging a packet."""
         if data is None:
             return {"payload": "", "raw": "None", "suffix": ""}
-            
+
         faked_data = BoksAnonymizer.anonymize_packet(data, anonymize)
-        
+
         return {
             "payload": faked_data[2:-1].hex() if len(faked_data) > 3 else "",
             "raw": faked_data.hex(),

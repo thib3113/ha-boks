@@ -1,6 +1,7 @@
 """TX Packet: Reboot."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
+from ..base import BoksTXPacket
+
 
 class RebootPacket(BoksTXPacket):
     """Command to trigger a software reboot."""

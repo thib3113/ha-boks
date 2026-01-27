@@ -2,8 +2,8 @@
 
 import asyncio
 import logging
-from datetime import timedelta, datetime
-from typing import Callable, List
+from collections.abc import Callable
+from datetime import datetime, timedelta
 
 from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
@@ -20,12 +20,18 @@ from homeassistant.util import dt as dt_util
 from packaging import version
 
 from .ble import BoksBluetoothDevice
-from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, \
-    TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS  # Import DOMAIN and defaults
+from .const import (
+    CONF_ANONYMIZE_LOGS,
+    CONF_CONFIG_KEY,
+    DEFAULT_FULL_REFRESH_INTERVAL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    TIMEOUT_BLE_CONNECTION,  # Import DOMAIN and defaults
+)
 from .errors import BoksError
 from .logic.log_processor import BoksLogProcessor
 from .packets.base import BoksRXPacket
-from .util import process_device_info, is_firmware_version_greater_than
+from .util import is_firmware_version_greater_than, process_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -115,7 +121,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             "running": running,
             "current_index": current_index,
             "total_to_clean": total_to_clean,
-            "progress": int((current_index / total_to_clean * 100)) if total_to_clean > 0 else 0,
+            "progress": int(current_index / total_to_clean * 100) if total_to_clean > 0 else 0,
             "last_cleaned": current_index - 1 if current_index > 0 else 0,
             "message": message
         }
@@ -148,7 +154,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
         self.async_set_updated_data(self.data)
 
-    async def _process_pushed_logs(self, logs_raw: List[dict]):
+    async def _process_pushed_logs(self, logs_raw: list[dict]):
         """Process logs that were pushed via status update."""
         if not logs_raw:
             return
@@ -206,7 +212,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             log_count = await self.ble_device.get_logs_count()
             if log_count > 0:
                 _LOGGER.info("Found %d logs. Downloading...", log_count)
-                logs_from_device: List[dict] = await self.ble_device.get_logs(log_count)
+                logs_from_device: list[dict] = await self.ble_device.get_logs(log_count)
                 _LOGGER.debug("Raw logs response from device: %s", logs_from_device)
 
                 if logs_from_device:
@@ -338,7 +344,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         _LOGGER.debug("Code counts fetched: %s", counts)
                     except BoksError as e:
                         _LOGGER.warning("Could not fetch code counts: %s", e)
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         _LOGGER.warning("Timeout while fetching code counts")
 
                     # 4. Get Device Information
@@ -399,7 +405,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     # This will decrement the reference counter
                     await asyncio.shield(self.ble_device.disconnect())
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.error("Timeout during Boks BLE data update")
             raise UpdateFailed("Timeout during Boks BLE data update")
 

@@ -1,7 +1,8 @@
 """TX Packet: Delete Master Code."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class DeleteMasterCodePacket(BoksTXPacket):
     """Command to delete a permanent master code by its index."""

@@ -1,6 +1,7 @@
 """RX Packet: NFC Tag Registered."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class NfcTagRegisteredPacket(BoksRXPacket):
     """Notification confirming an NFC tag registration."""

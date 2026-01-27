@@ -1,6 +1,7 @@
 """TX Packet: Test Battery."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
+from ..base import BoksTXPacket
+
 
 class TestBatteryPacket(BoksTXPacket):
     """Command to trigger a battery test."""

@@ -1,7 +1,8 @@
 """RX Packet: Invalid BLE Code."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksHistoryLogPacket
+
 
 class CodeBleInvalidPacket(BoksHistoryLogPacket):
     """Log entry for an invalid BLE code attempt."""

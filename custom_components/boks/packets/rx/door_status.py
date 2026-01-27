@@ -1,6 +1,7 @@
 """RX Packet: Door Status."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class DoorStatusPacket(BoksRXPacket):
     """Notification for current door status (Open/Closed)."""
@@ -11,7 +12,7 @@ class DoorStatusPacket(BoksRXPacket):
         """Initialize and parse status."""
         # Opcode can be NOTIFY_DOOR_STATUS (0x84) or ANSWER_DOOR_STATUS (0x85)
         super().__init__(opcode, raw_data)
-        
+
         # Payload: [InvertedStatus][LiveStatus]
         self.is_open = False
         if len(self.payload) >= 2:

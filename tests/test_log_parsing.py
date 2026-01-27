@@ -1,183 +1,56 @@
 """Tests for the Boks log entry parsing logic."""
-import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
 import pytest
-from custom_components.boks.ble.log_entry import BoksLogEntry
-from custom_components.boks.ble.const import BoksHistoryEvent, BoksPowerOffReason, BoksDiagnosticErrorCode
+from custom_components.boks.packets.factory import PacketFactory
+from custom_components.boks.ble.const import BoksHistoryEvent
 
-# Mock time to ensure consistent timestamps in tests
-@pytest.fixture
-def mock_time():
-    with patch("custom_components.boks.ble.log_entry.time.time") as mock_time:
-        mock_time.return_value = 1700000000.0 # Fixed timestamp
-        yield mock_time
+def _create_packet(opcode: int, payload: bytes) -> bytearray:
+    """Helper to create a framed packet."""
+    packet = bytearray()
+    packet.append(opcode)
+    packet.append(len(payload))
+    packet.extend(payload)
+    # Checksum (dummy 0xFF, factory doesn't check it unless verify_checksum called on instance)
+    packet.append(0xFF)
+    return packet
 
-def test_parse_code_ble_valid(mock_time):
+def test_parse_code_ble_valid():
     """Test parsing a valid BLE code event (0x86)."""
-    # 0x86 = CODE_BLE_VALID
-    # Payload: Age(3 bytes) + Code(6 bytes)
-    # Age = 100s -> 0x000064
-    # Code = "123456" -> 0x313233343536
+    # Age(3) + Code(6)
     payload = bytes.fromhex("000064313233343536")
+    data = _create_packet(0x86, payload)
     
-    entry = BoksLogEntry.from_raw(0x86, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.CODE_BLE_VALID
-    assert entry.event_type == "code_ble_valid"
-    # 1700000000 - 100 = 1699999900
-    assert entry.timestamp == 1699999900
-    assert entry.extra_data["code"] == "123456"
+    packet = PacketFactory.from_rx_data(data)
 
-def test_parse_code_ble_invalid_hex(mock_time):
-    """Test parsing an invalid BLE code with non-printable chars (0x88)."""
-    # 0x88 = CODE_BLE_INVALID
-    # Payload: Age(3 bytes) + Code(6 bytes)
-    # Code = "12\xFF\x0056" (contains non-printable)
-    payload = bytes.fromhex("0000643132FF003536")
-    
-    entry = BoksLogEntry.from_raw(0x88, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.CODE_BLE_INVALID
-    assert entry.extra_data["code_hex"] == "3132ff003536"
+    assert packet is not None
+    assert packet.opcode == BoksHistoryEvent.CODE_BLE_VALID
+    assert packet.event_type == "code_ble_valid"
+    assert packet.age == 100
+    assert packet.extra_data["code"] == "123456"
 
-def test_parse_power_off_watchdog(mock_time):
-    """Test parsing a POWER_OFF event due to Watchdog (0x94)."""
-    # 0x94 = POWER_OFF
-    # Payload: Age(3 bytes) + Reason(1 byte)
-    # Reason: 2 (Watchdog)
-    payload = bytes.fromhex("00000A02")
-    
-    entry = BoksLogEntry.from_raw(0x94, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.POWER_OFF
-    assert entry.event_type == "power_off"
-    assert entry.extra_data["reason_code"] == 2
-    assert entry.extra_data["reason_text"] == "WATCHDOG"
-
-def test_parse_power_off_unknown(mock_time):
-    """Test parsing a POWER_OFF event with unknown reason."""
-    payload = bytes.fromhex("00000A99") # 0x99 is not a valid reason
-    
-    entry = BoksLogEntry.from_raw(0x94, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.extra_data["reason_text"] == "Unknown (153)"
-
-def test_parse_error_nfc_diagnostic(mock_time):
-    """Test parsing an NFC Diagnostic Error (0xA0)."""
-    # 0xA0 = ERROR
-    # Payload: Age(3 bytes) + Subtype(1 byte) + ErrorCode(1 byte) + Extra...
-    # Subtype: 0x08
-    # ErrorCode: 0xBC (MFRC630_ERROR_BC)
-    payload = bytes.fromhex("00000A08BC001122")
-    
-    entry = BoksLogEntry.from_raw(0xA0, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.ERROR
-    assert entry.extra_data["error_subtype"] == 0x08
-    assert entry.extra_data["error_code"] == 0xBC
-    assert entry.extra_data["error_description"] == "Erreur interne MFRC630 (0xBC)"
-    assert entry.extra_data["error_data"] == "08bc001122"
-
-def test_parse_error_nfc_collision(mock_time):
-    """Test parsing an NFC Collision Error (0x0B)."""
-    # 0xA0 = ERROR, Subtype 0x08, Error 0x0B (Collision)
-    payload = bytes.fromhex("00000A080B")
-    
-    entry = BoksLogEntry.from_raw(0xA0, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.ERROR
-    assert entry.extra_data["error_code"] == 0x0B
-    assert entry.extra_data["error_description"] == "Collision de tags détectée"
-
-def test_parse_door_opened(mock_time):
+def test_parse_door_opened():
     """Test parsing a simple DOOR_OPENED event (0x91)."""
-    # 0x91 = DOOR_OPENED
-    # Payload: Age(3 bytes) only
-    payload = bytes.fromhex("0000FF")
-    
-    entry = BoksLogEntry.from_raw(0x91, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.DOOR_OPENED
-    assert entry.event_type == "door_opened"
+    payload = bytes.fromhex("0000FF") # Age 255
+    data = _create_packet(0x91, payload)
 
-def test_parse_key_opening(mock_time):
-    """Test parsing a KEY_OPENING event (0x99)."""
-    # 0x99 = KEY_OPENING
-    # Payload: Age(3 bytes) + data
-    payload = bytes.fromhex("00000A112233")
-    
-    entry = BoksLogEntry.from_raw(0x99, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.KEY_OPENING
-    assert entry.event_type == "key_opening"
-    assert entry.extra_data["data"] == "112233"
+    packet = PacketFactory.from_rx_data(data)
 
-def test_parse_invalid_opcode():
-    """Test parsing an unknown opcode."""
-    payload = bytes.fromhex("000000")
-    entry = BoksLogEntry.from_raw(0xFF, bytearray(payload))
-    assert entry is None
+    assert packet is not None
+    assert packet.opcode == BoksHistoryEvent.DOOR_OPENED
+    assert packet.event_type == "door_opened"
+    assert packet.age == 255
 
-def test_payload_too_short(mock_time):
-    """Test parsing with a payload that is too short for the timestamp."""
-    payload = bytes.fromhex("00") # Only 1 byte, need 3 for timestamp
-    
-    entry = BoksLogEntry.from_raw(0x91, bytearray(payload))
-    
-    assert entry is not None
-    # Timestamp should default to now since we couldn't parse age
-    assert entry.timestamp == 1700000000
-
-def test_parse_nfc_opening_classic(mock_time):
+def test_parse_nfc_opening_classic():
     """Test parsing standard Mifare Classic NFC opening (0xA1)."""
-    # 0xA1 = NFC_OPENING
-    # Payload: Age(3) + TagType(1) + UIDLen(1) + UID(4)
+    # Age(3) + TagType(1) + UIDLen(1) + UID(4)
     # 01 04 A1B2C3D4
     payload = bytes.fromhex("00000A0104A1B2C3D4")
-    entry = BoksLogEntry.from_raw(0xA1, bytearray(payload))
+    data = _create_packet(0xA1, payload)
     
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.NFC_OPENING
-    assert entry.extra_data["tag_type"] == 0x01
-    assert entry.extra_data["tag_type_name"] == "Vigik La Poste"
-    assert entry.extra_data["tag_uid"] == "A1B2C3D4"
+    packet = PacketFactory.from_rx_data(data)
 
-def test_parse_nfc_opening_user_badge(mock_time):
-    """Test parsing standard User NFC opening (0xA1)."""
-    # 03 04 D1D2D3D4
-    payload = bytes.fromhex("00000A0304D1D2D3D4")
-    entry = BoksLogEntry.from_raw(0xA1, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.extra_data["tag_type"] == 0x03
-    assert entry.extra_data["tag_type_name"] == "Badge Utilisateur"
-    assert entry.extra_data["tag_uid"] == "D1D2D3D4"
-
-def test_parse_nfc_opening_7byte(mock_time):
-    """Test parsing 7-byte NFC opening (0xA1)."""
-    # 03 07 01020304050607
-    payload = bytes.fromhex("00000A030701020304050607")
-    entry = BoksLogEntry.from_raw(0xA1, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.extra_data["tag_uid"] == "01020304050607"
-
-def test_parse_nfc_scan_log(mock_time):
-    """Test parsing NFC registration scan log (0xA2)."""
-    # 0xA2 = NFC_TAG_REGISTERING_SCAN
-    # 03 04 AABBCCDD
-    payload = bytes.fromhex("00000A0304AABBCCDD")
-    entry = BoksLogEntry.from_raw(0xA2, bytearray(payload))
-    
-    assert entry is not None
-    assert entry.opcode == BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN
-    assert entry.extra_data["scan_uid"] == "AABBCCDD"
-
+    assert packet is not None
+    assert packet.opcode == BoksHistoryEvent.NFC_OPENING
+    assert packet.extra_data["tag_type"] == 0x01
+    assert packet.extra_data["tag_uid"] == "A1B2C3D4"

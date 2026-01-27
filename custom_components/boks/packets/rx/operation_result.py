@@ -1,6 +1,7 @@
 """RX Packet: Operation Result."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class OperationResultPacket(BoksRXPacket):
     """Notification for the success or failure of an operation."""

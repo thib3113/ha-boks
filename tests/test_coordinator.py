@@ -1,22 +1,17 @@
 """Test the Boks data update coordinator."""
-import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import timedelta, datetime
+from datetime import timedelta
+from unittest.mock import MagicMock
+
 import pytest
-
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.util import dt as dt_util
 
-from custom_components.boks.const import DOMAIN
 from custom_components.boks.coordinator import BoksDataUpdateCoordinator
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 async def test_coordinator_update_success(
-    hass: HomeAssistant, 
-    mock_boks_ble_device, 
+    hass: HomeAssistant,
+    mock_boks_ble_device,
     mock_bluetooth,
     mock_config_entry
 ) -> None:
@@ -27,13 +22,13 @@ async def test_coordinator_update_success(
     assert coordinator.data["battery_level"] == 85
     assert coordinator.data["single_use"] == 2
     assert coordinator.data["device_info_service"]["manufacturer_name"] == "Boks"
-    
+
     mock_boks_ble_device.connect.assert_called()
     mock_boks_ble_device.disconnect.assert_called()
 
 async def test_coordinator_update_device_not_found(
-    hass: HomeAssistant, 
-    mock_boks_ble_device, 
+    hass: HomeAssistant,
+    mock_boks_ble_device,
     mock_bluetooth,
     mock_config_entry
 ) -> None:
@@ -47,14 +42,14 @@ async def test_coordinator_update_device_not_found(
         await coordinator._async_update_data()
 
 async def test_coordinator_sync_logs(
-    hass: HomeAssistant, 
-    mock_boks_ble_device, 
+    hass: HomeAssistant,
+    mock_boks_ble_device,
     mock_bluetooth,
     mock_config_entry
 ) -> None:
     """Test log synchronization."""
     coordinator = BoksDataUpdateCoordinator(hass, mock_config_entry)
-    
+
     # Mock logs
     mock_log = MagicMock()
     mock_log.opcode = "open"
@@ -63,19 +58,19 @@ async def test_coordinator_sync_logs(
     mock_log.event_type = "parcel_delivered"
     mock_log.description = "Parcel Delivered"
     mock_log.extra_data = {}
-    
+
     mock_boks_ble_device.get_logs_count.return_value = 1
     mock_boks_ble_device.get_logs.return_value = [mock_log]
-    
+
     result = await coordinator.async_sync_logs(update_state=True)
-    
+
     assert len(result["latest_logs"]) == 1
     assert result["latest_logs"][0]["event_type"] == "parcel_delivered"
     assert coordinator.data["latest_logs"][0]["event_type"] == "parcel_delivered"
 
 async def test_coordinator_device_info_throttling(
-    hass: HomeAssistant, 
-    mock_boks_ble_device, 
+    hass: HomeAssistant,
+    mock_boks_ble_device,
     mock_bluetooth,
     mock_config_entry,
     freezer
@@ -87,11 +82,11 @@ async def test_coordinator_device_info_throttling(
     # First update: should fetch device info
     await coordinator.async_refresh()
     assert mock_boks_ble_device.get_device_information.call_count == 1
-    
+
     # Reset mocks and advance time within the throttling period
     mock_boks_ble_device.get_device_information.reset_mock()
     freezer.tick(timedelta(minutes=1)) # Advance by a short time, less than 12 hours
-    
+
     # Second update: should fetch device info again because time has passed
     await coordinator.async_refresh()
     assert mock_boks_ble_device.get_device_information.call_count == 1
@@ -99,7 +94,7 @@ async def test_coordinator_device_info_throttling(
     # Advance time beyond the throttling period
     mock_boks_ble_device.get_device_information.reset_mock()
     freezer.tick(timedelta(hours=mock_config_entry.options["full_refresh_interval"] + 1)) # Advance beyond throttling
-    
+
     # Third update: should fetch device info again
     await coordinator.async_refresh()
     assert mock_boks_ble_device.get_device_information.call_count == 1

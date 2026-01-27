@@ -1,8 +1,8 @@
-import sys
-
 import getpass
 import logging
 import random
+import sys
+
 import requests
 
 # Configure logging

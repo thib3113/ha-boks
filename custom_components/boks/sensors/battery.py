@@ -4,11 +4,11 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, CONF_ADDRESS
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS, PERCENTAGE
 
-from ..entity import BoksEntity
 from ..coordinator import BoksDataUpdateCoordinator
+from ..entity import BoksEntity
 
 
 class BoksBatterySensor(BoksEntity, SensorEntity):

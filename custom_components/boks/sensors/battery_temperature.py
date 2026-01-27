@@ -1,16 +1,17 @@
 import logging
+
 """Battery temperature sensor for Boks."""
 from homeassistant.components.sensor import (
+    EntityCategory,
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
-    EntityCategory,
 )
-from homeassistant.const import UnitOfTemperature, CONF_ADDRESS
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS, UnitOfTemperature
 
-from ..entity import BoksEntity
 from ..coordinator import BoksDataUpdateCoordinator
+from ..entity import BoksEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,13 +39,13 @@ class BoksBatteryTemperatureSensor(BoksEntity, SensorEntity):
     def native_value(self) -> int | None: # Changed return type to allow None initially
         """Return the state of the sensor."""
         current_temp = self.coordinator.data.get("battery_temperature") # Get value without default
-        
+
         # Check for invalid temperature (255 or None)
         if current_temp is None or current_temp == 255:
             _LOGGER.debug("Invalid temperature reading (255 or None) for %s. Returning last valid: %s", self.entity_id, self._last_valid_temperature)
             return self._last_valid_temperature
 
-        
+
         # Update and return valid temperature
         self._last_valid_temperature = current_temp
         return current_temp

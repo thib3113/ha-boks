@@ -1,5 +1,4 @@
 """Log processing and enrichment for Boks."""
-import asyncio
 import logging
 from datetime import datetime
 from typing import Any
@@ -111,15 +110,15 @@ class BoksLogProcessor:
             # Normalize ID: uppercase and remove any non-hex chars
             import re
             tag_id_lookup = re.sub(r'[^0-9A-F]', '', tag_uid.upper())
-            
+
             _LOGGER.debug("Resolving tag name for UID: %s (Normalized: %s)", tag_uid, tag_id_lookup)
-            
+
             tag_manager = self.hass.data["tag"]
-            
+
             # 1. Try helper.data (Standard HA internal storage)
             tags_helper = tag_manager.get("tags") if isinstance(tag_manager, dict) else None
             resolved_tag_info = None
-            
+
             if tags_helper and hasattr(tags_helper, "data") and tag_id_lookup in tags_helper.data:
                 resolved_tag_info = tags_helper.data[tag_id_lookup]
                 _LOGGER.debug("Found tag info in tags_helper.data: %s", resolved_tag_info)
@@ -142,7 +141,7 @@ class BoksLogProcessor:
                 name = resolved_tag_info.get("name")
                 _LOGGER.debug("Resolved tag name: %s", name)
                 return name
-                
+
             _LOGGER.debug("No tag name found in HA registry for %s", tag_id_lookup)
         except Exception as e:
             _LOGGER.debug("Failed to lookup tag name for %s: %s", tag_uid, e)

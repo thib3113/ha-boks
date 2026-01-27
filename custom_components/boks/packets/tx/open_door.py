@@ -1,7 +1,8 @@
 """TX Packet: Open Door."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class OpenDoorPacket(BoksTXPacket):
     """Command to open the door with an optional PIN."""
@@ -17,7 +18,7 @@ class OpenDoorPacket(BoksTXPacket):
     def to_log_dict(self, anonymize: bool = True) -> dict[str, str]:
         log_pin = BoksAnonymizer.anonymize_pin(self.pin, anonymize)
         raw_bytes = self.to_bytes()
-        
+
         return {
             "payload": log_pin or "",
             "raw": raw_bytes.hex(),

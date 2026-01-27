@@ -1,5 +1,4 @@
 """Factory to create packet objects from raw data."""
-from typing import Dict, Type
 
 from .base import BoksRXPacket
 from .rx.ble_reboot import BleRebootPacket
@@ -32,7 +31,7 @@ from .rx.power_on import PowerOnPacket
 class PacketFactory:
     """Factory for creating Boks packet objects."""
 
-    _RX_MAP: Dict[int, Type[BoksRXPacket]] = {}
+    _RX_MAP: dict[int, type[BoksRXPacket]] = {}
 
     @classmethod
     def _build_map(cls):

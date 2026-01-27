@@ -6,8 +6,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_ADDRESS
-from homeassistant.const import EntityCategory
+from homeassistant.const import CONF_ADDRESS, EntityCategory
 
 from ..ble.const import BoksNotificationOpcode
 from ..coordinator import BoksDataUpdateCoordinator

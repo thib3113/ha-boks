@@ -1,6 +1,7 @@
 """RX Packet: NFC Register Errors."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class NfcErrorPacket(BoksRXPacket):
     """Notification for NFC specific errors during registration."""

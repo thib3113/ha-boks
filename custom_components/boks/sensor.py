@@ -6,16 +6,15 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import DOMAIN
 from .sensors.battery import BoksBatterySensor
 from .sensors.battery_temperature import BoksBatteryTemperatureSensor
-from .sensors.last_event import BoksLastEventSensor
-from .sensors.connection import BoksLastConnectionSensor
 from .sensors.codes import BoksCodeCountSensor
-from .sensors.log_count import BoksLogCountSensor
+from .sensors.connection import BoksLastConnectionSensor
 from .sensors.diagnostics import (
     BoksBatteryDiagnosticSensor,
     BoksBatteryFormatSensor,
     BoksBatteryTypeSensor,
 )
-from .sensors.diagnostics.battery_measure_format_sensor import BoksBatteryMeasureFormatSensor
+from .sensors.last_event import BoksLastEventSensor
+from .sensors.log_count import BoksLogCountSensor
 from .sensors.maintenance import BoksMaintenanceSensor
 
 
@@ -42,11 +41,11 @@ async def async_setup_entry(
     from .ble.const import BoksCodeType
     for code_type in [BoksCodeType.MASTER, BoksCodeType.SINGLE_USE]:
         entities.append(BoksCodeCountSensor(coordinator, entry, code_type))
-        
+
     # Check for battery format in config entry (persistent) or coordinator data (live)
     # This ensures sensors are created at boot if format was previously detected
     battery_format = entry.data.get("battery_format")
-    
+
     if not battery_format:
         battery_stats = coordinator.data.get("battery_stats", {})
         battery_format = battery_stats.get("format")
@@ -65,8 +64,8 @@ async def async_setup_entry(
             BoksBatteryDiagnosticSensor(coordinator, entry, "level_t5"),
             BoksBatteryDiagnosticSensor(coordinator, entry, "level_t10"),
         ])
-    
-    # If "measure-single" or unknown, we don't add extra diagnostic sensors, 
+
+    # If "measure-single" or unknown, we don't add extra diagnostic sensors,
     # as the main BoksBatterySensor covers the single level.
 
     async_add_entities(entities)

@@ -1,16 +1,16 @@
 """Fixtures for Boks integration tests."""
-import pytest
-import sys
 import asyncio
+import sys
 from unittest.mock import AsyncMock, MagicMock, patch
-from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
-from homeassistant.const import CONF_ADDRESS, CONF_NAME
+
+import pytest
+from homeassistant.const import CONF_ADDRESS
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.boks.const import (
-    DOMAIN,
-    CONF_MASTER_CODE,
     CONF_CONFIG_KEY,
+    CONF_MASTER_CODE,
+    DOMAIN,
 )
 
 # Set event loop policy for Windows - This is not needed in Docker (Linux) but kept for local Windows dev

@@ -1,26 +1,25 @@
 "Tests for the Boks services."
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import device_registry as dr, entity_registry as er
 
-from custom_components.boks.services import (
-    get_coordinator_from_call,
-    async_setup_services,
-    SERVICE_ADD_PARCEL_SCHEMA,
-    SERVICE_ADD_SINGLE_CODE_SCHEMA,
-    SERVICE_DELETE_SINGLE_CODE_SCHEMA,
-    SERVICE_ADD_MASTER_CODE_SCHEMA,
-    SERVICE_DELETE_MASTER_CODE_SCHEMA,
-    SERVICE_SYNC_LOGS_SCHEMA,
-    SERVICE_CLEAN_MASTER_CODES_SCHEMA,
-    SERVICE_SET_CONFIGURATION_SCHEMA
-)
 from custom_components.boks.ble.const import BoksConfigType
-from custom_components.boks.const import DOMAIN, CONF_CONFIG_KEY
+from custom_components.boks.const import DOMAIN
 from custom_components.boks.coordinator import BoksDataUpdateCoordinator
 from custom_components.boks.errors import BoksError
+from custom_components.boks.services import (
+    SERVICE_ADD_MASTER_CODE_SCHEMA,
+    SERVICE_ADD_PARCEL_SCHEMA,
+    SERVICE_ADD_SINGLE_CODE_SCHEMA,
+    SERVICE_CLEAN_MASTER_CODES_SCHEMA,
+    SERVICE_DELETE_SINGLE_CODE_SCHEMA,
+    SERVICE_SET_CONFIGURATION_SCHEMA,
+    SERVICE_SYNC_LOGS_SCHEMA,
+    async_setup_services,
+    get_coordinator_from_call,
+)
 from custom_components.boks.todo import BoksParcelTodoList
 
 
@@ -66,7 +65,7 @@ def test_get_coordinator_from_call_device_id_found(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up device registry
     mock_device_registry = MagicMock()
     mock_device = MagicMock()
@@ -76,9 +75,9 @@ def test_get_coordinator_from_call_device_id_found(mock_hass, mock_coordinator):
         # Create a mock service call with device_id
         call = MagicMock()
         call.data = {"device_id": "test_device_id"}
-        
+
         coordinator = get_coordinator_from_call(mock_hass, call)
-        
+
         assert coordinator == mock_coordinator
 
 
@@ -91,7 +90,7 @@ def test_get_coordinator_from_call_device_id_not_found(mock_hass):
         # Create a mock service call with device_id
         call = MagicMock()
         call.data = {"device_id": "test_device_id"}
-        
+
         with pytest.raises(HomeAssistantError) as excinfo:
             get_coordinator_from_call(mock_hass, call)
         assert excinfo.value.translation_key == "target_devices_not_boks"
@@ -102,7 +101,7 @@ def test_get_coordinator_from_call_entity_id_found(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up entity registry
     mock_entity_registry = MagicMock()
     mock_entry = MagicMock()
@@ -112,9 +111,9 @@ def test_get_coordinator_from_call_entity_id_found(mock_hass, mock_coordinator):
         # Create a mock service call with entity_id
         call = MagicMock()
         call.data = {"entity_id": "test_entity_id"}
-        
+
         coordinator = get_coordinator_from_call(mock_hass, call)
-        
+
         assert coordinator == mock_coordinator
 
 
@@ -127,7 +126,7 @@ def test_get_coordinator_from_call_entity_id_not_found(mock_hass):
         # Create a mock service call with entity_id
         call = MagicMock()
         call.data = {"entity_id": "test_entity_id"}
-        
+
         with pytest.raises(HomeAssistantError) as excinfo:
             get_coordinator_from_call(mock_hass, call)
         assert excinfo.value.translation_key == "target_entities_not_boks"
@@ -137,13 +136,13 @@ def test_get_coordinator_from_call_single_instance_found(mock_hass, mock_coordin
     """Test get_coordinator_from_call with single instance found."""
     # Set up hass.data with a single coordinator
     mock_hass.data[DOMAIN] = {"test_entry_id": mock_coordinator}
-    
+
     # Create a mock service call with no targets
     call = MagicMock()
     call.data = {}
-    
+
     coordinator = get_coordinator_from_call(mock_hass, call)
-    
+
     assert coordinator == mock_coordinator
 
 
@@ -151,11 +150,11 @@ def test_get_coordinator_from_call_single_instance_not_found(mock_hass):
     """Test get_coordinator_from_call with single instance not found."""
     # Set up hass.data with no coordinators
     mock_hass.data[DOMAIN] = {}
-    
+
     # Create a mock service call with no targets
     call = MagicMock()
     call.data = {}
-    
+
     with pytest.raises(HomeAssistantError) as excinfo:
         get_coordinator_from_call(mock_hass, call)
     assert excinfo.value.translation_key == "target_device_missing"
@@ -168,11 +167,11 @@ def test_get_coordinator_from_call_multiple_instances(mock_hass, mock_coordinato
         "test_entry_id_1": mock_coordinator,
         "test_entry_id_2": mock_coordinator
     }
-    
+
     # Create a mock service call with no targets
     call = MagicMock()
     call.data = {}
-    
+
     with pytest.raises(HomeAssistantError) as excinfo:
         get_coordinator_from_call(mock_hass, call)
     assert excinfo.value.translation_key == "target_device_missing"
@@ -185,9 +184,9 @@ async def test_async_setup_services(mock_hass):
         mock_cv.string = MagicMock()
         mock_cv.positive_int = MagicMock()
         mock_cv.In = MagicMock()
-        
+
         await async_setup_services(mock_hass)
-        
+
         # Verify that services were registered (there are 14 services now)
         assert mock_hass.services.async_register.call_count == 14
 
@@ -196,42 +195,47 @@ async def test_handle_nfc_scan_start_success(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Mock coordinator entry
     mock_coordinator.entry = MagicMock()
     mock_coordinator.entry.unique_id = "test_unique_id"
     mock_coordinator.entry.entry_id = entry_id
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {}
-    
+
     # Mock hass bus
     mock_hass.bus = MagicMock()
     mock_hass.bus.async_fire = MagicMock()
-    
+
     # Mock hass services async_call
     mock_hass.services.async_call = AsyncMock()
-    
+
     # Mock found UID
     mock_coordinator.ble_device.nfc_scan_start = AsyncMock(return_value="A1B2C3D4")
-    
+
     # Mock Device Registry
     mock_dr = MagicMock()
     mock_dr.async_get_device.return_value = MagicMock(id="test_device_id")
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["nfc_scan_start"]
-    
+
     with (
         patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator),
         patch("homeassistant.helpers.device_registry.async_get", return_value=mock_dr)
     ):
         await handler(call)
-        
+
+        # Wait for background task
+        assert mock_hass.async_create_task.called
+        coro = mock_hass.async_create_task.call_args[0][0]
+        await coro
+
         mock_coordinator.async_ensure_prerequisites.assert_called_with("NFC", "4.0", "4.3.3")
         mock_coordinator.ble_device.connect.assert_called()
         mock_coordinator.ble_device.nfc_scan_start.assert_called()
@@ -241,20 +245,20 @@ async def test_handle_nfc_register_tag_success(mock_hass, mock_coordinator):
     """Test handle_nfc_register_tag service success."""
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     call = MagicMock()
     call.data = {"uid": "A1B2C3D4", "name": "Test Tag"}
-    
+
     mock_coordinator.ble_device.nfc_register_tag = AsyncMock(return_value=True)
-    
+
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["nfc_register_tag"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         await handler(call)
-        
+
         mock_coordinator.async_ensure_prerequisites.assert_called_with("NFC", "4.0", "4.3.3")
         mock_coordinator.ble_device.connect.assert_called()
         mock_coordinator.ble_device.nfc_register_tag.assert_called_with("A1B2C3D4")
@@ -264,20 +268,20 @@ async def test_handle_nfc_unregister_tag_success(mock_hass, mock_coordinator):
     """Test handle_nfc_unregister_tag service success."""
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     call = MagicMock()
     call.data = {"uid": "A1B2C3D4"}
-    
+
     mock_coordinator.ble_device.nfc_unregister_tag = AsyncMock(return_value=True)
-    
+
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["nfc_unregister_tag"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         await handler(call)
-        
+
         mock_coordinator.async_ensure_prerequisites.assert_called_with("NFC", "4.0", "4.3.3")
         mock_coordinator.ble_device.connect.assert_called()
         mock_coordinator.ble_device.nfc_unregister_tag.assert_called_with("A1B2C3D4")
@@ -289,7 +293,7 @@ async def test_handle_add_parcel_with_entity_id(mock_hass, mock_coordinator):
     # Set up the service call
     call = MagicMock()
     call.data = {"entity_id": "test_entity_id", "description": "Test parcel"}
-    
+
     # Set up entity registry
     mock_entity_registry = MagicMock()
     mock_entry = MagicMock()
@@ -303,21 +307,21 @@ async def test_handle_add_parcel_with_entity_id(mock_hass, mock_coordinator):
         mock_todo_entity.async_create_parcel = AsyncMock()
         mock_component.get_entity.return_value = mock_todo_entity
         mock_hass.data["entity_components"]["todo"] = mock_component
-        
+
         # Capture handler
         handlers = {}
         mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
         await async_setup_services(mock_hass)
         handler = handlers["add_parcel"]
-        
+
         with (
             patch("custom_components.boks.services.parse_parcel_string", return_value=(None, "Test parcel")),
-            patch("custom_components.boks.services.generate_random_code", return_value="ABC123"), 
+            patch("custom_components.boks.services.generate_random_code", return_value="ABC123"),
             patch("custom_components.boks.services.format_parcel_item", return_value="ABC123 Test parcel")
         ):
-            
+
             result = await handler(call)
-            
+
             assert result == {"code": "ABC123"}
             mock_todo_entity.async_create_parcel.assert_called_once_with("ABC123 Test parcel", force_background_sync=True)
 
@@ -327,7 +331,7 @@ async def test_handle_add_parcel_with_device_id(mock_hass, mock_coordinator):
     # Set up the service call
     call = MagicMock()
     call.data = {"device_id": "test_device_id", "description": "Test parcel"}
-    
+
     # Set up entity registry
     mock_entity_registry = MagicMock()
     mock_entry = MagicMock()
@@ -343,21 +347,21 @@ async def test_handle_add_parcel_with_device_id(mock_hass, mock_coordinator):
         mock_todo_entity.async_create_parcel = AsyncMock()
         mock_component.get_entity.return_value = mock_todo_entity
         mock_hass.data["entity_components"]["todo"] = mock_component
-        
+
         # Capture handler
         handlers = {}
         mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
         await async_setup_services(mock_hass)
         handler = handlers["add_parcel"]
-        
+
         with (
             patch("custom_components.boks.services.parse_parcel_string", return_value=(None, "Test parcel")),
-            patch("custom_components.boks.services.generate_random_code", return_value="ABC123"), 
+            patch("custom_components.boks.services.generate_random_code", return_value="ABC123"),
             patch("custom_components.boks.services.format_parcel_item", return_value="ABC123 Test parcel")
         ):
-            
+
             result = await handler(call)
-            
+
             assert result == {"code": "ABC123"}
             mock_todo_entity.async_create_parcel.assert_called_once_with("ABC123 Test parcel", force_background_sync=True)
 
@@ -367,11 +371,11 @@ async def test_handle_add_parcel_no_targets_single_instance(mock_hass, mock_coor
     # Set up hass.data with a single coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator, "translations": {}}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {"description": "Test parcel"}
-    
+
     # Set up entity registry
     mock_entity_registry = MagicMock()
     mock_entry = MagicMock()
@@ -387,21 +391,21 @@ async def test_handle_add_parcel_no_targets_single_instance(mock_hass, mock_coor
         mock_todo_entity.async_create_parcel = AsyncMock()
         mock_component.get_entity.return_value = mock_todo_entity
         mock_hass.data["entity_components"]["todo"] = mock_component
-        
+
         # Capture handler
         handlers = {}
         mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
         await async_setup_services(mock_hass)
         handler = handlers["add_parcel"]
-        
+
         with (
             patch("custom_components.boks.services.parse_parcel_string", return_value=(None, "Test parcel")),
-            patch("custom_components.boks.services.generate_random_code", return_value="ABC123"), 
+            patch("custom_components.boks.services.generate_random_code", return_value="ABC123"),
             patch("custom_components.boks.services.format_parcel_item", return_value="ABC123 Test parcel")
         ):
-            
+
             result = await handler(call)
-            
+
             assert result == {"code": "ABC123"}
             mock_todo_entity.async_create_parcel.assert_called_once_with("ABC123 Test parcel", force_background_sync=True)
 
@@ -411,7 +415,7 @@ async def test_handle_add_parcel_todo_entity_not_found(mock_hass):
     # Set up the service call
     call = MagicMock()
     call.data = {"entity_id": "test_entity_id", "description": "Test parcel"}
-    
+
     # Set up entity registry
     mock_entity_registry = MagicMock()
     mock_entry = MagicMock()
@@ -422,13 +426,13 @@ async def test_handle_add_parcel_todo_entity_not_found(mock_hass):
         mock_component = MagicMock()
         mock_component.get_entity.return_value = None
         mock_hass.data["entity_components"]["todo"] = mock_component
-        
+
         # Capture handler
         handlers = {}
         mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
         await async_setup_services(mock_hass)
         handler = handlers["add_parcel"]
-        
+
         with pytest.raises(HomeAssistantError) as excinfo:
             await handler(call)
         assert excinfo.value.translation_key == "todo_entity_not_found"
@@ -439,20 +443,20 @@ async def test_handle_add_single_code_success(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {"code": "ABC123"}
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["add_single_code"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         result = await handler(call)
-        
+
         assert result == {"code": "ABC123"}
         mock_coordinator.ble_device.connect.assert_called()
         mock_coordinator.ble_device.create_pin_code.assert_called_with("ABC123", "single", 0)
@@ -464,20 +468,20 @@ async def test_handle_add_single_code_boks_error(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {"code": "ABC123"}
-    
+
     # Make create_pin_code raise a BoksError
     mock_coordinator.ble_device.create_pin_code.side_effect = BoksError("test_error")
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["add_single_code"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         with pytest.raises(HomeAssistantError):
             await handler(call)
@@ -488,20 +492,20 @@ async def test_handle_delete_single_code_success(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {"code": "ABC123"}
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["delete_single_code"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         await handler(call)
-        
+
         mock_coordinator.ble_device.connect.assert_called()
         mock_coordinator.ble_device.delete_pin_code.assert_called_with("single", "ABC123")
         mock_coordinator.ble_device.disconnect.assert_called()
@@ -512,20 +516,20 @@ async def test_handle_delete_single_code_boks_error(mock_hass, mock_coordinator)
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {"code": "ABC123"}
-    
+
     # Make delete_pin_code raise a BoksError
     mock_coordinator.ble_device.delete_pin_code.side_effect = BoksError("test_error")
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["delete_single_code"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         with pytest.raises(HomeAssistantError):
             await handler(call)
@@ -536,20 +540,20 @@ async def test_handle_sync_logs_success(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {}
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["sync_logs"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         await handler(call)
-        
+
         mock_coordinator.async_sync_logs.assert_called_once_with(update_state=True)
 
 
@@ -558,20 +562,20 @@ async def test_handle_sync_logs_exception(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Make async_sync_logs raise an exception
     mock_coordinator.async_sync_logs.side_effect = Exception("Test error")
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {}
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["sync_logs"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         with pytest.raises(Exception, match="Test error"):
             await handler(call)
@@ -582,24 +586,24 @@ async def test_handle_clean_master_codes_success(mock_hass, mock_coordinator):
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {"start_index": 0, "range": 5}
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["clean_master_codes"]
-    
+
     with (
         patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator),
         patch("custom_components.boks.services.asyncio.sleep", new_callable=AsyncMock)
     ):
-        
+
         await handler(call)
-        
+
         # Verify that the background task was created
         mock_hass.async_create_task.assert_called_once()
         # Close the coroutine to avoid RuntimeWarning (coroutine was never awaited)
@@ -611,20 +615,20 @@ async def test_handle_clean_master_codes_already_running(mock_hass, mock_coordin
     # Set up hass.data with a coordinator
     entry_id = "test_entry_id"
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Set maintenance status to running
     mock_coordinator.maintenance_status = {"running": True}
-    
+
     # Set up the service call
     call = MagicMock()
     call.data = {"start_index": 0, "range": 5}
-    
+
     # Capture handler
     handlers = {}
     mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
     await async_setup_services(mock_hass)
     handler = handlers["clean_master_codes"]
-    
+
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
         with pytest.raises(HomeAssistantError) as excinfo:
             await handler(call)
@@ -635,21 +639,21 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
 
 
     """Test handle_set_configuration service success."""
-    
-    
+
+
     # Set up hass.data with a coordinator
-    
-    
+
+
     entry_id = "test_entry_id"
-    
-    
+
+
     mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
+
     # Mock the device_info property
     mock_coordinator.device_info = {"sw_version": "4.5.1"}
-    
-    
-    
+
+
+
 
 
     # Set up the service call
@@ -661,7 +665,7 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
     call.data = {"laposte": True}
 
 
-    
+
 
 
     # Mock set_configuration on ble_device
@@ -670,7 +674,7 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
     mock_coordinator.ble_device.set_configuration = AsyncMock(return_value=True)
 
 
-    
+
 
 
     # Capture handler
@@ -688,7 +692,7 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
     handler = handlers["set_configuration"]
 
 
-    
+
 
 
     with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
@@ -697,7 +701,7 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
         await handler(call)
 
 
-        
+
 
 
         mock_coordinator.async_ensure_prerequisites.assert_called_with("La Poste", "4.0", "4.3.3")
@@ -736,7 +740,7 @@ async def test_service_schemas():
     assert result == valid_data
 
 
-    
+
 
 
     # Test SERVICE_ADD_SINGLE_CODE_SCHEMA
@@ -751,7 +755,7 @@ async def test_service_schemas():
     assert result == valid_data
 
 
-    
+
 
 
     # Test SERVICE_DELETE_SINGLE_CODE_SCHEMA
@@ -766,7 +770,7 @@ async def test_service_schemas():
     assert result == valid_data
 
 
-    
+
 
 
     # Test SERVICE_ADD_MASTER_CODE_SCHEMA
@@ -796,7 +800,7 @@ async def test_service_schemas():
     assert result == valid_data
 
 
-    
+
 
 
     # Test SERVICE_CLEAN_MASTER_CODES_SCHEMA

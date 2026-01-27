@@ -1,10 +1,11 @@
 """Base class for sensors that retain their last valid value."""
 from typing import Any
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 
-from ...entity import BoksEntity
 from ...coordinator import BoksDataUpdateCoordinator
+from ...entity import BoksEntity
 
 
 class BoksRetainingSensor(BoksEntity, SensorEntity):

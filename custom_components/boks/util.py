@@ -1,10 +1,11 @@
 """Utility functions for Boks integration."""
 from typing import Any
-from packaging import version
 
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
+from packaging import version
 
 from .const import DOMAIN, PCB_VERSIONS
+
 
 def infer_pcb_version(internal_revision: str) -> str | None:
     """Infer PCB version based on internal firmware revision."""

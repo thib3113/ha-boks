@@ -1,4 +1,7 @@
 """Last event sensor for Boks."""
+
+import logging
+
 from homeassistant.components.sensor import (
     SensorEntity,
 )
@@ -10,13 +13,17 @@ from homeassistant.util import dt as dt_util
 from ..coordinator import BoksDataUpdateCoordinator
 from ..entity import BoksEntity
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
     """Representation of a Boks Last Event Sensor."""
 
     _attr_translation_key = "last_event"
 
-    def __init__(self, coordinator: BoksDataUpdateCoordinator, entry: ConfigEntry) -> None:
+    def __init__(
+        self, coordinator: BoksDataUpdateCoordinator, entry: ConfigEntry
+    ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, entry)
         self._attr_unique_id = f"{entry.data[CONF_ADDRESS]}_last_event"
@@ -86,18 +93,28 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
                 # Assuming timestamp is a unix timestamp (seconds)
                 dt_obj = dt_util.utc_from_timestamp(timestamp_val)
                 # Convert to local time and format as readable string
-                formatted_timestamp = dt_util.as_local(dt_obj).strftime("%Y-%m-%d %H:%M:%S")
+                formatted_timestamp = dt_util.as_local(dt_obj).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
             except Exception:
                 formatted_timestamp = str(timestamp_val)
 
         # Keys that are handled explicitly and should not be duplicated in extras
-        standard_keys = {"timestamp", "event_type", "description", "opcode", "payload"}
+        standard_keys = {
+            "timestamp",
+            "event_type",
+            "description",
+            "opcode",
+            "payload",
+        }
 
         # Return detailed information about the last event
         attributes = {
             "timestamp": formatted_timestamp,
             "event_type": latest_log.get("event_type"),
-            "description": latest_log.get("description"), # Description handled by coordinator
+            "description": latest_log.get(
+                "description"
+            ),  # Description handled by coordinator
             "opcode": latest_log.get("opcode"),
         }
 
@@ -127,8 +144,8 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
                     try:
                         dt_obj = dt_util.utc_from_timestamp(ts_val)
                         ts_str = dt_util.as_local(dt_obj).strftime("%Y-%m-%d %H:%M:%S")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        _LOGGER.debug("Error formatting timestamp: %s", e)
 
                 formatted_event = {
                     "timestamp": ts_str,

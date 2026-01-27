@@ -1,7 +1,8 @@
 """TX Packet: NFC Scan Start."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class NfcScanStartPacket(BoksTXPacket):
     """Command to start NFC tag scanning mode."""

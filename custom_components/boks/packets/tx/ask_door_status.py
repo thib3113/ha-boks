@@ -1,6 +1,7 @@
 """TX Packet: Ask Door Status."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
+from ..base import BoksTXPacket
+
 
 class AskDoorStatusPacket(BoksTXPacket):
     """Simple command to request the current door status."""

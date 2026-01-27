@@ -1,6 +1,5 @@
-import sys
 import asyncio
-import pytest
+import sys
 
 # Force selector policy for Windows
 if sys.platform == "win32":

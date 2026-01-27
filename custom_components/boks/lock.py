@@ -13,8 +13,13 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .ble import BoksBluetoothDevice
-from .ble.const import BoksHistoryEvent, LOG_EVENT_TYPES
-from .const import DOMAIN, CONF_MASTER_CODE, TIMEOUT_DOOR_OPEN_MESSAGE, TIMEOUT_DOOR_CLOSE
+from .ble.const import LOG_EVENT_TYPES, BoksHistoryEvent
+from .const import (
+    CONF_MASTER_CODE,
+    DOMAIN,
+    TIMEOUT_DOOR_CLOSE,
+    TIMEOUT_DOOR_OPEN_MESSAGE,
+)
 from .coordinator import BoksDataUpdateCoordinator
 from .entity import BoksEntity
 from .errors.boks_command_error import BoksCommandError

@@ -3,13 +3,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.components import bluetooth
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_ADDRESS
-from homeassistant.components import bluetooth
+from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, CONF_MASTER_KEY
+from .const import CONF_CONFIG_KEY, CONF_MASTER_CODE, CONF_MASTER_KEY, DOMAIN
 
 TO_REDACT = {
     CONF_CONFIG_KEY,

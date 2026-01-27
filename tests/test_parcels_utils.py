@@ -1,13 +1,12 @@
 """Tests for the Boks parcels utils."""
-import pytest
-import re
 from custom_components.boks.parcels.utils import (
-    parse_parcel_string,
-    generate_random_code,
-    format_parcel_item,
     BOKS_CHAR_MAP,
-    PARCEL_REGEX
+    PARCEL_REGEX,
+    format_parcel_item,
+    generate_random_code,
+    parse_parcel_string,
 )
+
 
 def test_parse_parcel_string_with_valid_code():
     """Test parsing a string with a valid code and description."""
@@ -15,17 +14,17 @@ def test_parse_parcel_string_with_valid_code():
     code, description = parse_parcel_string("123456 Test parcel")
     assert code == "123456"
     assert description == "Test parcel"
-    
+
     # Test with dash separator
     code, description = parse_parcel_string("123456 - Test parcel")
     assert code == "123456"
     assert description == "Test parcel"
-    
+
     # Test with colon separator
     code, description = parse_parcel_string("123456: Test parcel")
     assert code == "123456"
     assert description == "Test parcel"
-    
+
     # Test with mixed case code
     code, description = parse_parcel_string("aB1234 - Test parcel")
     assert code == "AB1234"
@@ -37,17 +36,17 @@ def test_parse_parcel_string_without_code():
     code, description = parse_parcel_string("Just a description")
     assert code is None
     assert description == "Just a description"
-    
+
     # Test with invalid code length
     code, description = parse_parcel_string("12345 Test parcel")
     assert code is None
     assert description == "12345 Test parcel"
-    
+
     # Test with invalid characters in code
     code, description = parse_parcel_string("12345G Test parcel")
     assert code is None
     assert description == "12345G Test parcel"
-    
+
     # Test with code only (no separator)
     code, description = parse_parcel_string("123456")
     assert code == "123456"
@@ -59,17 +58,17 @@ def test_parse_parcel_string_edge_cases():
     code, description = parse_parcel_string("")
     assert code is None
     assert description == ""
-    
+
     # Test with only spaces
     code, description = parse_parcel_string("   ")
     assert code is None
     assert description == ""
-    
+
     # Test with code only
     code, description = parse_parcel_string("123456")
     assert code == "123456"
     assert description == ""
-    
+
     # Test with leading/trailing spaces
     code, description = parse_parcel_string("  123456 - Test parcel  ")
     assert code == "123456"
@@ -92,11 +91,11 @@ def test_format_parcel_item_with_code():
     # Test with code and description
     result = format_parcel_item("123456", "Test parcel")
     assert result == "123456 - Test parcel"
-    
+
     # Test with code only
     result = format_parcel_item("123456", "")
     assert result == "123456"
-    
+
     # Test with code that's already in description
     result = format_parcel_item("123456", "123456 Test parcel")
     assert result == "123456 Test parcel"
@@ -106,7 +105,7 @@ def test_format_parcel_item_without_code():
     # Test with description only
     result = format_parcel_item(None, "Test parcel")
     assert result == "Test parcel"
-    
+
     # Test with empty description
     result = format_parcel_item(None, "")
     assert result == ""
@@ -126,24 +125,24 @@ def test_parcel_regex():
     assert match is not None
     assert match.group(1) == "123456"
     assert match.group(2) == "Test parcel"
-    
+
     # Test case insensitive
     match = PARCEL_REGEX.match("ab1234 Test parcel")
     assert match is not None
     assert match.group(1) == "ab1234"
-    
+
     # Test with special characters in separator
     match = PARCEL_REGEX.match("123456...Test parcel")
     assert match is not None
     assert match.group(1) == "123456"
     assert match.group(2) == "Test parcel"
-    
+
     # Test with dash separator
     match = PARCEL_REGEX.match("123456-Test parcel")
     assert match is not None
     assert match.group(1) == "123456"
     assert match.group(2) == "Test parcel"
-    
+
     # Test with colon separator
     match = PARCEL_REGEX.match("123456:Test parcel")
     assert match is not None

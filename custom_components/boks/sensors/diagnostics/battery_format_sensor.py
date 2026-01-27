@@ -1,7 +1,7 @@
 """Battery format sensor for Boks."""
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import CONF_ADDRESS, EntityCategory
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS, EntityCategory
 
 from ...coordinator import BoksDataUpdateCoordinator
 from .retaining_sensor import BoksRetainingSensor

@@ -1,6 +1,7 @@
 """RX Packet: Diagnostic Error Log."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class ErrorLogPacket(BoksHistoryLogPacket):
     """Log entry for a technical/diagnostic error."""
@@ -22,7 +23,7 @@ class ErrorLogPacket(BoksHistoryLogPacket):
             error_key = f"diagnostic_error_{diag_enum.name.split('_')[-1].lower()}"
         except (ValueError, Exception):
             error_key = "diagnostic_error_unknown"
-            
+
         return {"error_code": self.error_code, "error_description": error_key}
 
     def to_log_dict(self, anonymize: bool = True) -> dict[str, str]:

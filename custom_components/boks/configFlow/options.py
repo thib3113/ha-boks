@@ -1,16 +1,17 @@
 from typing import Any
-import voluptuous as vol
 
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 
 from ..const import (
-    CONF_MASTER_CODE,
     BOKS_CHAR_MAP,
-    DEFAULT_SCAN_INTERVAL,
+    CONF_ANONYMIZE_LOGS,
+    CONF_MASTER_CODE,
     DEFAULT_FULL_REFRESH_INTERVAL,
-    CONF_ANONYMIZE_LOGS
+    DEFAULT_SCAN_INTERVAL,
 )
+
 
 class BoksOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle Boks options."""

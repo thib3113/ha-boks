@@ -1,7 +1,8 @@
 """RX Packet: Valid BLE Code."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksHistoryLogPacket
+
 
 class CodeBleValidPacket(BoksHistoryLogPacket):
     """Log entry for a valid BLE code opening."""

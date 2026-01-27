@@ -1,7 +1,8 @@
 """TX Packet: Delete Single Use Code."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class DeleteSingleUseCodePacket(BoksTXPacket):
     """Command to delete a single-use PIN code by its value."""

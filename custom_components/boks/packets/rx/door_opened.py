@@ -1,6 +1,7 @@
 """RX Packet: Door Opened."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class DoorOpenedPacket(BoksHistoryLogPacket):
     """Log entry for door opened event."""

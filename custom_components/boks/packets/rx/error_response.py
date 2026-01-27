@@ -1,6 +1,7 @@
 """RX Packet: Error Response."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class ErrorResponsePacket(BoksRXPacket):
     """Generic representation of an error notification (CRC, Auth, etc.)."""

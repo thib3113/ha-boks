@@ -7,3 +7,6 @@ pytz
 tzdata
 janus
 Pillow
+ruff
+mypy
+bandit

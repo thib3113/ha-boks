@@ -3,12 +3,11 @@ from __future__ import annotations
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
-from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 
-from ..const import DOMAIN
 from ..coordinator import BoksDataUpdateCoordinator
 from ..entity import BoksEntity
+
 
 class BoksMaintenanceSensor(BoksEntity, SensorEntity):
     """Sensor to track maintenance operations status."""
@@ -30,12 +29,12 @@ class BoksMaintenanceSensor(BoksEntity, SensorEntity):
         status = self.coordinator.maintenance_status
         if not status or not status.get("running"):
             return "idle"
-        
+
         current = status.get("current_index", 0)
         total = status.get("total_to_clean", 0)
         percent = int((current / total) * 100) if total > 0 else 0
-        
-        return f"cleaning"
+
+        return "cleaning"
 
     @property
     def extra_state_attributes(self) -> dict | None:
@@ -43,7 +42,7 @@ class BoksMaintenanceSensor(BoksEntity, SensorEntity):
         status = self.coordinator.maintenance_status
         if not status:
             return None
-            
+
         return {
             "running": status.get("running", False),
             "current_index": status.get("current_index"),

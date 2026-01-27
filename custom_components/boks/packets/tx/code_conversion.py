@@ -1,7 +1,8 @@
 """TX Packet: Code Conversion."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class CodeConversionPacket(BoksTXPacket):
     """Command to convert code type (Single->Multi or Multi->Single)."""

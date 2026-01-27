@@ -10,10 +10,15 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from .ble.const import BoksConfigType
-from .const import DOMAIN, MAX_MASTER_CODE_CLEAN_RANGE, TIMEOUT_NFC_LISTENING, TIMEOUT_NFC_WAIT_RESULT
+from .const import (
+    DOMAIN,
+    MAX_MASTER_CODE_CLEAN_RANGE,
+    TIMEOUT_NFC_LISTENING,
+    TIMEOUT_NFC_WAIT_RESULT,
+)
 from .coordinator import BoksDataUpdateCoordinator
 from .errors import BoksError
-from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
+from .parcels.utils import format_parcel_item, generate_random_code, parse_parcel_string
 from .todo import BoksParcelTodoList
 
 _LOGGER = logging.getLogger(__name__)
@@ -646,7 +651,7 @@ async def async_setup_services(hass: HomeAssistant):
 
                     try:
                         await asyncio.wait_for(scan_done.wait(), timeout=TIMEOUT_NFC_WAIT_RESULT)
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         _LOGGER.warning("NFC scan session timed out (no response from device).")
                     finally:
                         coordinator.ble_device.unregister_opcode_callback(0xC5, scan_callback)

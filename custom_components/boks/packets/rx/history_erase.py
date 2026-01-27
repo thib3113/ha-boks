@@ -1,6 +1,7 @@
 """RX Packet: History Erase."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class HistoryErasePacket(BoksHistoryLogPacket):
     """Log entry for history erase event."""

@@ -1,7 +1,8 @@
 """TX Packet: Master Code Edit."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class MasterCodeEditPacket(BoksTXPacket):
     """Command to edit an existing master code."""

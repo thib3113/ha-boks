@@ -1,6 +1,7 @@
 """RX Packet: BLE Reboot."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class BleRebootPacket(BoksHistoryLogPacket):
     """Log entry for BLE reboot event."""
