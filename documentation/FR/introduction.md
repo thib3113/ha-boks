@@ -1,7 +1,7 @@
 # Intégration Boks pour Home Assistant
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![GitHub License](https://img.shields.io/github/license/thib3113/ha-boks?color=blue)](../../../LICENSE)
+[![GitHub License](https://img.shields.io/github/license/thib3113/ha-boks?color=blue)](../../LICENSE)
 
 Bienvenue dans la documentation française de l'intégration Boks pour Home Assistant.
 
@@ -39,4 +39,4 @@ Elle vous permet d'ouvrir votre Boks directement depuis Home Assistant sans avoi
 > **⚠️ Avertissement :** Ceci est un projet non officiel développé uniquement à des fins d'interopérabilité.
 > Il n'est pas affilié au fabricant de l'appareil. Aucun code ou actif propriétaire n'est distribué ici.
 >
-> 👉 Veuillez lire l'intégralité de l'**[Avis Juridique et Note sur la Rétro-ingénierie](../../../LEGALS.md)** avant d'utiliser ce logiciel.
+> 👉 Veuillez lire l'intégralité de l'**[Avis Juridique et Note sur la Rétro-ingénierie](../../LEGALS.md)** avant d'utiliser ce logiciel.

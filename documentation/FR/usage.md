@@ -1,26 +1,162 @@
-# Événements et Automatisations (Utilisation) dans l'Intégration Boks pour Home Assistant
+# Utilisation : Services, Événements et Automatisations
 
-Ce document explique comment utiliser les événements exposés par l'intégration Boks pour les automatisations Home Assistant. L'exploitation de ces événements vous permet de créer des automatisations puissantes basées sur l'activité de votre appareil Boks.
+Ce document est un guide complet pour interagir avec votre Boks via Home Assistant, que ce soit manuellement via des services ou automatiquement via des automatisations.
 
-## Aperçu de l'Entité Événement (Event Entity)
+## 🛠️ Services Disponibles
 
-L'intégration Boks expose une entité `event` (par exemple, `event.boks_logs`) qui se déclenche chaque fois que de nouvelles données de journal sont récupérées de votre appareil Boks. Cette entité sert de point central pour toutes les activités historiques enregistrées par votre Boks.
+L'intégration Boks expose plusieurs services pour contrôler votre appareil. Vous pouvez les appeler depuis **Outils de développement > Services** ou les utiliser dans vos scripts et automatisations.
 
-En plus de l'entité `event`, l'intégration émet également des événements sur le bus d'événements Home Assistant avec le type d'événement `boks_log_entry`. Ces événements contiennent les mêmes données que l'entité `event` et peuvent être utilisés dans les automatisations comme alternative aux déclencheurs basés sur l'état.
+### Contrôle de la Porte
 
-Lorsqu'un événement se déclenche, il contient un attribut `event_type` et potentiellement d'autres données qui décrivent ce qui s'est passé.
+#### `lock.open` (ou `boks.open_door`)
+Ouvre la porte de la Boks.
+*   **Entité** : `lock.votre_boks_porte`
+*   **Code (Optionnel)** : Si omis, l'intégration utilise le "Code Permanent" configuré. Si vous spécifiez un code, c'est celui-ci qui sera utilisé (utile pour tester des codes à usage unique).
 
-## Types d'Événements Disponibles
+### Gestion des Colis
 
-Voici les valeurs `event_type` courantes que vous pourriez recevoir :
+#### `todo.add_item` (ou `boks.add_parcel`)
+Ajoute un colis à attendre.
+*   **Entité** : `todo.votre_boks_colis`
+*   **Description** : Le nom du colis.
+    *   *Mode Auto* : Entrez juste le nom (ex: "Amazon"). L'intégration génère un code et met à jour le titre (ex: "1234AB - Amazon").
+    *   *Mode Manuel* : Entrez le code suivi du nom (ex: "1234AB - Amazon").
 
-*   `door_opened` : La porte du Boks a été ouverte.
-*   `door_closed` : La porte du Boks a été fermée.
-*   `code_ble_valid` : Un code valide a été entré via Bluetooth Low Energy (BLE).
-*   `code_key_valid` : Un code valide a été entré via le clavier physique.
-*   `code_ble_invalid` : Une tentative de code invalide a été effectuée via BLE.
-*   `code_key_invalid` : Une tentative de code invalide a été effectuée via le clavier physique.
-*   `nfc_opening` : Ouverture de la Boks via un badge NFC.
-*   `nfc_tag_registering` : Un badge a été scanné pendant une procédure d'enregistrement.
-*   `error` : Une erreur s'est produite sur l'appareil Boks.
-*   ... et potentiellement d'autres types d'événements indiquant divers états ou actions.
+### Gestion des Codes
+
+#### `boks.add_master_code` / `boks.delete_master_code`
+Gère les codes permanents (accès famille, livreur régulier).
+*   **Index** : Emplacement mémoire (0-99).
+*   **Code** : Le code PIN à 6 caractères.
+
+#### `boks.add_single_code` / `boks.delete_single_code`
+Gère les codes à usage unique manuellement (si vous n'utilisez pas la liste de tâches).
+
+### Maintenance
+
+#### `boks.sync_logs`
+Force une synchronisation immédiate des journaux avec la Boks (nécessite une connexion Bluetooth active).
+
+#### `boks.set_configuration`
+Modifie les paramètres internes (ex: activer/désactiver la reconnaissance des badges La Poste).
+
+---
+
+## 🚀 Blueprint (Automatisations Simplifiées)
+
+Pour simplifier la configuration, nous fournissons un **Blueprint** prêt à l'emploi qui regroupe les scénarios les plus courants.
+
+### 📥 [Importer le Blueprint Boks Notifications](../../blueprints/automation/boks_notifications.yaml)
+
+Ce Blueprint vous permet de configurer en quelques clics :
+*   ✅ Notification de colis livré
+*   🚪 Notification d'ouverture de porte
+*   🚨 Alerte en cas de code faux
+*   🔋 Alerte batterie faible
+
+Pour l'utiliser :
+1.  Copiez le fichier `blueprints/automation/boks_notifications.yaml` dans votre dossier `blueprints/automation/`.
+2.  Allez dans **Paramètres > Automatisations et scènes > Blueprints**.
+3.  Cherchez "Boks Notifications" et cliquez sur "Créer une automatisation".
+
+---
+
+## 🤖 Exemples d'Automatisations (Configuration Manuelle)
+
+Si vous préférez créer vos propres automatisations sur mesure, voici des exemples concrets.
+
+### 1. Notification de Livraison (Colis Déposé)
+Soyez notifié quand un livreur utilise le code associé à un colis attendu.
+
+```yaml
+alias: "Boks: Colis Livré"
+description: "Envoie une notification quand un code de colis est utilisé."
+trigger:
+  - platform: event
+    event_type: boks_parcel_completed
+condition: []
+action:
+  - service: notify.mobile_app_votre_telephone
+    data:
+      title: "📦 Colis Livré !"
+      message: "Le colis '{{ trigger.event.data.description }}' a été déposé avec le code {{ trigger.event.data.code }}."
+```
+
+### 2. Alerte Porte Restée Ouverte
+Si la porte reste ouverte plus de 5 minutes, recevez une alerte.
+*Note : L'entité `lock` est considérée comme "déverrouillée" tant que la porte est physiquement ouverte.*
+
+```yaml
+alias: "Boks: Alerte Porte Ouverte"
+trigger:
+  - platform: state
+    entity_id: lock.ma_boks_porte
+    to: "unlocked"
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+action:
+  - service: notify.mobile_app_votre_telephone
+    data:
+      message: "⚠️ Attention, la porte de la Boks est ouverte depuis 5 minutes !"
+```
+
+### 3. Alerte Batterie Faible
+Surveillez le niveau de batterie pour ne jamais être pris au dépourvu.
+
+```yaml
+alias: "Boks: Batterie Faible"
+trigger:
+  - platform: numeric_state
+    entity_id: sensor.ma_boks_batterie
+    below: 20
+action:
+  - service: notify.mobile_app_votre_telephone
+    data:
+      message: "🔋 Batterie Boks faible ({{ states('sensor.ma_boks_batterie') }}%). Pensez à remplacer les piles."
+```
+
+### 4. Tentative d'Intrusion (Code Faux)
+Soyez alerté si quelqu'un essaie des codes invalides.
+
+```yaml
+alias: "Boks: Code Invalide"
+trigger:
+  - platform: state
+    entity_id: event.ma_boks_journaux
+    attribute: event_type
+    to: "code_ble_invalid"
+  - platform: state
+    entity_id: event.ma_boks_journaux
+    attribute: event_type
+    to: "code_key_invalid"
+action:
+  - service: notify.mobile_app_votre_telephone
+    data:
+      message: "🚨 Code invalide tenté sur la Boks !"
+```
+
+### 5. Notification d'Ouverture (Générique)
+Savoir qui a ouvert la boîte (Famille, Facteur, etc.).
+
+```yaml
+alias: "Boks: Nouvelle Ouverture"
+trigger:
+  - platform: state
+    entity_id: event.ma_boks_journaux
+    attribute: event_type
+    to:
+      - "code_ble_valid"
+      - "code_key_valid"
+      - "nfc_opening"
+      - "key_opening"
+action:
+  - service: notify.mobile_app_votre_telephone
+    data:
+      title: "Boks Ouverte"
+      message: >
+        La Boks a été ouverte.
+        Type : {{ state_attr('event.ma_boks_journaux', 'event_type') }}
+        Info : {{ state_attr('event.ma_boks_journaux', 'extra_data') }}
+```
