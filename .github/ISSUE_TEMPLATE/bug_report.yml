@@ -48,6 +48,17 @@ body:
       required: true
 
   - type: textarea
+    id: diagnostics
+    attributes:
+      label: "Device Diagnostics / Données de Diagnostic"
+      description: |
+        Please download diagnostics from the device page (three dots menu > Download Diagnostics) and **drag & drop the file here**.
+        Veuillez télécharger le diagnostic depuis la page de l'appareil (menu trois points > Télécharger les diagnostics) et **glisser-déposer le fichier ici**.
+      placeholder: "Drag & drop your diagnostic file here... / Glissez-déposez votre fichier de diagnostic ici..."
+    validations:
+      required: false
+
+  - type: textarea
     id: logs
     attributes:
       label: "Debug Logs / Journaux de Débogage"
