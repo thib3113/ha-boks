@@ -5,14 +5,15 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.const import CONF_ADDRESS
 from homeassistant.config_entries import ConfigEntry
-
-from ..entity import BoksEntity
-from ..coordinator import BoksDataUpdateCoordinator
-from ..ble.const import BoksNotificationOpcode
-from ..ble.protocol import BoksProtocol
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.const import EntityCategory
+
+from ..ble.const import BoksNotificationOpcode
+from ..coordinator import BoksDataUpdateCoordinator
+from ..entity import BoksEntity
+from ..packets.factory import PacketFactory
+from ..packets.rx.log_count import LogCountPacket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class BoksLogCountSensor(BoksEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Register opcode callback when entity is added to hass."""
         await super().async_added_to_hass()
-        
+
         if not self._callback_registered:
             self.coordinator.register_opcode_callback(
                 BoksNotificationOpcode.NOTIFY_LOGS_COUNT,
@@ -61,22 +62,23 @@ class BoksLogCountSensor(BoksEntity, SensorEntity):
             )
             self._callback_registered = False
             _LOGGER.debug("Unregistered opcode callback for log count sensor %s", self._attr_unique_id)
-        
+
         await super().async_will_remove_from_hass()
 
     def _handle_logs_count_notification(self, data: bytearray) -> None:
         """Handle logs count notification."""
         try:
-            log_count = BoksProtocol.parse_logs_count(data)
-            
-            if log_count is not None:
+            packet = PacketFactory.from_rx_data(data)
+
+            if isinstance(packet, LogCountPacket):
+                log_count = packet.count
                 # Update coordinator data
                 if self.coordinator.data is None:
                     self.coordinator.data = {}
-                
+
                 self.coordinator.data["log_count"] = log_count
                 _LOGGER.debug("Updated log count to %d", log_count)
-                
+
                 # Notify listeners of the update
                 self.coordinator.async_set_updated_data(self.coordinator.data)
         except Exception as e:

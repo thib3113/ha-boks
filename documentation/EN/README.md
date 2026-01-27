@@ -17,6 +17,7 @@ This document provides comprehensive information on setting up, using, and custo
     *   Initial configuration of Boks integrations.
 3.  **Using Boks Integrations**
     *   Details on exposed Boks entities and services.
+    *   [Creating custom NFC tags](create_user_tag.md).
     *   Automation and script examples.
     *   Common troubleshooting.
 4.  **Development and Customization**

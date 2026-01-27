@@ -34,12 +34,15 @@ TIMEOUT_BLE_CONNECTION = 60.0
 TIMEOUT_DOOR_OPEN_MESSAGE = 5 # Time to keep lock held after opening (anti-spam)
 TIMEOUT_DOOR_CLOSE = 120.0 # Time to wait for door to close after opening
 TIMEOUT_COMMAND_RESPONSE = 10.0
+TIMEOUT_NFC_LISTENING = 6.0 # Time the Boks hardware stays in NFC listening mode
+TIMEOUT_NFC_WAIT_RESULT = 7.0 # Security margin for HA to wait for NFC result
 TIMEOUT_LOG_RETRIEVAL_BASE = 15.0 # Minimum timeout for logs
-DELAY_POST_DOOR_CLOSE_SYNC = 2.0 # Wait before syncing after door close
+DELAY_POST_DOOR_CLOSE_SYNC = 5.0 # Wait before syncing after door close/open
 DELAY_BATTERY_UPDATE = 1.0 # Wait before updating battery after door events
 DELAY_LOG_COUNT_COLLECTION = 2.0 # Time to collect log count notifications
 DELAY_RETRY = 0.5 # Delay between retries
 DELAY_RETRY_LONG = 2.0 # Longer delay for retries (e.g. generating code)
+MIN_DELAY_BETWEEN_CONNECTIONS = 2.0 # Wait between disconnect and next connect for ESP proxy stability
 
 # Retry Limits
 MAX_RETRIES_CODE_GENERATION = 2

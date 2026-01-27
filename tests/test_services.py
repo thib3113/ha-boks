@@ -188,8 +188,101 @@ async def test_async_setup_services(mock_hass):
         
         await async_setup_services(mock_hass)
         
-        # Verify that services were registered (there are 11 services now)
-        assert mock_hass.services.async_register.call_count == 11
+        # Verify that services were registered (there are 14 services now)
+        assert mock_hass.services.async_register.call_count == 14
+
+async def test_handle_nfc_scan_start_success(mock_hass, mock_coordinator):
+    """Test handle_nfc_scan_start service success."""
+    # Set up hass.data with a coordinator
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    # Mock coordinator entry
+    mock_coordinator.entry = MagicMock()
+    mock_coordinator.entry.unique_id = "test_unique_id"
+    mock_coordinator.entry.entry_id = entry_id
+    
+    # Set up the service call
+    call = MagicMock()
+    call.data = {}
+    
+    # Mock hass bus
+    mock_hass.bus = MagicMock()
+    mock_hass.bus.async_fire = MagicMock()
+    
+    # Mock hass services async_call
+    mock_hass.services.async_call = AsyncMock()
+    
+    # Mock found UID
+    mock_coordinator.ble_device.nfc_scan_start = AsyncMock(return_value="A1B2C3D4")
+    
+    # Mock Device Registry
+    mock_dr = MagicMock()
+    mock_dr.async_get_device.return_value = MagicMock(id="test_device_id")
+    
+    # Capture handler
+    handlers = {}
+    mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
+    await async_setup_services(mock_hass)
+    handler = handlers["nfc_scan_start"]
+    
+    with (
+        patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator),
+        patch("homeassistant.helpers.device_registry.async_get", return_value=mock_dr)
+    ):
+        await handler(call)
+        
+        mock_coordinator.async_ensure_prerequisites.assert_called_with("NFC", "4.0", "4.3.3")
+        mock_coordinator.ble_device.connect.assert_called()
+        mock_coordinator.ble_device.nfc_scan_start.assert_called()
+        mock_coordinator.ble_device.disconnect.assert_called()
+
+async def test_handle_nfc_register_tag_success(mock_hass, mock_coordinator):
+    """Test handle_nfc_register_tag service success."""
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    call = MagicMock()
+    call.data = {"uid": "A1B2C3D4", "name": "Test Tag"}
+    
+    mock_coordinator.ble_device.nfc_register_tag = AsyncMock(return_value=True)
+    
+    handlers = {}
+    mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
+    await async_setup_services(mock_hass)
+    handler = handlers["nfc_register_tag"]
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        await handler(call)
+        
+        mock_coordinator.async_ensure_prerequisites.assert_called_with("NFC", "4.0", "4.3.3")
+        mock_coordinator.ble_device.connect.assert_called()
+        mock_coordinator.ble_device.nfc_register_tag.assert_called_with("A1B2C3D4")
+        mock_coordinator.ble_device.disconnect.assert_called()
+
+async def test_handle_nfc_unregister_tag_success(mock_hass, mock_coordinator):
+    """Test handle_nfc_unregister_tag service success."""
+    entry_id = "test_entry_id"
+    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
+    
+    call = MagicMock()
+    call.data = {"uid": "A1B2C3D4"}
+    
+    mock_coordinator.ble_device.nfc_unregister_tag = AsyncMock(return_value=True)
+    
+    handlers = {}
+    mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
+    await async_setup_services(mock_hass)
+    handler = handlers["nfc_unregister_tag"]
+    
+    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
+        await handler(call)
+        
+        mock_coordinator.async_ensure_prerequisites.assert_called_with("NFC", "4.0", "4.3.3")
+        mock_coordinator.ble_device.connect.assert_called()
+        mock_coordinator.ble_device.nfc_unregister_tag.assert_called_with("A1B2C3D4")
+        mock_coordinator.ble_device.disconnect.assert_called()
+
 
 async def test_handle_add_parcel_with_entity_id(mock_hass, mock_coordinator):
     """Test handle_add_parcel service with entity_id."""
@@ -509,6 +602,8 @@ async def test_handle_clean_master_codes_success(mock_hass, mock_coordinator):
         
         # Verify that the background task was created
         mock_hass.async_create_task.assert_called_once()
+        # Close the coroutine to avoid RuntimeWarning (coroutine was never awaited)
+        mock_hass.async_create_task.call_args[0][0].close()
 
 
 async def test_handle_clean_master_codes_already_running(mock_hass, mock_coordinator):
@@ -603,6 +698,9 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
 
 
         
+
+
+        mock_coordinator.async_ensure_prerequisites.assert_called_with("La Poste", "4.0", "4.3.3")
 
 
         mock_coordinator.ble_device.connect.assert_called()

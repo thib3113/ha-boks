@@ -1,20 +1,20 @@
 "Services for the Boks integration."
-import logging
-import voluptuous as vol
 import asyncio
+import logging
 
+import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from homeassistant.exceptions import HomeAssistantError
 
-from .const import DOMAIN, CONF_CONFIG_KEY, MAX_MASTER_CODE_CLEAN_RANGE
 from .ble.const import BoksConfigType
+from .const import DOMAIN, MAX_MASTER_CODE_CLEAN_RANGE, TIMEOUT_NFC_LISTENING, TIMEOUT_NFC_WAIT_RESULT
 from .coordinator import BoksDataUpdateCoordinator
 from .errors import BoksError
-from .todo import BoksParcelTodoList
 from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
+from .todo import BoksParcelTodoList
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,6 +62,17 @@ SERVICE_CLEAN_MASTER_CODES_SCHEMA = vol.Schema({
 
 SERVICE_SET_CONFIGURATION_SCHEMA = vol.Schema({
     vol.Optional("laposte"): cv.boolean,
+}, extra=vol.ALLOW_EXTRA)
+
+SERVICE_NFC_SCAN_START_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
+
+SERVICE_NFC_REGISTER_TAG_SCHEMA = vol.Schema({
+    vol.Required("uid"): cv.string,
+    vol.Optional("name"): cv.string,
+}, extra=vol.ALLOW_EXTRA)
+
+SERVICE_NFC_UNREGISTER_TAG_SCHEMA = vol.Schema({
+    vol.Required("uid"): cv.string,
 }, extra=vol.ALLOW_EXTRA)
 
 
@@ -136,9 +147,9 @@ async def async_setup_services(hass: HomeAssistant):
             code = code.strip().upper()
 
         coordinator = get_coordinator_from_call(hass, call)
+        _LOGGER.info("Open Door requested via service for %s", coordinator.ble_device.address)
 
-        # Get the lock entity to use its open logic (which handles fallback/generation)
-        # We need to find the lock entity associated with this coordinator
+        # Get the lock entity to use its open logic
         lock_entity = None
         entity_registry = er.async_get(hass)
         entries = er.async_entries_for_config_entry(entity_registry, coordinator.entry.entry_id)
@@ -150,13 +161,13 @@ async def async_setup_services(hass: HomeAssistant):
                     break
 
         if lock_entity:
-            # Use entity logic
             await lock_entity.async_open(code=code)
+            _LOGGER.info("Open Door service completed for %s", coordinator.ble_device.address)
         else:
-            # Fallback to direct BLE open (less robust, no state update logic in coordinator)
-            # But async_open is on the entity...
-            # We should probably error if no lock entity found
-            raise HomeAssistantError("lock_entity_not_found")
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="lock_entity_not_found"
+            )
 
     hass.services.async_register(
         DOMAIN,
@@ -169,6 +180,7 @@ async def async_setup_services(hass: HomeAssistant):
     async def handle_add_parcel(call: ServiceCall) -> dict | None:
         """Handle the add parcel service call."""
         description = call.data.get("description", "")
+        _LOGGER.info("Add Parcel requested: %s", description)
         target_entity_id = None
 
         # 1. Try to get entity_id directly
@@ -274,6 +286,7 @@ async def async_setup_services(hass: HomeAssistant):
             force_sync = False
 
         await todo_entity.async_create_parcel(formatted_description, force_background_sync=force_sync)
+        _LOGGER.info("Add Parcel completed. Code: %s", generated_code)
 
         return {"code": generated_code}
 
@@ -289,13 +302,13 @@ async def async_setup_services(hass: HomeAssistant):
     async def _handle_create_code(call: ServiceCall, code: str, code_type: str, index: int = 0) -> dict:
         code = code.strip().upper()
         masked_code = "***" + code[-2:] if len(code) > 2 else "***"
-        _LOGGER.info(f"Adding PIN Code: Code={masked_code}, Type={code_type}, Index={index}")
+        _LOGGER.info("Adding PIN Code: Code=%s, Type=%s, Index=%d", masked_code, code_type, index)
 
-        coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.ble_device.connect()
         try:
+            coordinator = get_coordinator_from_call(hass, call)
+            await coordinator.ble_device.connect()
             created_code = await coordinator.ble_device.create_pin_code(code, code_type, index)
-            _LOGGER.info(f"Code {created_code} ({code_type}) added successfully.")
+            _LOGGER.info("Code %s (%s) added successfully.", created_code, code_type)
             await coordinator.async_request_refresh()
             return {"code": created_code}
         except BoksError as e:
@@ -304,6 +317,13 @@ async def async_setup_services(hass: HomeAssistant):
                 translation_key=e.translation_key,
                 translation_placeholders=e.translation_placeholders
             ) from e
+        except Exception as e:
+            _LOGGER.error("Error creating code: %s", e)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="unexpected_create_code_error",
+                translation_placeholders={"error": str(e)}
+            ) from e
         finally:
             await asyncio.shield(coordinator.ble_device.disconnect())
 
@@ -311,22 +331,29 @@ async def async_setup_services(hass: HomeAssistant):
         if isinstance(identifier, str):
             identifier = identifier.strip().upper()
 
-        _LOGGER.info(f"Deleting PIN Code: Identifier={identifier}, Type={code_type}")
+        _LOGGER.info("Deleting PIN Code: Identifier=%s, Type=%s", identifier, code_type)
 
-        coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.ble_device.connect()
         try:
+            coordinator = get_coordinator_from_call(hass, call)
+            await coordinator.ble_device.connect()
             success = await coordinator.ble_device.delete_pin_code(code_type, identifier)
             if not success:
                  raise BoksError("delete_code_failed")
 
-            _LOGGER.info(f"Code {identifier} ({code_type}) deleted successfully.")
+            _LOGGER.info("Code %s (%s) deleted successfully.", identifier, code_type)
             await coordinator.async_request_refresh()
         except BoksError as e:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key=e.translation_key,
                 translation_placeholders=e.translation_placeholders
+            ) from e
+        except Exception as e:
+            _LOGGER.error("Error deleting code: %s", e)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="unexpected_delete_code_error",
+                translation_placeholders={"error": str(e)}
             ) from e
         finally:
             await asyncio.shield(coordinator.ble_device.disconnect())
@@ -404,11 +431,12 @@ async def async_setup_services(hass: HomeAssistant):
     async def handle_sync_logs(call: ServiceCall):
         """Handle the sync logs service call."""
         coordinator = get_coordinator_from_call(hass, call)
-        _LOGGER.info("Manual log sync requested via service")
+        _LOGGER.info("Manual log sync requested via service for %s", coordinator.ble_device.address)
         try:
             await coordinator.async_sync_logs(update_state=True)
+            _LOGGER.info("Manual log sync completed for %s", coordinator.ble_device.address)
         except Exception as e:
-            _LOGGER.error(f"Failed to sync logs via service: {e}")
+            _LOGGER.error("Failed to sync logs via service: %s", e)
             raise
 
     hass.services.async_register(
@@ -424,7 +452,7 @@ async def async_setup_services(hass: HomeAssistant):
         start_index = call.data.get("start_index", 0)
         range_val = call.data.get("range", MAX_MASTER_CODE_CLEAN_RANGE)
         if range_val > MAX_MASTER_CODE_CLEAN_RANGE:
-            _LOGGER.warning(f"Requested range {range_val} exceeds limit. Capping at {MAX_MASTER_CODE_CLEAN_RANGE}.")
+            _LOGGER.warning("Requested range %d exceeds limit. Capping at %d.", range_val, MAX_MASTER_CODE_CLEAN_RANGE)
             range_val = MAX_MASTER_CODE_CLEAN_RANGE
 
         coordinator = get_coordinator_from_call(hass, call)
@@ -437,7 +465,7 @@ async def async_setup_services(hass: HomeAssistant):
                 translation_key="maintenance_already_running"
             )
 
-        _LOGGER.info(f"Clean Master Codes requested: Start={start_index}, Range={range_val}")
+        _LOGGER.info("Clean Master Codes requested: Start=%d, Range=%d", start_index, range_val)
 
         async def _background_clean():
             total_to_clean = range_val
@@ -471,7 +499,7 @@ async def async_setup_services(hass: HomeAssistant):
                     while retry_count < max_retries and not success:
                         try:
                             if not coordinator.ble_device.is_connected:
-                                _LOGGER.debug(f"Reconnecting for index {target_index}...")
+                                _LOGGER.debug("Reconnecting for index %d...", target_index)
                                 await coordinator.ble_device.connect()
 
                             await coordinator.ble_device.delete_pin_code(type="master", index_or_code=target_index)
@@ -481,11 +509,11 @@ async def async_setup_services(hass: HomeAssistant):
 
                         except Exception as e:
                             retry_count += 1
-                            _LOGGER.warning(f"Error cleaning index {target_index} (Attempt {retry_count}/{max_retries}): {e}")
+                            _LOGGER.warning("Error cleaning index %d (Attempt %d/%d): %s", target_index, retry_count, max_retries, e)
                             await asyncio.sleep(1.0)
 
                     if not success:
-                        _LOGGER.error(f"Failed to clean index {target_index} after {max_retries} attempts. Aborting.")
+                        _LOGGER.error("Failed to clean index %d after %d attempts. Aborting.", target_index, max_retries)
                         raise Exception("Connection lost or device unresponsive")
 
                 coordinator.set_maintenance_status(
@@ -494,25 +522,27 @@ async def async_setup_services(hass: HomeAssistant):
                     total_to_clean=total_to_clean,
                     message="Finished"
                 )
+
                 await hass.services.async_call(
                     "persistent_notification",
                     "create",
                     {
-                        "message": f"Master Code Cleaning Completed.\nScanned {range_val} indices starting from {start_index}.",
-                        "title": "Boks Maintenance",
+                        "message": coordinator.get_text("common", "maintenance_success_msg", range=range_val, start_index=start_index),
+                        "title": coordinator.get_text("common", "maintenance_success_title"),
                         "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
                     }
                 )
 
             except Exception as e:
-                _LOGGER.error(f"Maintenance task failed: {e}")
+                _LOGGER.error("Maintenance task failed: %s", e)
                 coordinator.set_maintenance_status(running=False, message=f"Failed: {e}")
+
                 await hass.services.async_call(
                     "persistent_notification",
                     "create",
                     {
-                        "message": f"Master Code Cleaning Failed at index {current_idx}.\nError: {e}",
-                        "title": "Boks Maintenance Error",
+                        "message": coordinator.get_text("exceptions", "maintenance_error_msg", current_idx=current_idx, error=str(e)),
+                        "title": coordinator.get_text("exceptions", "maintenance_error_title"),
                         "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
                     }
                 )
@@ -534,36 +564,198 @@ async def async_setup_services(hass: HomeAssistant):
     # --- Service: Set Configuration ---
     async def handle_set_configuration(call: ServiceCall):
         """Handle the set configuration service call."""
-        coordinator = get_coordinator_from_call(hass, call)
+        try:
+            coordinator = get_coordinator_from_call(hass, call)
 
-        # Check each supported configuration option
-        # Initially only laposte
-        laposte = call.data.get("laposte")
+            # Check each supported configuration option
+            # Initially only laposte
+            laposte = call.data.get("laposte")
 
-        if laposte is not None:
-            # Check software revision if trying to enable laposte
-            if laposte:
-                await coordinator.ensure_min_firmware_version(
-                    "4.3.3",
-                    translation_key="laposte_firmware_version_required"
-                )
+            if laposte is not None:
+                # Check software revision if trying to enable laposte
+                if laposte:
+                    await coordinator.async_ensure_prerequisites("La Poste", "4.0", "4.3.3")
 
-            _LOGGER.info(f"Setting La Poste configuration to {laposte}")
-            await coordinator.ble_device.connect()
-            try:
-                await coordinator.ble_device.set_configuration(BoksConfigType.SCAN_LAPOSTE_NFC_TAGS, laposte)
-            except BoksError as e:
-                raise HomeAssistantError(
-                    translation_domain=DOMAIN,
-                    translation_key=e.translation_key,
-                    translation_placeholders=e.translation_placeholders
-                ) from e
-            finally:
-                await asyncio.shield(coordinator.ble_device.disconnect())
+                _LOGGER.info("Setting La Poste configuration to %s", laposte)
+                await coordinator.ble_device.connect()
+                try:
+                    await coordinator.ble_device.set_configuration(BoksConfigType.SCAN_LAPOSTE_NFC_TAGS, laposte)
+                finally:
+                    await asyncio.shield(coordinator.ble_device.disconnect())
+        except BoksError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=e.translation_key,
+                translation_placeholders=e.translation_placeholders
+            ) from e
+        except Exception as e:
+            _LOGGER.error("Error setting configuration: %s", e)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="unexpected_set_configuration_error",
+                translation_placeholders={"error": str(e)}
+            ) from e
 
     hass.services.async_register(
         DOMAIN,
         "set_configuration",
         handle_set_configuration,
         schema=SERVICE_SET_CONFIGURATION_SCHEMA
+    )
+
+    # --- Service: NFC Scan Start ---
+    async def handle_nfc_scan_start(call: ServiceCall):
+        """Handle NFC Scan Start."""
+        coordinator = get_coordinator_from_call(hass, call)
+        # Verify prerequisites synchronously
+        await coordinator.async_ensure_prerequisites("NFC", "4.0", "4.3.3")
+
+        async def _run_scan():
+            try:
+                _LOGGER.info("Starting NFC scan session...")
+                await coordinator.ble_device.connect()
+
+                # Notify user that scan is active
+                await hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "message": coordinator.get_text("common", "nfc_scan_started_msg"),
+                        "title": coordinator.get_text("common", "nfc_scan_started_title"),
+                        "notification_id": f"boks_nfc_scan_{coordinator.entry.entry_id}"
+                    }
+                )
+
+                # This launches the scan on device.
+                success = await coordinator.ble_device.nfc_scan_start()
+
+                if success:
+                    # We wait for the device to report a result
+                    _LOGGER.info("NFC scan started, waiting for tag (%ds)...", int(TIMEOUT_NFC_LISTENING))
+
+                    scan_done = asyncio.Event()
+                    def scan_callback(data):
+                        # 0xC5 (Found), 0xC6 (Already exists), 0xC7 (Timeout)
+                        if data[0] in (0xC5, 0xC6, 0xC7):
+                            _LOGGER.debug("NFC Scan result received: 0x%02X", data[0])
+                            scan_done.set()
+
+                    coordinator.ble_device.register_opcode_callback(0xC5, scan_callback)
+                    coordinator.ble_device.register_opcode_callback(0xC6, scan_callback)
+                    coordinator.ble_device.register_opcode_callback(0xC7, scan_callback)
+
+                    try:
+                        await asyncio.wait_for(scan_done.wait(), timeout=TIMEOUT_NFC_WAIT_RESULT)
+                    except asyncio.TimeoutError:
+                        _LOGGER.warning("NFC scan session timed out (no response from device).")
+                    finally:
+                        coordinator.ble_device.unregister_opcode_callback(0xC5, scan_callback)
+                        coordinator.ble_device.unregister_opcode_callback(0xC6, scan_callback)
+                        coordinator.ble_device.unregister_opcode_callback(0xC7, scan_callback)
+                else:
+                    _LOGGER.error("Failed to start NFC scan on device")
+
+            except Exception as e:
+                _LOGGER.error("Error in NFC scan background task: %s", e)
+            finally:
+                # Decouple disconnect to ensure it runs
+                await asyncio.shield(coordinator.ble_device.disconnect())
+
+        # Launch as background task immediately
+        hass.async_create_task(_run_scan())
+
+    hass.services.async_register(
+        DOMAIN,
+        "nfc_scan_start",
+        handle_nfc_scan_start,
+        schema=SERVICE_NFC_SCAN_START_SCHEMA
+    )
+
+    # --- Service: NFC Register Tag ---
+    async def handle_nfc_register_tag(call: ServiceCall):
+        """Handle NFC Register Tag."""
+        uid = call.data["uid"]
+        name = call.data.get("name")
+
+        coordinator = get_coordinator_from_call(hass, call)
+        await coordinator.async_ensure_prerequisites("NFC", "4.0", "4.3.3")
+
+        try:
+
+            await coordinator.ble_device.connect()
+            success = await coordinator.ble_device.nfc_register_tag(uid)
+
+            if success:
+                # Optionally add to HA Tag Registry if name provided
+                if name:
+                    try:
+                        tag_manager = hass.data.get("tag")
+                        tags_helper = tag_manager.get("tags") if isinstance(tag_manager, dict) else tag_manager
+
+                        if tags_helper:
+                            tag_id = uid.replace(":", "").upper()
+                            # Check if already exists to avoid error, skip update as requested
+                            if hasattr(tags_helper, "data") and tag_id in tags_helper.data:
+                                _LOGGER.info("Tag %s already exists in registry, skipping HA creation.", tag_id)
+                            elif hasattr(tags_helper, "async_create_item"):
+                                await tags_helper.async_create_item({"tag_id": tag_id, "name": name})
+                                _LOGGER.info("Created HA Tag: %s (%s)", name, tag_id)
+                        else:
+                            _LOGGER.warning("Home Assistant 'tag' integration is not loaded or does not support item creation")
+                    except Exception as e:
+                        _LOGGER.error("Could not create/update HA Tag: %s", e)
+        except BoksError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=e.translation_key,
+                translation_placeholders=e.translation_placeholders
+            ) from e
+        except Exception as e:
+            _LOGGER.error("Error registering NFC tag: %s", e)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="unexpected_register_tag_error",
+                translation_placeholders={"error": str(e)}
+            ) from e
+        finally:
+             await asyncio.shield(coordinator.ble_device.disconnect())
+
+    hass.services.async_register(
+        DOMAIN,
+        "nfc_register_tag",
+        handle_nfc_register_tag,
+        schema=SERVICE_NFC_REGISTER_TAG_SCHEMA
+    )
+
+    # --- Service: NFC Unregister Tag ---
+    async def handle_nfc_unregister_tag(call: ServiceCall):
+        """Handle NFC Unregister Tag."""
+        uid = call.data["uid"]
+        try:
+            coordinator = get_coordinator_from_call(hass, call)
+            await coordinator.async_ensure_prerequisites("NFC", "4.0", "4.3.3")
+
+            await coordinator.ble_device.connect()
+            await coordinator.ble_device.nfc_unregister_tag(uid)
+        except BoksError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=e.translation_key,
+                translation_placeholders=e.translation_placeholders
+            ) from e
+        except Exception as e:
+            _LOGGER.error("Error unregistering NFC tag: %s", e)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="unexpected_unregister_tag_error",
+                translation_placeholders={"error": str(e)}
+            ) from e
+        finally:
+             await asyncio.shield(coordinator.ble_device.disconnect())
+
+    hass.services.async_register(
+        DOMAIN,
+        "nfc_unregister_tag",
+        handle_nfc_unregister_tag,
+        schema=SERVICE_NFC_UNREGISTER_TAG_SCHEMA
     )

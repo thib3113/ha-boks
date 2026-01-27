@@ -17,6 +17,7 @@ Ce document fournit des informations exhaustives sur la configuration, l'utilisa
     *   Configuration initiale des intégrations Boks.
 3.  **Utilisation des Intégrations Boks**
     *   Détails sur les entités et services Boks exposés.
+    *   [Création de badges NFC personnalisés](create_user_tag.md).
     *   Exemples d'automatisations et de scripts.
     *   Dépannage courant.
 4.  **Développement et Personnalisation**

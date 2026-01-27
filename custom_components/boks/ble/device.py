@@ -1,40 +1,43 @@
-"""Bluetooth Low Energy (BLE) communication handling for Boks."""
+"Bluetooth Low Energy (BLE) communication handling for Boks."
 
 import asyncio
 import logging
 import time
-import random
 from datetime import datetime, timedelta
-from typing import Callable, Any, List, Optional, Dict
+from typing import Callable, Any, List, Optional
 
 from bleak import BleakClient
-from bleak.exc import BleakError
 from bleak.backends.device import BLEDevice
+from bleak.exc import BleakError
 from bleak_retry_connector import establish_connection
-
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 
 from .const import (
     BoksServiceUUID,
-    BoksCommandOpcode,
     BoksNotificationOpcode,
     BoksHistoryEvent,
-    BoksConfigType,
 )
-from .log_entry import BoksLogEntry
 from .protocol import BoksProtocol
-from ..errors import BoksError, BoksAuthError, BoksCommandError
 from ..const import (
-    BOKS_CHAR_MAP,
+    DOMAIN,
     TIMEOUT_DOOR_CLOSE,
     TIMEOUT_COMMAND_RESPONSE,
-    TIMEOUT_LOG_RETRIEVAL_BASE,
-    DELAY_BATTERY_UPDATE,
-    DELAY_LOG_COUNT_COLLECTION,
     DELAY_RETRY,
-    MAX_RETRIES_DEEP_DELETE
 )
+from ..errors import BoksError, BoksAuthError
+from ..logic.anonymizer import BoksAnonymizer
+from ..packets.base import BoksTXPacket, BoksRXPacket
+from ..packets.factory import PacketFactory
+from ..packets.rx.code_ble_valid import CodeBleValidPacket
+from ..packets.rx.code_key_valid import CodeKeyValidPacket
+from ..packets.rx.door_closed import DoorClosedPacket
+from ..packets.rx.door_opened import DoorOpenedPacket
+from ..packets.rx.door_status import DoorStatusPacket
+from ..packets.rx.error_response import ErrorResponsePacket
+from ..packets.rx.key_opening import KeyOpeningPacket
+from ..packets.rx.nfc_opening import NfcOpeningPacket
+from ..packets.rx.nfc_scan_result import NfcScanResultPacket
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,7 +70,15 @@ class BoksBluetoothDevice:
         self._response_callbacks: dict[int, Callable[[bytearray], None]] = {}
         self._opcode_callbacks: dict[int, list[Callable[[bytearray], None]]] = {}
         self._last_battery_update: Optional[datetime] = None
-        self._full_refresh_interval_hours: int = 12  # Default value, will be updated by coordinator
+        self._full_refresh_interval_hours: int = 12
+        self._refresh_needed = False
+        self._last_door_close_time: Optional[float] = None
+        self._last_door_open_time: Optional[float] = None
+
+    @property
+    def config_key_str(self) -> str:
+        """Return config key string."""
+        return self._config_key_str
 
     def register_status_callback(self, callback: Callable[[dict], None]) -> None:
         """Register a callback for status updates."""
@@ -88,235 +99,196 @@ class BoksBluetoothDevice:
         if opcode in self._opcode_callbacks:
             try:
                 self._opcode_callbacks[opcode].remove(callback)
-                # Clean up empty lists
                 if not self._opcode_callbacks[opcode]:
                     del self._opcode_callbacks[opcode]
             except ValueError:
-                pass  # Callback not found, ignore
+                pass
 
     def _should_update_battery_info(self) -> bool:
         """Check if battery info should be updated based on the full refresh interval."""
         if self._last_battery_update is None:
             return True
-        now = datetime.now()
-        return (now - self._last_battery_update) >= timedelta(hours=self._full_refresh_interval_hours)
-
-    async def _update_battery_info_after_delay(self) -> None:
-        """Update battery information after a short delay to avoid blocking notification handling."""
-        try:
-            await asyncio.sleep(DELAY_BATTERY_UPDATE)
-
-            device = bluetooth.async_ble_device_from_address(
-                self.hass, self.address, connectable=True
-            )
-            if not device:
-                device = bluetooth.async_ble_device_from_address(
-                    self.hass, self.address, connectable=False
-                )
-
-            await self.connect(device=device)
-
-            update_data = {}
-
-            # Update battery level
-            battery_level = await self.get_battery_level()
-            if battery_level > 0:
-                self._last_battery_update = datetime.now()
-                update_data["battery_level"] = battery_level
-                _LOGGER.debug("Battery level updated after door closing: %d%%", battery_level)
-
-            # Update battery temperature and stats
-            battery_stats = await self.get_battery_stats()
-            if battery_stats is not None:
-                update_data["battery_stats"] = battery_stats
-                # Only update battery_temperature if it's present in stats
-                if "temperature" in battery_stats and battery_stats["temperature"] is not None:
-                    update_data["battery_temperature"] = battery_stats["temperature"]
-                _LOGGER.debug("Battery stats updated after door closing: %s", battery_stats)
-
-            if update_data and self._status_callback:
-                self._status_callback(update_data)
-
-        except Exception as e:
-            _LOGGER.warning("Failed to update battery info after door closing: %s", e)
-        finally:
-            await self.disconnect()
+        return (datetime.now() - self._last_battery_update) >= timedelta(hours=self._full_refresh_interval_hours)
 
     @property
     def is_connected(self) -> bool:
-        """Return True if connected."""
+        """Check if connected."""
         return self._client is not None and self._client.is_connected
 
     async def connect(self, device: BLEDevice = None) -> None:
-        """Connect to the Boks."""
+        """Connect to the Boks (with lock)."""
         async with self._lock:
-            self._connection_users += 1
-            if self.is_connected and self._notifications_subscribed:
-                return
+            await self._connect(device)
 
-            _LOGGER.debug("Connecting to Boks %s (Subscribed: %s)", self.address, self._notifications_subscribed)
+    async def _connect(self, device: BLEDevice = None) -> None:
+        """Internal connect (without lock)."""
+        self._connection_users += 1
+        if self.is_connected:
+            return
 
-            if not self.is_connected:
-                if device is None:
-                    device = bluetooth.async_ble_device_from_address(
-                        self.hass, self.address, connectable=True
-                    )
-                    if not device:
-                        device = bluetooth.async_ble_device_from_address(
-                            self.hass, self.address, connectable=False
-                        )
+        _LOGGER.debug("Connecting to Boks %s (Subscribed: %s)", self.address, self._notifications_subscribed)
 
-                try:
-                    self._client = await establish_connection(
-                        BleakClient,
-                        device if device is not None else self.address,
-                        self.address,
-                        disconnected_callback=self._on_disconnect
-                    )
-                except BaseException:
-                    self._connection_users -= 1
-                    raise
+        if device is None:
+            device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
+            if not device:
+                device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=False)
 
-            try:
-                if not self._notifications_subscribed:
-                    await self._client.start_notify(BoksServiceUUID.NOTIFY_CHARACTERISTIC, self._notification_handler)
-                    self._notifications_subscribed = True
-                    _LOGGER.info("Subscribed to notifications from Boks %s", self.address)
-
-                # Reset event on connection
-                self._door_event.clear()
-            except BaseException:
-                # If we fail to subscribe, it's safer to force disconnect to try fresh next time
-                await self.force_disconnect()
-                raise
-
-    def _on_disconnect(self, client: BleakClient) -> None:
-        """Handle disconnection."""
-        _LOGGER.debug("BLE Disconnected callback triggered for %s", self.address)
-        self._notifications_subscribed = False
+        try:
+            self._client = await establish_connection(BleakClient, device, self.address)
+            if not self._notifications_subscribed:
+                await self._client.start_notify(BoksServiceUUID.NOTIFY_CHARACTERISTIC, self._notification_handler)
+                self._notifications_subscribed = True
+                _LOGGER.info("Subscribed to notifications from Boks %s", self.address)
+        except Exception as e:
+            self._connection_users = max(0, self._connection_users - 1)
+            _LOGGER.error("Failed to connect to Boks %s: %s", self.address, e)
+            raise
 
     async def disconnect(self) -> None:
-        """Disconnect from the Boks."""
+        """Disconnect from the Boks (with lock)."""
         async with self._lock:
-            if self._connection_users > 0:
-                self._connection_users -= 1
+            await self._disconnect()
 
-            if self._connection_users > 0:
-                return
+    async def _disconnect(self) -> None:
+        """Internal disconnect (without lock)."""
+        if self._connection_users > 0:
+            self._connection_users -= 1
 
-            if self._client and self._client.is_connected:
-                # Shield the disconnect call to ensure it completes even if the task is cancelled
-                await asyncio.shield(self._client.disconnect())
-            self._client = None
-            self._notifications_subscribed = False
-            _LOGGER.info("Disconnected from Boks")
+        if self._connection_users > 0:
+            return
+
+        # Perform final refresh if needed (e.g. after door closure or opening)
+        if self._refresh_needed and self.is_connected:
+            # We want to wait at least 5 seconds after ANY door event before syncing
+            # to let the device finish internal flash writes and stabilize battery
+            last_event_time = max(self._last_door_close_time or 0, self._last_door_open_time or 0)
+            if last_event_time > 0:
+                elapsed = time.time() - last_event_time
+                MIN_SYNC_DELAY = 5.0
+                if elapsed < MIN_SYNC_DELAY:
+                    wait_time = MIN_SYNC_DELAY - elapsed
+                    _LOGGER.debug("Waiting %.1fs before final refresh (to stabilize device)", wait_time)
+                    await asyncio.sleep(wait_time)
+
+            await self._perform_final_refresh()
+            self._refresh_needed = False
+
+        if self._client and self._client.is_connected:
+            await asyncio.shield(self._client.disconnect())
+        self._client = None
+        self._notifications_subscribed = False
+        _LOGGER.info("Disconnected from Boks")
+
+    async def _perform_final_refresh(self) -> None:
+        """Perform a final data refresh before disconnecting (expects no lock or internal calls)."""
+        _LOGGER.debug("Performing final refresh (battery and logs) before disconnect")
+        try:
+            update_data = {}
+            # 1. Battery info (direct calls to avoid re-locking)
+            level = await self._get_battery_level()
+            stats = await self._get_battery_stats()
+
+            update_data["battery_level"] = level
+            if stats:
+                update_data["battery_stats"] = stats
+                if "temperature" in stats and stats["temperature"] is not None:
+                    update_data["battery_temperature"] = stats["temperature"]
+
+            # 2. Logs
+            log_count = await self._get_logs_count()
+            if log_count > 0:
+                _LOGGER.info("Final refresh: Found %d new logs, fetching...", log_count)
+                logs = await self._get_logs(log_count)
+                update_data["latest_logs_raw"] = logs
+
+            if self._status_callback:
+                self._status_callback(update_data)
+        except Exception as e:
+            _LOGGER.warning("Error during final refresh: %s", e)
 
     async def force_disconnect(self) -> None:
         """Force disconnect from the Boks (reset reference counting)."""
         async with self._lock:
             self._connection_users = 0
+            self._refresh_needed = False
+            # Clear any pending futures
+            for future in self._response_futures.values():
+                if not future.done():
+                    future.cancel()
+            self._response_futures.clear()
+
             if self._client and self._client.is_connected:
-                await self._client.disconnect()
+                try:
+                    async with asyncio.timeout(5):
+                        await self._client.disconnect()
+                except Exception as e:
+                    _LOGGER.debug("Error during force disconnect: %s", e)
+
             self._client = None
             self._notifications_subscribed = False
             _LOGGER.info("Force disconnected from Boks")
 
-    def _log_packet(self, direction: str, data: bytearray):
-        """Log packet. Fakes sensitive data if anonymize_logs is True (Anonymization mode)."""
-        if not data:
+    def _log_packet(self, direction: str, packet: BoksTXPacket | BoksRXPacket):
+        """Log TX or RX packet with anonymization."""
+        if not _LOGGER.isEnabledFor(logging.DEBUG):
             return
+        log_info = packet.to_log_dict(self.anonymize_logs)
+        _LOGGER.debug("%s Opcode: 0x%02X (%s), Payload: %s, Raw: %s%s",
+                      direction, packet.opcode, packet.get_opcode_name(),
+                      log_info["payload"], log_info["raw"], log_info.get("suffix", ""))
 
-        opcode = data[0]
-        
-        if self.anonymize_logs:
-            # Mode Anonymisé: On affiche des valeurs factices pour le partage
-            faked_data = self._get_faked_packet(data)
-            payload_log = faked_data[2:-1].hex()
-            raw_log = faked_data.hex()
-            suffix = " (ANONYMIZED)"
-        else:
-            # Mode Normal: On affiche TOUT en clair (sans aucune troncature ni masquage)
-            payload_log = data[2:-1].hex() if len(data) > 3 else ""
-            raw_log = data.hex()
-            suffix = ""
+    async def send_packet(self, packet: BoksTXPacket, wait_for_opcodes: List[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
+        """Send a packet object and optionally wait for a specific response packet."""
+        raw_bytes = packet.to_bytes()
+        max_attempts = 2
 
-        _LOGGER.debug("%s Opcode: 0x%02X, Payload: %s, Raw: %s%s", 
-                      direction, opcode, payload_log, raw_log, suffix)
+        for attempt in range(max_attempts):
+            future = None
+            future_key = ""
+            try:
+                if not self.is_connected:
+                    await self.connect()
+                if self._client is None:
+                    raise BoksError("ble_client_none")
 
-    def _get_faked_packet(self, data: bytearray) -> bytearray:
-        """Create a version of the packet with sensitive data replaced by placeholders."""
-        faked = bytearray(data)
-        opcode = faked[0]
-        length = faked[1]
-        
-        # Placeholders
-        FAKE_PIN = b"1234AB"
-        FAKE_KEY = b"1A3B5C7E"
+                if wait_for_opcodes:
+                    future = asyncio.get_running_loop().create_future()
+                    future_key = ",".join(map(str, wait_for_opcodes))
+                    self._response_futures[future_key] = future
 
-        modified = False
+                self._log_packet("TX", packet)
+                await self._client.write_gatt_char(BoksServiceUUID.WRITE_CHARACTERISTIC, raw_bytes, response=False)
 
-        # 1. Handle commands (Downlink)
-        if opcode == BoksCommandOpcode.OPEN_DOOR and length >= 6:
-            faked[2:8] = FAKE_PIN
-            modified = True
-        
-        elif opcode in (
-            BoksCommandOpcode.CREATE_MASTER_CODE,
-            BoksCommandOpcode.CREATE_SINGLE_USE_CODE,
-            BoksCommandOpcode.CREATE_MULTI_USE_CODE,
-            BoksCommandOpcode.MASTER_CODE_EDIT,
-            BoksCommandOpcode.DELETE_MASTER_CODE,
-            BoksCommandOpcode.DELETE_SINGLE_USE_CODE,
-            BoksCommandOpcode.DELETE_MULTI_USE_CODE,
-            BoksCommandOpcode.SET_CONFIGURATION,
-            BoksCommandOpcode.GENERATE_CODES,
-            BoksCommandOpcode.REGISTER_NFC_TAG_SCAN_START,
-            BoksCommandOpcode.REGISTER_NFC_TAG,
-            BoksCommandOpcode.UNREGISTER_NFC_TAG
-        ):
-            # These all start with the ConfigKey (8 bytes)
-            if length >= 8:
-                faked[2:10] = FAKE_KEY
-                modified = True
-            
-            # Some also contain a PIN after the key
-            if opcode in (BoksCommandOpcode.CREATE_MASTER_CODE, BoksCommandOpcode.CREATE_SINGLE_USE_CODE, BoksCommandOpcode.CREATE_MULTI_USE_CODE):
-                if length >= 14:
-                    faked[10:16] = FAKE_PIN
-            elif opcode == BoksCommandOpcode.MASTER_CODE_EDIT:
-                # [Key(8)][Index(1)][PIN(6)]
-                if length >= 15:
-                    faked[11:17] = FAKE_PIN
+                if future:
+                    resp_data = await asyncio.wait_for(future, timeout=timeout)
+                    return PacketFactory.from_rx_data(resp_data)
+                return None
+            except asyncio.TimeoutError:
+                if future_key in self._response_futures:
+                    del self._response_futures[future_key]
+                await self.force_disconnect()
+                raise BoksError("timeout_waiting_response", {"opcode": f"0x{packet.opcode:02X}"})
+            except (BleakError, AttributeError, OSError) as e:
+                if future_key in self._response_futures:
+                    del self._response_futures[future_key]
+                is_last_attempt = (attempt == max_attempts - 1)
+                _LOGGER.warning("BLE Error during send (Attempt %d/%d): %s", attempt + 1, max_attempts, e)
+                await self.force_disconnect()
+                if is_last_attempt:
+                    if isinstance(e, AttributeError):
+                         raise BoksError("ble_internal_error", {"error": str(e)})
+                    raise BoksError("ble_error", {"error": str(e)})
+                await asyncio.sleep(DELAY_RETRY)
+        return None
 
-        # 2. Handle History events (Uplink)
-        elif opcode in (
-            BoksHistoryEvent.CODE_BLE_VALID,
-            BoksHistoryEvent.CODE_KEY_VALID,
-            BoksHistoryEvent.CODE_BLE_INVALID,
-            BoksHistoryEvent.CODE_KEY_INVALID
-        ):
-            # History payloads vary, but often contain the 6-char PIN at the start or offset
-            if length >= 6:
-                faked[2:8] = FAKE_PIN
-                modified = True
-        
-        elif opcode == BoksHistoryEvent.NFC_OPENING:
-            # Tag ID (usually 7-10 bytes)
-            if length >= 4:
-                # Just scramble the tag ID
-                for i in range(2, 2 + length):
-                    faked[i] = 0x55
-                modified = True
-
-        # 3. Recalculate checksum if modified
-        if modified:
-            faked[-1] = BoksProtocol.calculate_checksum(faked[:-1])
-            
-        return faked
-
-    def _notification_handler(self, sender: int, data: bytearray):
+    def _notification_handler(self, _sender: int, data: bytearray):
         """Handle incoming notifications."""
-        self._log_packet("RX", data)
+        rx_packet = PacketFactory.from_rx_data(data)
+        self._log_packet("RX", rx_packet)
+
+        if not rx_packet.verify_checksum():
+            _LOGGER.error("Invalid checksum in notification: %s", rx_packet.to_bytes().hex())
+            return
 
         # Log duplicate notifications
         if hasattr(self, '_last_notification_data') and hasattr(self, '_last_notification_time'):
@@ -329,70 +301,58 @@ class BoksBluetoothDevice:
             self._last_notification_data = data
             self._last_notification_time = time.time()
 
-        if not BoksProtocol.verify_checksum(data):
-            _LOGGER.error("Invalid checksum in notification: %s", data.hex())
-            return
+        opcode = rx_packet.opcode
+        if isinstance(rx_packet, ErrorResponsePacket):
+            _LOGGER.error("Boks reported error: %s", rx_packet.error_type)
 
-        opcode = data[0]
+        if isinstance(rx_packet, NfcScanResultPacket):
+            self._handle_scanned_tag(rx_packet.uid, rx_packet.status)
 
-        if opcode == BoksNotificationOpcode.ERROR_CRC:
-            _LOGGER.error("Boks reported CRC error")
-        elif opcode == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
-            _LOGGER.error("Boks reported Unauthorized access")
-        elif opcode == BoksNotificationOpcode.ERROR_BAD_REQUEST:
-            _LOGGER.error("Boks reported Bad Request")
-
-        # Handle Door Status Updates
         door_update = False
-        parsed_status = None
-
-        if opcode == BoksNotificationOpcode.NOTIFY_DOOR_STATUS or opcode == BoksNotificationOpcode.ANSWER_DOOR_STATUS:
-            parsed_status = BoksProtocol.parse_door_status(data)
-            if parsed_status is not None:
-                self._door_status = parsed_status
-                door_update = True
-        elif opcode == BoksHistoryEvent.DOOR_CLOSED:
-            self._door_status = False
+        if isinstance(rx_packet, DoorStatusPacket):
+            self._door_status = rx_packet.is_open
             door_update = True
-        elif opcode in (BoksHistoryEvent.DOOR_OPENED, BoksHistoryEvent.CODE_KEY_VALID, BoksHistoryEvent.CODE_BLE_VALID, BoksHistoryEvent.NFC_OPENING):
+        elif isinstance(rx_packet, DoorClosedPacket):
+            self._door_status = False
+            self._last_door_close_time = time.time()
+            # Only trigger refresh if it's a "live" event (age near 0)
+            # This avoids loops/redundancy when syncing old logs
+            if getattr(rx_packet, "age", 0) < 10:
+                self._refresh_needed = True
+            door_update = True
+        elif isinstance(rx_packet, (DoorOpenedPacket, CodeBleValidPacket, CodeKeyValidPacket, NfcOpeningPacket, KeyOpeningPacket)):
             self._door_status = True
+            self._last_door_open_time = time.time()
+            # Trigger refresh even if it stays open (to see who opened it)
+            if getattr(rx_packet, "age", 0) < 10:
+                self._refresh_needed = True
             door_update = True
 
         if door_update:
             self._door_event.set()
-            _LOGGER.debug("Door status update: %s (Opcode: 0x%02X)", "Open" if self._door_status else "Closed", opcode)
+            _LOGGER.debug("Door status update: %s (Packet: %s)", "Open" if self._door_status else "Closed", rx_packet.__class__.__name__)
             if self._status_callback:
                 self._status_callback({"door_open": self._door_status})
 
-            if not self._door_status and opcode == BoksHistoryEvent.DOOR_CLOSED:
-                if self._should_update_battery_info():
-                    self.hass.async_create_task(self._update_battery_info_after_delay())
-
-        # Handle response futures
-        futures_processed = 0
+        opcode_str = str(opcode)
         for key, future in list(self._response_futures.items()):
-            if not future.done():
-                if str(opcode) in key:
-                    future.set_result(data)
-                    del self._response_futures[key]
-                    futures_processed += 1
-            else:
-                if key in self._response_futures:
-                    del self._response_futures[key]
+            if not future.done() and opcode_str in key.split(","):
+                future.set_result(data)
+                del self._response_futures[key]
+            elif future.done() and key in self._response_futures:
+                del self._response_futures[key]
 
         if self._notify_callback:
             self._notify_callback(opcode, data)
 
-        # Handle dedicated callbacks
         if opcode in self._response_callbacks:
             try:
                 self._response_callbacks[opcode](data)
             except Exception as e:
                 _LOGGER.error("Error in callback for opcode 0x%02X: %s", opcode, e)
 
-        # Handle opcode-specific callbacks
         if opcode in self._opcode_callbacks:
-            for callback in self._opcode_callbacks[opcode][:]:  # Create a copy to avoid modification during iteration
+            for callback in self._opcode_callbacks[opcode][:]:
                 try:
                     callback(data)
                 except Exception as e:
@@ -401,97 +361,32 @@ class BoksBluetoothDevice:
     async def wait_for_door_closed(self, timeout: float = TIMEOUT_DOOR_CLOSE) -> bool:
         """Wait for the door to be closed."""
         start_time = time.time()
-
         if not self.is_connected:
              _LOGGER.warning("Cannot wait for door close: Not connected.")
              return False
-
         while (time.time() - start_time) < timeout:
             if not self._door_status:
                 return True
-
             self._door_event.clear()
             remaining = timeout - (time.time() - start_time)
             if remaining <= 0:
                 break
-
             try:
                 await asyncio.wait_for(self._door_event.wait(), timeout=remaining)
             except asyncio.TimeoutError:
                 break
-
         return not self._door_status
-
-    async def _send_command(self, opcode: int, payload: bytes = b"", wait_for_opcodes: List[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> bytearray:
-        """Send a command and optionally wait for a specific response."""
-        packet = BoksProtocol.build_packet(opcode, payload)
-
-        # Retry mechanism for connection/write errors
-        # We do not retry on TimeoutError (command sent but no reply) to avoid duplication
-        max_attempts = 2
-
-        for attempt in range(max_attempts):
-            future = None
-            future_key = ""
-
-            try:
-                if not self.is_connected:
-                    await self.connect()
-
-                if self._client is None:
-                    raise BoksError("ble_client_none")
-
-                if wait_for_opcodes:
-                    future = asyncio.get_running_loop().create_future()
-                    future_key = ",".join(map(str, wait_for_opcodes))
-                    self._response_futures[future_key] = future
-
-                self._log_packet("TX", packet)
-                await self._client.write_gatt_char(BoksServiceUUID.WRITE_CHARACTERISTIC, packet, response=False)
-
-                if future:
-                    return await asyncio.wait_for(future, timeout=timeout)
-                return None
-
-            except asyncio.TimeoutError:
-                # Cleanup future
-                if future_key in self._response_futures:
-                    del self._response_futures[future_key]
-
-                # Timeout means command was sent but no Ack.
-                # We force disconnect to ensure next attempt is fresh.
-                await self.force_disconnect()
-                raise BoksError("timeout_waiting_response", {"opcode": f"0x{opcode:02X}"})
-
-            except (BleakError, AttributeError, OSError) as e:
-                # Cleanup future before retry
-                if future_key in self._response_futures:
-                    del self._response_futures[future_key]
-
-                is_last_attempt = (attempt == max_attempts - 1)
-                _LOGGER.warning(f"BLE Error during send (Attempt {attempt+1}/{max_attempts}): {e}")
-
-                # Force clean slate
-                await self.force_disconnect()
-
-                if is_last_attempt:
-                    if isinstance(e, AttributeError):
-                         raise BoksError("ble_internal_error", {"error": str(e)})
-                    raise BoksError("ble_error", {"error": str(e)})
-
-                # Wait a bit before retrying connection
-                await asyncio.sleep(DELAY_RETRY)
-
-        return None
 
     async def get_battery_level(self) -> int:
         """Get battery level."""
         if not self.is_connected:
             await self.connect()
+        return await self._get_battery_level()
 
+    async def _get_battery_level(self) -> int:
+        """Internal get battery level."""
         if self._client is None:
             return 0
-
         try:
             payload = await self._client.read_gatt_char(BoksServiceUUID.BATTERY_LEVEL_CHARACTERISTIC)
             if len(payload) == 1:
@@ -504,405 +399,298 @@ class BoksBluetoothDevice:
         """Get battery statistics and format."""
         if not self.is_connected:
             await self.connect()
+        return await self._get_battery_stats()
 
+    async def _get_battery_stats(self) -> dict | None:
+        """Internal get battery stats."""
         if self._client is None:
             return None
-
-        # 1. Try Custom Characteristic
         try:
             payload = await self._client.read_gatt_char(BoksServiceUUID.BATTERY_CHARACTERISTIC)
             stats = BoksProtocol.parse_battery_stats(payload)
             if stats:
-                _LOGGER.debug(f"Battery stats (Custom): {stats}")
+                _LOGGER.debug("Battery stats (Custom): %s", stats)
                 return stats
-            elif payload:
-                 _LOGGER.debug("Custom battery char returned invalid data or unknown format.")
         except Exception as e:
-            _LOGGER.debug("Custom battery char read failed or unavailable: %s", e)
-
-        # 2. Try Standard Battery Service (2A19)
+            _LOGGER.debug("Custom battery char read failed: %s", e)
         try:
             payload = await self._client.read_gatt_char(BoksServiceUUID.BATTERY_LEVEL_CHARACTERISTIC)
             if len(payload) == 1:
-                stats = {
-                    "format": "measure-single",
-                    "level_single": payload[0],
-                    "temperature": None
-                }
-                _LOGGER.debug(f"Battery stats (Standard): {stats}")
-                return stats
+                return {"format": "measure-single", "level_single": payload[0], "temperature": None}
         except Exception as e:
-             _LOGGER.warning("Failed to read standard battery level: %s", e)
-
-        return None
-
-    async def get_battery_temperature(self) -> int | None:
-        """Get battery temperature. (Deprecated)"""
-        stats = await self.get_battery_stats()
-        if stats:
-            return stats.get("temperature")
+             _LOGGER.warning("Failed to read standard battery: %s", e)
         return None
 
     async def get_internal_firmware_revision(self) -> str | None:
         """Get internal firmware revision."""
         if not self.is_connected:
             await self.connect()
-
         if self._client is None:
             return None
-
         try:
             payload = await self._client.read_gatt_char(BoksServiceUUID.INTERNAL_FIRMWARE_REVISION_CHARACTERISTIC)
-            return payload.decode("utf-8")
+            return payload.decode('ascii').strip()
         except Exception as e:
-             _LOGGER.warning("Failed to read internal firmware revision: %s", e)
+            _LOGGER.debug("Failed to read firmware revision: %s", e)
         return None
-
-    async def get_software_revision(self) -> str | None:
-        """Get software revision."""
-        if not self.is_connected:
-            await self.connect()
-
-        if self._client is None:
-            return None
-
-        try:
-            payload = await self._client.read_gatt_char(BoksServiceUUID.SOFTWARE_REVISION_CHARACTERISTIC)
-            return payload.decode("utf-8")
-        except Exception as e:
-             _LOGGER.warning("Failed to read software revision: %s", e)
-        return None
-
-    async def get_device_information(self) -> dict:
-        """Get all device information characteristics."""
-        if not self.is_connected:
-            await self.connect()
-
-        if self._client is None:
-            return {}
-
-        info = {}
-        char_map = {
-            "system_id": BoksServiceUUID.SYSTEM_ID_CHARACTERISTIC,
-            "model_number": BoksServiceUUID.MODEL_NUMBER_CHARACTERISTIC,
-            "serial_number": BoksServiceUUID.SERIAL_NUMBER_CHARACTERISTIC,
-            "firmware_revision": BoksServiceUUID.INTERNAL_FIRMWARE_REVISION_CHARACTERISTIC,
-            "hardware_revision": BoksServiceUUID.HARDWARE_REVISION_CHARACTERISTIC,
-            "software_revision": BoksServiceUUID.SOFTWARE_REVISION_CHARACTERISTIC,
-            "manufacturer_name": BoksServiceUUID.MANUFACTURER_NAME_CHARACTERISTIC,
-        }
-
-        for name, uuid in char_map.items():
-            try:
-                payload = await self._client.read_gatt_char(uuid)
-                if name == "system_id":
-                    info[name] = payload.hex()
-                else:
-                    info[name] = payload.decode("utf-8")
-            except Exception as e:
-                _LOGGER.debug("Failed to read %s: %s", name, e)
-                info[name] = None
-
-        return info
 
     async def get_door_status(self) -> bool:
-        """Get door status (True=Open)."""
-        resp = await self._send_command(
-            BoksCommandOpcode.ASK_DOOR_STATUS,
-            wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_DOOR_STATUS]
-        )
-        if resp:
-             parsed = BoksProtocol.parse_door_status(resp)
-             if parsed is not None:
-                 self._door_status = parsed
+        """Get current door status."""
+        from ..packets.tx.ask_door_status import AskDoorStatusPacket
+        from ..packets.rx.door_status import DoorStatusPacket
+        packet = AskDoorStatusPacket()
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_DOOR_STATUS, BoksNotificationOpcode.ANSWER_DOOR_STATUS])
+        if isinstance(resp, DoorStatusPacket):
+            self._door_status = resp.is_open
         return self._door_status
 
-    async def open_door(self, pin_code: str) -> bool:
-        """Open the door with a PIN code."""
-        pin_code = pin_code.strip().upper()
+    async def get_device_information(self) -> dict:
+        """Read device information."""
+        if not self.is_connected:
+            await self.connect()
+        if self._client is None:
+            return {}
+        info = {}
+        chars = {
+            BoksServiceUUID.MANUFACTURER_NAME_CHARACTERISTIC: "manufacturer_name",
+            BoksServiceUUID.MODEL_NUMBER_CHARACTERISTIC: "model_number",
+            BoksServiceUUID.SERIAL_NUMBER_CHARACTERISTIC: "serial_number",
+            BoksServiceUUID.SOFTWARE_REVISION_CHARACTERISTIC: "software_revision",
+            BoksServiceUUID.HARDWARE_REVISION_CHARACTERISTIC: "hardware_revision",
+            BoksServiceUUID.INTERNAL_FIRMWARE_REVISION_CHARACTERISTIC: "firmware_revision",
+            BoksServiceUUID.SYSTEM_ID_CHARACTERISTIC: "system_id",
+        }
+        for char_uuid, key in chars.items():
+            try:
+                payload = await self._client.read_gatt_char(char_uuid)
+                if key == "system_id":
+                    info[key] = payload.hex()
+                else:
+                    info[key] = payload.decode('ascii').strip()
+            except Exception as e:
+                _LOGGER.debug("Failed to read %s: %s", key, e)
+        return info
 
-        if len(pin_code) != 6:
-            raise BoksError("pin_code_invalid_length")
-
-        payload = pin_code.encode('ascii')
-        _LOGGER.debug(f"Sending PIN code: {pin_code}")
-        resp = await self._send_command(
-            BoksCommandOpcode.OPEN_DOOR,
-            payload,
-            wait_for_opcodes=[
-                BoksNotificationOpcode.VALID_OPEN_CODE,
-                BoksNotificationOpcode.INVALID_OPEN_CODE,
-                BoksNotificationOpcode.ERROR_UNAUTHORIZED
-            ]
-        )
-
-        opcode = resp[0]
-        if opcode == BoksNotificationOpcode.VALID_OPEN_CODE:
+    async def open_door(self, code: str = None) -> bool:
+        """Open the door."""
+        from ..packets.tx.open_door import OpenDoorPacket
+        packet = OpenDoorPacket(code or "")
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.VALID_OPEN_CODE, BoksNotificationOpcode.INVALID_OPEN_CODE, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
+        if resp and resp.opcode == BoksNotificationOpcode.VALID_OPEN_CODE:
             self._door_status = True
             return True
-        elif opcode == BoksNotificationOpcode.INVALID_OPEN_CODE:
-            raise BoksCommandError("pin_code_invalid")
-        elif opcode == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
-            raise BoksAuthError("unauthorized")
-
+        elif resp and resp.opcode == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
+             raise BoksAuthError("unauthorized")
         return False
 
-    def _generate_random_pin(self) -> str:
-        """Generate a random valid 6-char PIN."""
-        return "".join(random.choice(BOKS_CHAR_MAP) for _ in range(6))
+    async def get_code_counts(self) -> dict:
+        """Get code counts."""
+        from ..packets.tx.count_codes import CountCodesPacket
+        from ..packets.rx.code_counts import CodeCountsPacket
+        packet = CountCodesPacket()
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_CODES_COUNT])
+        if isinstance(resp, CodeCountsPacket):
+            return {"master": resp.master_count, "single_use": resp.single_use_count}
+        return {}
 
-    def _validate_pin(self, code: str) -> bool:
-        """Validate PIN format."""
-        return len(code) == 6 and all(c in BOKS_CHAR_MAP for c in code)
+    async def get_logs_count(self) -> int:
+        """Get logs count."""
+        if not self.is_connected:
+            await self.connect()
+        return await self._get_logs_count()
 
-    async def create_pin_code(self, code: str = None, type: str = "standard", index: int = 0) -> str:
+    async def _get_logs_count(self) -> int:
+        """Internal get logs count."""
+        from ..packets.tx.get_logs_count import GetLogsCountPacket
+        from ..packets.rx.log_count import LogCountPacket
+        packet = GetLogsCountPacket()
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_LOGS_COUNT])
+        if isinstance(resp, LogCountPacket):
+            return resp.count
+        return 0
+
+    async def get_logs(self, count: int) -> List[dict]:
+        """Retrieve logs."""
+        if not self.is_connected:
+            await self.connect()
+        return await self._get_logs(count)
+
+    async def _get_logs(self, count: int) -> List[dict]:
+        """Internal retrieve logs."""
+        from ..packets.tx.request_logs import RequestLogsPacket
+        if count <= 0: return []
+        packet = RequestLogsPacket()
+        logs = []
+        logs_received_event = asyncio.Event()
+        def log_callback(opcode, data):
+            if opcode == BoksHistoryEvent.LOG_END_HISTORY:
+                logs_received_event.set()
+            elif opcode in list(BoksHistoryEvent):
+                p = PacketFactory.from_rx_data(data)
+                if p:
+                    logs.append({"opcode": p.opcode, "payload": p.payload, "timestamp": int(time.time()) - getattr(p, 'age', 0), "event_type": p.event_type, "description": p.opcode.name.lower() if hasattr(p.opcode, 'name') else "unknown", "extra_data": p.extra_data})
+            elif opcode == BoksNotificationOpcode.NOTIFY_LOGS_COUNT and len(data) >= 4 and data[2] == 0 and data[3] == 0:
+                 logs_received_event.set()
+        self._notify_callback = log_callback
+        try:
+            await self.send_packet(packet)
+            await asyncio.wait_for(logs_received_event.wait(), timeout=5.0 + (count * 1.5))
+        except asyncio.TimeoutError:
+            _LOGGER.warning("Timeout waiting for logs. Received %d/%d", len(logs), count)
+        finally:
+            self._notify_callback = None
+
+        # We just retrieved logs, so we don't need another refresh on disconnect
+        self._refresh_needed = False
+        return logs
+
+    async def create_pin_code(self, code: str, code_type: str, index: int = 0) -> str:
         """Create a PIN code."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
-
-        if not code:
-            code = self._generate_random_pin()
+        if code_type == "master":
+            from ..packets.tx.create_master_code import CreateMasterCodePacket
+            packet = CreateMasterCodePacket(self._config_key_str, code, index)
+        elif code_type == "single":
+            from ..packets.tx.create_single_code import CreateSingleUseCodePacket
+            packet = CreateSingleUseCodePacket(self._config_key_str, code)
         else:
-            code = code.strip().upper()
-
-        if not self._validate_pin(code):
-            raise BoksError("invalid_code_format")
-
-        opcode = 0
-        payload = bytearray(self._config_key_str.encode('ascii'))
-        payload.extend(code.encode('ascii'))
-
-        if type == "master":
-            # Clear slot first
-            try:
-                await self.delete_pin_code(type="master", index_or_code=index)
-            except Exception:
-                pass
-
-            opcode = BoksCommandOpcode.CREATE_MASTER_CODE
-            payload.append(index)
-        elif type == "single":
-            opcode = BoksCommandOpcode.CREATE_SINGLE_USE_CODE
-        elif type == "multi":
-            opcode = BoksCommandOpcode.CREATE_MULTI_USE_CODE
-        else:
-            raise BoksError("unknown_code_type")
-
-        resp = await self._send_command(
-            opcode,
-            payload,
-            wait_for_opcodes=[
-                BoksNotificationOpcode.CODE_OPERATION_SUCCESS,
-                BoksNotificationOpcode.CODE_OPERATION_ERROR
-            ]
-        )
-
-        if resp[0] == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
+            from ..packets.tx.create_multi_code import CreateMultiUseCodePacket
+            packet = CreateMultiUseCodePacket(self._config_key_str, code)
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
+        if resp and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
             return code
-        else:
-            raise BoksCommandError("create_code_failed")
-
-    async def change_master_code(self, new_code: str, index: int = 0) -> bool:
-        """Change an existing master code."""
-        if not self._config_key_str:
-            raise BoksAuthError("config_key_required")
-
-        new_code = new_code.strip().upper()
-
-        if not self._validate_pin(new_code):
-            raise BoksError("invalid_code_format")
-
-        payload = bytearray(self._config_key_str.encode('ascii'))
-        payload.append(index)
-        payload.extend(new_code.encode('ascii'))
-
-        resp = await self._send_command(
-            BoksCommandOpcode.MASTER_CODE_EDIT,
-            payload,
-            wait_for_opcodes=[
-                BoksNotificationOpcode.CODE_OPERATION_SUCCESS,
-                BoksNotificationOpcode.CODE_OPERATION_ERROR
-            ]
-        )
-
-        if resp[0] == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
-            return True
-        else:
-            raise BoksCommandError("change_master_code_failed")
+        elif resp and resp.opcode == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
+             raise BoksAuthError("unauthorized")
+        raise BoksError("create_code_failed")
 
     async def delete_pin_code(self, type: str, index_or_code: Any) -> bool:
         """Delete a PIN code."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
-
-        opcode = 0
-        base_payload = bytearray(self._config_key_str.encode('ascii'))
-
         if type == "master":
-            opcode = BoksCommandOpcode.DELETE_MASTER_CODE
-            try:
-                index = int(index_or_code)
-                if not (0 <= index <= 255):
-                    raise ValueError
-                payload = base_payload + bytearray([index])
-            except (ValueError, TypeError):
-                 raise BoksError("invalid_master_code_index")
-
-
-            success_count = 0
-            for _ in range(MAX_RETRIES_DEEP_DELETE):
-                resp = await self._send_command(
-                    opcode,
-                    payload,
-                    wait_for_opcodes=[
-                        BoksNotificationOpcode.CODE_OPERATION_SUCCESS,
-                        BoksNotificationOpcode.CODE_OPERATION_ERROR
-                    ]
-                )
-
-                if resp[0] == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
-                    success_count += 1
-                    await asyncio.sleep(DELAY_RETRY)
-                elif resp[0] == BoksNotificationOpcode.CODE_OPERATION_ERROR:
-                    break
-                else:
-                    break
-
-            if success_count > 0:
-                return True
-            return False
-
+            from ..packets.tx.delete_master_code import DeleteMasterCodePacket
+            packet = DeleteMasterCodePacket(self._config_key_str, int(index_or_code))
         elif type == "single":
-            opcode = BoksCommandOpcode.DELETE_SINGLE_USE_CODE
-            if isinstance(index_or_code, str):
-                index_or_code = index_or_code.strip().upper()
-            payload = base_payload + str(index_or_code).encode('ascii')
-        elif type == "multi":
-            opcode = BoksCommandOpcode.DELETE_MULTI_USE_CODE
-            if isinstance(index_or_code, str):
-                index_or_code = index_or_code.strip().upper()
-            payload = base_payload + str(index_or_code).encode('ascii')
+            from ..packets.tx.delete_single_code import DeleteSingleUseCodePacket
+            packet = DeleteSingleUseCodePacket(self._config_key_str, str(index_or_code))
         else:
-            raise BoksError("unknown_code_type")
-
-        resp = await self._send_command(
-            opcode,
-            payload,
-            wait_for_opcodes=[
-                BoksNotificationOpcode.CODE_OPERATION_SUCCESS,
-                BoksNotificationOpcode.CODE_OPERATION_ERROR
-            ]
-        )
-
-        # WORKAROUND: Firmware bug for Single/Multi codes
-        # The firmware returns 0x78 (ERROR) even on success for these types.
-        if type in ("single", "multi") and resp[0] == BoksNotificationOpcode.CODE_OPERATION_ERROR:
-            return True
-
-        return resp[0] == BoksNotificationOpcode.CODE_OPERATION_SUCCESS
-
-    async def get_logs(self, count: int = None) -> List[BoksLogEntry]:
-        """Fetch logs."""
-        async with self._lock:
-            pass # Acquire check
-
-        if self._notify_callback is not None:
-             raise BoksError("Busy: Another operation is already listening for notifications.")
-
-        try:
-            if count is None:
-                count = await self.get_logs_count()
-
-            if count == 0:
-                return []
-        except Exception as e:
-            _LOGGER.warning("Failed to get logs count: %s", e)
-            return []
-
-        log_future = asyncio.get_running_loop().create_future()
-        logs = []
-
-        def log_callback(opcode, data):
-            if opcode == BoksHistoryEvent.LOG_END_HISTORY:
-                 if not log_future.done():
-                    log_future.set_result(True)
-            elif opcode in list(BoksHistoryEvent):
-                entry = BoksProtocol.parse_log_entry(opcode, data)
-                if entry:
-                    logs.append(entry)
-
-        self._notify_callback = log_callback
-
-        try:
-            await self._send_command(BoksCommandOpcode.REQUEST_LOGS, b"")
-            timeout = max(TIMEOUT_LOG_RETRIEVAL_BASE, count * 1.0)
-            await asyncio.wait_for(log_future, timeout=timeout)
-        except asyncio.TimeoutError:
-            _LOGGER.warning("Timed out receiving logs.")
-        except Exception as e:
-            _LOGGER.error("Error during log retrieval: %s", e)
-        finally:
-            self._notify_callback = None
-
-        logs.sort(key=lambda x: getattr(x, "timestamp", 0) if x is not None else 0)
-        return logs
-
-    async def get_code_counts(self) -> dict:
-        """Get count of stored codes."""
-        resp = await self._send_command(
-            BoksCommandOpcode.COUNT_CODES,
-            wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_CODES_COUNT]
-        )
-        # Use Protocol to parse payload
-        if resp:
-            # Opcode(1) + Len(1) + Payload + Checksum(1)
-            # Payload is at index 2
-            payload = resp[2:-1]
-            return BoksProtocol.parse_code_counts(payload)
-        return {}
-
-    async def get_logs_count(self) -> int:
-        """Get the number of logs stored."""
-        values = []
-
-        def callback(data):
-            count = BoksProtocol.parse_logs_count(data)
-            if count is not None:
-                values.append(count)
-
-        self._response_callbacks[BoksNotificationOpcode.NOTIFY_LOGS_COUNT] = callback
-
-        try:
-            await self._send_command(BoksCommandOpcode.GET_LOGS_COUNT)
-            await asyncio.sleep(DELAY_LOG_COUNT_COLLECTION)
-            result = max(values) if values else 0
-            return result
-        finally:
-            self._response_callbacks.pop(BoksNotificationOpcode.NOTIFY_LOGS_COUNT, None)
+            from ..packets.tx.delete_multi_code import DeleteMultiUseCodePacket
+            packet = DeleteMultiUseCodePacket(self._config_key_str, str(index_or_code))
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
+        return resp is not None and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS
 
     async def set_configuration(self, config_type: int, value: bool) -> bool:
-        """Set a configuration value (SET_CONFIGURATION)."""
+        """Set device configuration."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
+        from ..packets.tx.set_configuration import SetConfigurationPacket
+        packet = SetConfigurationPacket(self._config_key_str, config_type, value)
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
+        if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS:
+            return True
+        elif resp and resp.opcode == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
+             raise BoksAuthError("unauthorized")
+        raise BoksError("set_configuration_failed", {"config_type": str(config_type)})
 
-        # Payload: ConfigKey (8) + ConfigType (1) + Value (1)
-        payload = bytearray(self._config_key_str.encode('ascii'))
-        payload.append(config_type)
-        payload.append(0x01 if value else 0x00)
-
-        resp = await self._send_command(
-            BoksCommandOpcode.SET_CONFIGURATION,
-            payload,
+    async def nfc_scan_start(self) -> bool:
+        """Start NFC scan mode."""
+        if not self._config_key_str:
+            raise BoksAuthError("config_key_required")
+        from ..packets.tx.nfc_scan_start import NfcScanStartPacket
+        packet = NfcScanStartPacket(self._config_key_str)
+        # We wait for success ACK OR immediate result (if tag already on reader)
+        resp = await self.send_packet(
+            packet,
             wait_for_opcodes=[
-                BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS,
+                BoksNotificationOpcode.CODE_OPERATION_SUCCESS,
+                BoksNotificationOpcode.NOTIFY_NFC_TAG_FOUND,
+                BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_SCAN,
+                BoksNotificationOpcode.ERROR_NFC_SCAN_TIMEOUT,
                 BoksNotificationOpcode.ERROR_UNAUTHORIZED,
                 BoksNotificationOpcode.ERROR_BAD_REQUEST
             ]
         )
+        return resp is not None and resp.opcode in (
+            BoksNotificationOpcode.CODE_OPERATION_SUCCESS,
+            BoksNotificationOpcode.NOTIFY_NFC_TAG_FOUND,
+            BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_SCAN
+        )
 
-        if resp[0] == BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS:
-            return True
-        elif resp[0] == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
-             raise BoksAuthError("unauthorized")
-        else:
-            raise BoksCommandError("set_configuration_failed", {"config_type": hex(config_type)})
+    def _handle_scanned_tag(self, uid: Optional[str], status: str):
+        """Handle a scanned tag."""
+        if _LOGGER.isEnabledFor(logging.INFO):
+            log_uid = BoksAnonymizer.anonymize_uid(uid, self.anonymize_logs)
+            _LOGGER.info("NFC Tag Scanned: %s (Status: %s)", log_uid, status)
+        self.hass.async_create_task(self._async_handle_scanned_tag(uid, status))
+
+    async def _async_handle_scanned_tag(self, uid: Optional[str], status: str):
+        """Async handle scanned tag."""
+        coordinator = None
+        for entry_id, coord in self.hass.data.get(DOMAIN, {}).items():
+            if hasattr(coord, "ble_device") and coord.ble_device == self:
+                coordinator = coord
+                break
+        if not coordinator:
+            _LOGGER.warning("Could not find coordinator for NFC notification")
+            return
+        display_uid = BoksAnonymizer.anonymize_uid(uid, self.anonymize_logs)
+        tag_name = None
+        if uid and "tag" in self.hass.data:
+            try:
+                tag_id_lookup = uid.replace(":", "").upper()
+                try:
+                    from homeassistant.components.tag import async_scan_tag
+                    await async_scan_tag(self.hass, tag_id_lookup, self.address)
+                except Exception as e:
+                    _LOGGER.debug("Could not trigger async_scan_tag: %s", e)
+                tag_manager = self.hass.data["tag"]
+                tags_helper = tag_manager.get("tags") if isinstance(tag_manager, dict) else None
+                tag_info = None
+                if tags_helper and tag_id_lookup in tags_helper.data:
+                    tag_info = tags_helper.data[tag_id_lookup]
+                if not tag_info and hasattr(tag_manager, "async_get_tag"):
+                    tag_info = await tag_manager.async_get_tag(tag_id_lookup)
+                if tag_info:
+                    tag_name = tag_info.get("name")
+            except Exception as e:
+                _LOGGER.debug("Could not lookup tag name: %s", e)
+        if status == "found":
+            title = coordinator.get_text("common", "nfc_tag_found_title")
+            message = coordinator.get_text("common", "nfc_tag_found_msg_named" if tag_name else "nfc_tag_found_msg", name=tag_name, uid=display_uid)
+            notification_id = f"boks_nfc_found_{uid}"
+        elif status == "already_exists":
+            title = coordinator.get_text("common", "nfc_tag_exists_title")
+            if tag_name: message = coordinator.get_text("common", "nfc_tag_exists_msg_named", name=tag_name, uid=display_uid)
+            elif uid: message = coordinator.get_text("common", "nfc_tag_exists_msg", uid=display_uid)
+            else: message = coordinator.get_text("common", "nfc_tag_exists_msg_unknown")
+            notification_id = f"boks_nfc_exists_{uid}" if uid else "boks_nfc_exists_unknown"
+        elif status == "timeout":
+            title = coordinator.get_text("common", "nfc_scan_timeout_title")
+            message = coordinator.get_text("common", "nfc_scan_timeout_msg")
+            notification_id = "boks_nfc_timeout"
+        else: return
+        if not tag_name and status == "found":
+            help_text = coordinator.get_text("common", "nfc_tag_found_register_help")
+            message += f"\n\n{help_text}"
+        _LOGGER.debug("Creating persistent notification: %s - %s", title, message)
+        await self.hass.services.async_call("persistent_notification", "create", {"title": title, "message": message, "notification_id": notification_id})
+
+    async def nfc_register_tag(self, uid: str) -> bool:
+        """Register NFC tag."""
+        if not self._config_key_str: raise BoksAuthError("config_key_required")
+        from ..packets.tx.register_nfc_tag import RegisterNfcTagPacket
+        packet = RegisterNfcTagPacket(self._config_key_str, uid)
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED, BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
+        if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED: return True
+        elif resp and resp.opcode == BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER: raise BoksError("nfc_tag_already_exists")
+        elif resp and resp.opcode == BoksNotificationOpcode.ERROR_UNAUTHORIZED: raise BoksAuthError("unauthorized")
+        return False
+
+    async def nfc_unregister_tag(self, uid: str) -> bool:
+        """Unregister NFC tag."""
+        if not self._config_key_str: raise BoksAuthError("config_key_required")
+        from ..packets.tx.nfc_unregister_tag import NfcUnregisterTagPacket
+        packet = NfcUnregisterTagPacket(self._config_key_str, uid)
+        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
+        return resp is not None and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED

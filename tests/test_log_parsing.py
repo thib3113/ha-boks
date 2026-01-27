@@ -135,3 +135,49 @@ def test_payload_too_short(mock_time):
     assert entry is not None
     # Timestamp should default to now since we couldn't parse age
     assert entry.timestamp == 1700000000
+
+def test_parse_nfc_opening_classic(mock_time):
+    """Test parsing standard Mifare Classic NFC opening (0xA1)."""
+    # 0xA1 = NFC_OPENING
+    # Payload: Age(3) + TagType(1) + UIDLen(1) + UID(4)
+    # 01 04 A1B2C3D4
+    payload = bytes.fromhex("00000A0104A1B2C3D4")
+    entry = BoksLogEntry.from_raw(0xA1, bytearray(payload))
+    
+    assert entry is not None
+    assert entry.opcode == BoksHistoryEvent.NFC_OPENING
+    assert entry.extra_data["tag_type"] == 0x01
+    assert entry.extra_data["tag_type_name"] == "Vigik La Poste"
+    assert entry.extra_data["tag_uid"] == "A1B2C3D4"
+
+def test_parse_nfc_opening_user_badge(mock_time):
+    """Test parsing standard User NFC opening (0xA1)."""
+    # 03 04 D1D2D3D4
+    payload = bytes.fromhex("00000A0304D1D2D3D4")
+    entry = BoksLogEntry.from_raw(0xA1, bytearray(payload))
+    
+    assert entry is not None
+    assert entry.extra_data["tag_type"] == 0x03
+    assert entry.extra_data["tag_type_name"] == "Badge Utilisateur"
+    assert entry.extra_data["tag_uid"] == "D1D2D3D4"
+
+def test_parse_nfc_opening_7byte(mock_time):
+    """Test parsing 7-byte NFC opening (0xA1)."""
+    # 03 07 01020304050607
+    payload = bytes.fromhex("00000A030701020304050607")
+    entry = BoksLogEntry.from_raw(0xA1, bytearray(payload))
+    
+    assert entry is not None
+    assert entry.extra_data["tag_uid"] == "01020304050607"
+
+def test_parse_nfc_scan_log(mock_time):
+    """Test parsing NFC registration scan log (0xA2)."""
+    # 0xA2 = NFC_TAG_REGISTERING_SCAN
+    # 03 04 AABBCCDD
+    payload = bytes.fromhex("00000A0304AABBCCDD")
+    entry = BoksLogEntry.from_raw(0xA2, bytearray(payload))
+    
+    assert entry is not None
+    assert entry.opcode == BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN
+    assert entry.extra_data["scan_uid"] == "AABBCCDD"
+

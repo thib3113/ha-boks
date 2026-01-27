@@ -178,7 +178,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
                             if item.status == TodoItemStatus.NEEDS_ACTION:
                                 item_code, description = parse_parcel_string(item.summary)
                                 if item_code and item_code == used_code:
-                                    _LOGGER.info(f"Parcel {used_code} delivered! Marking as completed.")
+                                    _LOGGER.info("Parcel %s delivered! Marking as completed.", used_code)
                                     item.status = TodoItemStatus.COMPLETED
                                     # Update raw data
                                     for raw_item in self._raw_data:
@@ -188,11 +188,10 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
                                     changed = True
 
                                     _LOGGER.debug("Fire %s event : %s %s", EVENT_PARCEL_COMPLETED, item_code, description)
-                                    from datetime import datetime
                                     self.hass.bus.async_fire(EVENT_PARCEL_COMPLETED, {
                                         "code": item_code,
                                         "description": description,
-                                        "timestamp": datetime.now().isoformat()
+                                        "timestamp": dt_util.now().isoformat()
                                     })
 
             if changed:
@@ -216,7 +215,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         if not pending_items:
             return
 
-        _LOGGER.debug(f"Found {len(pending_items)} items with pending codes to sync.")
+        _LOGGER.debug("Found %d items with pending codes to sync.", len(pending_items))
 
         # Process pending items
         # We process one by one to keep connection logic simple
@@ -226,13 +225,13 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
             retry_count = raw_item.get("sync_retry_count", 0)
 
             if retry_count >= 5:
-                _LOGGER.warning(f"Aborting sync for code {code} (Item {uid}) after {retry_count} failed attempts.")
+                _LOGGER.warning("Aborting sync for code %s (Item %s) after %d failed attempts.", code, uid, retry_count)
                 # Remove pending status to stop retry loop
                 await self._update_todo_item_metadata_remove_pending(uid)
                 continue
 
             try:
-                _LOGGER.debug(f"Attempting to sync pending code {code} for item {uid} (Attempt {retry_count + 1})")
+                _LOGGER.debug("Attempting to sync pending code %s for item %s (Attempt %d)", code, uid, retry_count + 1)
                 await self.coordinator.ble_device.connect()
 
                 # Check if we are still connected
@@ -241,13 +240,13 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
                      break
 
                 await self.coordinator.ble_device.create_pin_code(code, "single")
-                _LOGGER.info(f"Successfully synced pending code {code} to Boks.")
+                _LOGGER.info("Successfully synced pending code %s to Boks.", code)
 
                 # Update metadata to remove pending status
                 await self._update_todo_item_metadata_remove_pending(uid)
 
             except Exception as e:
-                _LOGGER.error(f"Failed to sync pending code {code}: {e}")
+                _LOGGER.error("Failed to sync pending code %s: %s", code, e)
                 # Increment retry count
                 raw_item["sync_retry_count"] = retry_count + 1
                 await self._async_save()
@@ -268,7 +267,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
             await self._async_save()
             self.async_write_ha_state()
         except Exception as e:
-            _LOGGER.error(f"Failed to update metadata after sync: {e}")
+            _LOGGER.error("Failed to update metadata after sync: %s", e)
 
     async def _async_save(self) -> None:
         """Save items to storage."""
@@ -323,13 +322,13 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         if final_code:
             if self._has_config_key and force_background_sync:
                  # Code provided, but sync requested (e.g. from service call)
-                 _LOGGER.debug(f"Code '{final_code}' provided with force_sync. Queuing background sync.")
+                 _LOGGER.debug("Code '%s' provided with force_sync. Queuing background sync.", final_code)
                  sync_required = True
                  final_summary = format_parcel_item(final_code, clean_desc)
 
             elif self._has_config_key:
                 # Code manually provided - Tracking only (Manual input = No BLE Sync)
-                _LOGGER.debug(f"Code '{final_code}' manually provided. Item tracking only (No BLE sync).")
+                _LOGGER.debug("Code '%s' manually provided. Item tracking only (No BLE sync).", final_code)
                 final_summary = format_parcel_item(final_code, clean_desc)
 
             else: # No key
@@ -427,9 +426,9 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
             await self._async_save()
             self.async_write_ha_state()
         except StopIteration:
-            _LOGGER.warning(f"Could not find todo item with UID {item_uid} to update description")
+            _LOGGER.warning("Could not find todo item with UID %s to update description", item_uid)
         except Exception as e:
-            _LOGGER.error(f"Failed to update todo item description and metadata: {e}")
+            _LOGGER.error("Failed to update todo item description and metadata: %s", e)
 
     async def async_update_todo_item(self, item: TodoItem) -> None:
         """Update a todo item."""
@@ -438,7 +437,10 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         try:
             existing_index = next(i for i, x in enumerate(self._items) if x.uid == item.uid)
         except StopIteration:
-            raise HomeAssistantError("Item not found")
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="item_not_found"
+            )
 
         existing_item = self._items[existing_index]
 
@@ -457,12 +459,12 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
                   for raw_item in self._raw_data:
                         if raw_item["uid"] == existing_item.uid:
                             if "pending_sync_code" in raw_item:
-                                _LOGGER.info(f"Code changed manually from {old_code} to {new_code}. Removing pending sync for {old_code}.")
+                                _LOGGER.info("Code changed manually from %s to %s. Removing pending sync for %s.", old_code, new_code, old_code)
                                 raw_item.pop("pending_sync_code", None)
                             break
 
                   if new_code and self._has_config_key:
-                       _LOGGER.debug(f"Code changed to '{new_code}' in '{item.summary}'. Item tracking updated (No BLE sync for manual update).")
+                       _LOGGER.debug("Code changed to '%s' in '%s'. Item tracking updated (No BLE sync for manual update).", new_code, item.summary)
 
              existing_item.summary = format_parcel_item(new_code, new_desc)
 

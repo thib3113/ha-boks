@@ -1,9 +1,27 @@
 {
+  "common": {
+    "maintenance_success_title": "Boks apkope",
+    "maintenance_success_msg": "Galveno kodu tīrīšana pabeigta.\nNoskenēti {range} indeksi, sākot no {start_index}.",
+    "nfc_tag_found_title": "Atklāts Boks NFC tags",
+    "nfc_tag_found_msg": "Uz Boks tika konstatēts jauns NFC tags ar UID {uid}.",
+    "nfc_tag_found_msg_named": "Tags {name} ({uid}) tika noskenēts uz Boks.",
+    "nfc_tag_found_register_help": "Izmantojiet pakalpojumu boks.nfc_register_tag, lai pievienotu tam nosaukumu.",
+    "nfc_tag_exists_title": "Boks NFC tags jau ir reģistrēts",
+    "nfc_tag_exists_msg": "NFC tags ar UID {uid} jau ir reģistrēts šajā Boks.",
+    "nfc_tag_exists_msg_named": "Tags {name} ({uid}) jau ir reģistrēts šajā Boks.",
+    "nfc_tag_exists_msg_unknown": "Uzrādītais NFC tags jau ir reģistrēts šajā Boks.",
+    "nfc_scan_started_title": "NFC skenēšana aktivizēta",
+    "nfc_scan_started_msg": "Boks ir klausīšanās režīmā. Nekavējoties uzrādiet savu NFC tagu (6s noilgums).",
+    "nfc_scan_timeout_title": "NFC skenēšana pabeigta",
+    "nfc_scan_timeout_msg": "6 sekunžu kavēšanās ir beigusies. Neviens tags netika konstatēts.",
+    "nfc_register_error_title": "Reģistrācijas kļūda",
+    "nfc_register_error_msg": "Neizdevās reģistrēt tagu {uid}. Ierīce neatbildēja."
+  },
   "config": {
     "step": {
       "cloud": {
-        "title": "Boks ielogiošanās",
-        "description": "Ievadiet savus Boks lietotnes akreditācijas datus, lai automātiski iegūtu ierīces atslēgas.",
+        "title": "Boks pieteikšanās",
+        "description": "Ievadiet savus Boks lietotnes akreditācijas datus, lai automātiski saņemtu ierīces atslēgas.",
         "data": {
           "username": "E-pasts",
           "password": "Parole"
@@ -17,12 +35,12 @@
         }
       },
       "user": {
-        "title": "Manuāla konfigurācija",
+        "title": "Manuālā konfigurācija",
         "description": "Ievadiet savus Boks akreditācijas datus.\n\n**Priekšrocību secība:**\n1. **Galvenā atslēga (64 rakstzīmes):** Pilna piekļuve.\n2. **Konfigurācijas atslēga (8 rakstzīmes):** Standarta piekļuve.",
         "data": {
           "mac": "Bluetooth adrese",
           "master_code": "Galvenais kods",
-          "credential": "Akreditācijas dati (ConfigKey vai MasterKey)"
+          "credential": "Akreditācijas dati (konfigurācijas atslēga vai galvenā atslēga)"
         }
       }
     },
@@ -30,94 +48,176 @@
       "cannot_connect": "Nevar izveidot savienojumu ar Boks API.",
       "invalid_auth": "Nederīgs e-pasts vai parole.",
       "boks_not_found": "Šajā kontā netika atrasts neviens Boks, kas atbilstu MAC adresei.",
-      "cannot_retrieve_key": "Nevarēja iegūt konfigurācijas atslēgu no mākoņa.",
-      "device_not_found": "Ierīce sarakstā netika atrasta.",
-      "device_not_in_cache": "Ierīce netika atrasta Bluetooth kešatmiņā. Nav pieejams savienojams ceļš.",
-      "no_devices_found": "Šajā kontā netika atrastas Boks ierīces.",
-      "connection_error": "Savienojuma kļūda, ienesot ierīces.",
-      "invalid_credential_format": "Nederīgs akreditācijas datu formāts. Jābūt 8/64 hex rakstzīmēm",
+      "cannot_retrieve_key": "Neizdevās iegūt konfigurācijas atslēgu no mākoņa.",
+      "device_not_found": "Ierīce netika atrasta sarakstā.",
+      "device_not_in_cache": "Ierīce netika atrasta Bluetooth kešatmiņā. Nav pieejams neviens savienojams ceļš.",
+      "no_devices_found": "Šajā kontā netika atrasta neviena Boks ierīce.",
+      "connection_error": "Savienojuma kļūda, ielādējot ierīces.",
+      "invalid_credential_format": "Nederīgs akreditācijas datu formāts. Jābūt 8/64 hex rakstzīmēm.",
       "invalid_master_code_format": "Nederīgs galvenā koda formāts. Jābūt 6 ciparu kodam (0-9, A, B).",
       "unknown": "Radās nezināma kļūda.",
-      "pin_code_invalid_length": "PIN kodam jābūt 6 rakstzīmēm",
-      "pin_code_invalid": "Nederīgs PIN kods",
-      "unauthorized": "Neautorizēts",
-      "config_key_required": "Šai darbībai nepieciešama konfigurācijas atslēga",
-      "invalid_code_format": "Nederīgs koda formāts (jābūt 6 rakstzīmēm no 0-9, A, B)",
-      "create_code_failed": "Neizdevās izveidot kodu (ierīce atgrieza kļūdu)",
-      "change_master_code_failed": "Neizdevās mainīt galveno kodu (ierīce atgrieza kļūdu)",
-      "unknown_code_type": "Nezināms koda tips",
-      "unknown_device": "Bluetooth adapteris neredz ierīci.",
-      "not_connectable": "Atklātā ierīce nav savienojama (iespējams, caur pasīvo starpniekserveri).",
-      "todo_entity_not_found_for_device": "Ierīcei {target_device_id} netika atrasta uzdevumu vienība",
-      "target_devices_not_boks": "Mērķa ierīce(-s) {device_ids} nav Boks ierīces.",
-      "target_entities_not_boks": "Mērķa vienība(-s) {entity_ids} pieder ierīcēm, kas nav Boks.",
+      "pin_code_invalid_length": "PIN kodam jābūt 6 rakstzīmēm.",
+      "pin_code_invalid": "Nederīgs PIN kods.",
+      "unauthorized": "Neautorizēta piekļuve.",
+      "config_key_required": "Šai operācijai nepieciešama konfigurācijas atslēga.",
+      "invalid_code_format": "Nederīgs koda formāts (jābūt 6 rakstzīmēm no 0-9, A, B).",
+      "create_code_failed": "Neizdevās izveidot kodu (ierīce atgrieza kļūdu).",
+      "change_master_code_failed": "Neizdevās mainīt galveno kodu (ierīce atgrieza kļūdu).",
+      "unknown_code_type": "Nezināms koda veids.",
+      "unknown_device": "Bluetooth adapteris ierīci neredz.",
+      "not_connectable": "Konstatētā ierīce nav savienojama (iespējams, izmantojot pasīvo starpniekserveri).",
+      "todo_entity_not_found_for_device": "Ierīcei {target_device_id} netika atrasta neviena Todo entitāte.",
+      "target_devices_not_boks": "Mērķa ierīce(s) {device_ids} nav Boks ierīces.",
+      "target_entities_not_boks": "Mērķa entitāte(s) {entity_ids} pieder ierīcēm, kas nav Boks.",
       "target_device_missing": "Mērķa Boks ierīce nav atrasta vai nav norādīta. Lūdzu, norādiet device_id vai entity_id.",
-      "multiple_devices_found": "Atrastas vairākas Boks ierīces. Lūdzu, norādiet mērķa vienību vai ierīci.",
-      "no_devices_configured": "Nav konfigurētas Boks ierīces.",
-      "cannot_resolve_todo": "Nevarēja atrisināt mērķa Boks uzdevumu sarakstu.",
+      "multiple_devices_found": "Atrastas vairākas Boks ierīces. Lūdzu, norādiet mērķa entitāti vai ierīci.",
+      "no_devices_configured": "Nav konfigurēta neviena Boks ierīce.",
+      "cannot_resolve_todo": "Neizdevās atrisināt mērķa Boks darāmo darbu sarakstu.",
       "todo_integration_not_loaded": "Todo integrācija nav ielādēta.",
-      "todo_entity_not_found": "Todo vienība {target_entity_id} nav atrasta vai nav ielādēta.",
-      "config_key_invalid_length": "Konfigurācijas atslēgai jābūt precīzi 8 rakstzīmēm garai.",
-      "ble_client_none": "BLE klients ir Nav, nevar nosūtīt komandu",
-      "timeout_waiting_response": "Noildze, gaidot atbildi uz opkodu {opcode}",
+      "todo_entity_not_found": "Todo entitāte {target_entity_id} nav atrasta vai nav ielādēta.",
+      "config_key_invalid_length": "Konfigurācijas atslēgai jābūt tieši 8 rakstzīmēm.",
+      "ble_client_none": "BLE klients ir None, nevar nosūtīt komandu.",
+      "timeout_waiting_response": "Noilgums, gaidot atbildi uz opcode {opcode}.",
       "ble_error": "BLE kļūda: {error}",
-      "ble_internal_error": "BLE iekšējā kļūda: {error}",
-      "entity_not_parcel_list": "Vienība {target_entity_id} nav Boks paku saraksts.",
-      "maintenance_already_running": "Uzturēšanas uzdevums jau tiek veikts. Lūdzu, uzgaidiet, līdz tas beigsies.",
-      "delete_code_failed": "Neizdevās izdzēst kodu (ierīce atgrieza kļūdu)",
-      "set_configuration_failed": "Neizdevās iestatīt konfigurāciju {config_type} (ierīce atgrieza kļūdu)",
+      "ble_internal_error": "Iekšējā BLE kļūda: {error}",
+      "entity_not_parcel_list": "Entitāte {target_entity_id} nav Boks paku saraksts.",
+      "maintenance_already_running": "Apkopes uzdevums jau tiek izpildīts. Lūdzu, uzgaidiet, līdz tas tiek pabeigts.",
+      "delete_code_failed": "Neizdevās izdzēst kodu (ierīce atgrieza kļūdu).",
+      "set_configuration_failed": "Neizdevās iestatīt konfigurāciju {config_type} (ierīce atgrieza kļūdu).",
       "laposte_firmware_version_required": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai iespējotu La Poste funkciju. Pašreizējā versija: {current_version}",
       "firmware_version_required": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai izmantotu šo funkciju. Pašreizējā versija: {current_version}",
-      "firmware_update_failed": "Neizdevās aktivizēt programmaparatūras atjauninājumu versijai {version}",
-      "door_opened_recently": "Durvis nesen tika atvērtas. Lūdzu, uzgaidiet {seconds} sekundes pirms atkārtotas atvēršanas.",
-      "opening_failed_no_code": "Atvēršana neizdevās: nav norādīts PIN kods, nav saglabāts galvenais kods, un nevarēja ģenerēt vienreizējās lietošanas PIN.",
-      "opening_failed_no_code_no_key": "Atvēršana neizdevās: nav norādīts PIN kods, nav saglabāts galvenais kods, un nevarēja ģenerēt vienreizējās lietošanas PIN (nav pieejama konfigurācijas atslēga)."
+      "firmware_update_failed": "Neizdevās aktivizēt programmaparatūras atjaunināšanu versijai {version}",
+      "door_opened_recently": "Durvis nesen tika atvērtas. Lūdzu, uzgaidiet {seconds} sekundes, pirms atverat tās vēlreiz.",
+      "opening_failed_no_code": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu.",
+      "opening_failed_no_code_no_key": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu (nav pieejama konfigurācijas atslēga).",
+      "hardware_unsupported": "Funkcijai {feature} nepieciešama Boks v{required_hw} vai jaunāka. Jūsu pašreizējā versija ir v{current_hw}.",
+      "firmware_update_required": "Funkcijai {feature} nepieciešama programmaparatūras versija {required_sw}. Jūsu pašreizējā versija ir {current_sw}.",
+      "unexpected_create_code_error": "Negaidīta kļūda, veidojot kodu: {error}",
+      "unexpected_delete_code_error": "Negaidīta kļūda, dzēšot kodu: {error}",
+      "unexpected_set_configuration_error": "Negaidīta kļūda, mainot konfigurāciju: {error}",
+      "unexpected_register_tag_error": "Negaidīta kļūda, reģistrējot tagu: {error}",
+      "unexpected_unregister_tag_error": "Negaidīta kļūda, atceļot taga reģistrāciju: {error}"
     },
     "abort": {
       "already_configured": "Šis Boks jau ir konfigurēts.",
-      "not_connectable": "Atklātā ierīce nav savienojama (iespējams, caur pasīvo starpniekserveri).",
+      "not_connectable": "Konstatētā ierīce nav savienojama (iespējams, izmantojot pasīvo starpniekserveri).",
       "cannot_connect": "Nevar izveidot savienojumu ar ierīci. Pārbaudiet, vai tā ir uztveršanas zonā un ir savienojama."
     }
+  },
+  "exceptions": {
+    "cannot_connect": { "message": "Nevar izveidot savienojumu ar Boks API." },
+    "invalid_auth": { "message": "Nederīgs e-pasts vai parole." },
+    "boks_not_found": { "message": "Šajā kontā netika atrasts neviens Boks, kas atbilstu MAC adresei." },
+    "cannot_retrieve_key": { "message": "Neizdevās iegūt konfigurācijas atslēgu no mākoņa." },
+    "device_not_found": { "message": "Ierīce netika atrasta sarakstā." },
+    "device_not_in_cache": { "message": "Ierīce netika atrasta Bluetooth kešatmiņā. Nav pieejams neviens savienojams ceļš." },
+    "no_devices_found": { "message": "Šajā kontā netika atrasta neviena Boks ierīce." },
+    "connection_error": { "message": "Savienojuma kļūda, ielādējot ierīces." },
+    "invalid_credential_format": { "message": "Nederīgs akreditācijas datu formāts. Jābūt 8/64 hex rakstzīmēm." },
+    "invalid_master_code_format": { "message": "Nederīgs galvenā koda formāts. Jābūt 6 ciparu kodam (0-9, A, B)." },
+    "unknown": { "message": "Radās nezināma kļūda." },
+    "pin_code_invalid_length": { "message": "PIN kodam jābūt 6 rakstzīmēm." },
+    "pin_code_invalid": { "message": "Nederīgs PIN kods." },
+    "unauthorized": { "message": "Neautorizēta piekļuve." },
+    "config_key_required": { "message": "Šai operācijai nepieciešama konfigurācijas atslēga." },
+    "invalid_code_format": { "message": "Koda formāts ir nederīgs (jābūt 6 rakstzīmēm no 0-9, A, B)." },
+    "create_code_failed": { "message": "Koda izveide neizdevās (ierīce atgrieza kļūdu)." },
+    "change_master_code_failed": { "message": "Galvenā koda maiņa neizdevās (ierīce atgrieza kļūdu)." },
+    "unknown_code_type": { "message": "Nezināms koda veids." },
+    "unknown_device": { "message": "Bluetooth adapteris ierīci neredz." },
+    "not_connectable": { "message": "Konstatētā ierīce nav savienojama (iespējams, izmantojot pasīvo starpniekserveri)." },
+    "todo_entity_not_found_for_device": { "message": "Ierīcei {target_device_id} netika atrasta neviena Todo entitāte." },
+    "target_devices_not_boks": { "message": "Mērķa ierīces nav Boks ierīces." },
+    "target_entities_not_boks": { "message": "Mērķa entitātes nepieder Boks ierīcēm." },
+    "target_device_missing": { "message": "Mērķa Boks ierīce nav atrasta vai nav norādīta. Lūdzu, norādiet device_id vai entity_id." },
+    "multiple_devices_found": { "message": "Atrastas vairākas Boks ierīces. Lūdzu, norādiet mērķa entitāti vai ierīci." },
+    "no_devices_configured": { "message": "Nav konfigurēta neviena Boks ierīce." },
+    "no_devices_found": { "message": "Šajā kontā netika atrasta neviena Boks ierīce." },
+    "not_connectable": { "message": "Konstatētā ierīce nav savienojama (iespējams, izmantojot pasīvo starpniekserveri)." },
+    "opening_failed_no_code": { "message": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu." },
+    "opening_failed_no_code_no_key": { "message": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu (nav pieejama konfigurācijas atslēga)." },
+    "operation_timed_out": { "message": "Operācija beidzās pēc {seconds} sekundēm." },
+    "pin_code_invalid": { "message": "Nederīgs PIN kods." },
+    "pin_code_invalid_length": { "message": "PIN kodam jābūt 6 rakstzīmēm." },
+    "set_configuration_failed": { "message": "Konfigurācijas {config_type} iestatīšana neizdevās (ierīce atgrieza kļūdu)." },
+    "target_device_missing": { "message": "Mērķa Boks ierīce nav atrasta vai nav norādīta. Lūdzu, norādiet device_id vai entity_id." },
+    "target_devices_not_boks": { "message": "Mērķa ierīces nav Boks ierīces." },
+    "target_entities_not_boks": { "message": "Mērķa entitātes nepieder Boks ierīcēm." },
+    "timeout_waiting_response": { "message": "Noilgums, gaidot atbildi uz opcode {opcode}." },
+    "todo_entity_not_found": { "message": "Todo entitāte {target_entity_id} nav atrasta vai nav ielādēta." },
+    "todo_entity_not_found_for_device": { "message": "Ierīcei {target_device_id} netika atrasta neviena Todo entitāte." },
+    "todo_integration_not_loaded": { "message": "Todo integrācija nav ielādēta." },
+    "unauthorized": { "message": "Neautorizēta piekļuve." },
+    "unknown": { "message": "Radās nezināma kļūda." },
+    "unknown_code_type": { "message": "Nezināms koda veids." },
+    "unknown_device": { "message": "Bluetooth adapteris ierīci neredz." },
+    "ble_client_none": { "message": "BLE klients ir None, nevar nosūtīt komandu." },
+    "ble_error": { "message": "BLE kļūda: {error}" },
+    "ble_internal_error": { "message": "Iekšējā BLE kļūda: {error}" },
+    "boks_not_found": { "message": "Šajā kontā netika atrasts neviens Boks, kas atbilstu MAC adresei." },
+    "busy": { "message": "Ierīce aizņemta: cita operācija jau gaida paziņojumus." },
+    "cannot_connect": { "message": "Nevar izveidot savienojumu ar Boks API." },
+    "cannot_resolve_todo": { "message": "Neizdevās atrisināt mērķa Boks darāmo darbu sarakstu." },
+    "cannot_retrieve_key": { "message": "Neizdevās iegūt konfigurācijas atslēgu no mākoņa." },
+    "change_master_code_failed": { "message": "Galvenā koda maiņa neizdevās (ierīce atgrieza kļūdu)." },
+    "config_key_invalid_length": { "message": "Konfigurācijas atslēgai jābūt tieši 8 rakstzīmēm." },
+    "config_key_required": { "message": "Šai operācijai nepieciešama konfigurācijas atslēga." },
+    "connection_error": { "message": "Savienojuma kļūda, ielādējot ierīces." },
+    "create_code_failed": { "message": "Koda izveide neizdevās (ierīce atgrieza kļūdu)." },
+    "delete_code_failed": { "message": "Koda dzēšana neizdevās (ierīce atgrieza kļūdu)." },
+    "device_not_found": { "message": "Ierīce netika atrasta sarakstā." },
+    "device_not_in_cache": { "message": "Ierīce netika atrasta Bluetooth kešatmiņā. Nav pieejams neviens savienojams ceļš." },
+    "door_opened_recently": { "message": "Durvis nesen tika atvērtas. Lūdzu, uzgaidiet {seconds} sekundes, pirms atverat tās vēlreiz." },
+    "entity_not_parcel_list": { "message": "Entitāte {target_entity_id} nav Boks paku saraksts." },
+    "firmware_update_failed": { "message": "Neizdevās aktivizēt programmaparatūras atjaunināšanu versijai {version}" },
+    "firmware_update_required": { "message": "Funkcijai {feature} nepieciešama programmaparatūras versija {required_sw}. Jūsu pašreizējā versija ir {current_sw}." },
+    "firmware_version_required": { "message": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai izmantotu šo funkciju. Pašreizējā versija: {current_version}" },
+    "hardware_unsupported": { "message": "Funkcijai {feature} nepieciešama Boks v{required_hw} vai jaunāka. Jūsu pašreizējā versija ir v{current_hw}." },
+    "invalid_auth": { "message": "Nederīgs e-pasts vai parole." },
+    "invalid_code_format": { "message": "Koda formāts ir nederīgs (jābūt 6 rakstzīmēm no 0-9, A, B)." },
+    "invalid_credential_format": { "message": "Nederīgs akreditācijas datu formāts. Jābūt 8/64 hex rakstzīmēm." },
+    "invalid_master_code_format": { "message": "Nederīgs galvenā koda formāts. Jābūt 6 ciparu kodam (0-9, A, B)." },
+    "invalid_master_code_index": { "message": "Nederīgs galvenā koda indekss (jābūt no 0 līdz 255)." },
+    "invalid_uid_format": { "message": "Nederīgs NFC UID formāts." },
+    "item_not_found": { "message": "Vienums nav atrasts" },
+    "laposte_firmware_version_required": { "message": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai iespējotu La Poste funkciju. Pašreizējā versija: {current_version}" },
+    "lock_entity_not_found": { "message": "Šai ierīcei netika atrasta slēdzenes entitāte." },
+    "maintenance_already_running": { "message": "Apkopes uzdevums jau tiek izpildīts. Lūdzu, uzgaidiet, līdz tas tiek pabeigts." },
+    "maintenance_error_msg": { "message": "Galveno kodu tīrīšana neizdevās indeksā {current_idx}.\nKļūda: {error}" },
+    "maintenance_error_title": { "message": "Boks apkopes kļūda" },
+    "nfc_tag_already_exists": { "message": "Šis NFC tags jau ir reģistrēts Boks." }
   },
   "options": {
     "step": {
       "init": {
         "data": {
           "scan_interval": "Aptaujas intervāls (minūtes)",
-          "full_refresh_interval": "Pilnīgas atsvaidzināšanas intervāls (stundas)",
-          "master_code": "Galvenais kods atvēršanai (neobligāti)",
-          "anonymize_logs": "Anonimizēt žurnālus (aizstāt atslēgas un PIN ar viltus vērtībām kopīgošanai)"
+          "full_refresh_interval": "Pilna atjaunināšanas intervāls (stundas)",
+          "master_code": "Galvenais kods atvēršanai (pēc izvēles)",
+          "anonymize_logs": "Anonimizēt žurnālus (aizstāj atslēgas un PIN ar fiktīvām vērtībām)"
         },
         "description": "Konfigurējiet, cik bieži Home Assistant izveido savienojumu ar Boks, lai atjauninātu statusu."
       }
     }
   },
   "selector": {
-      "setup_method": {
-          "options": {
-              "cloud": "Mākoņa pieteikšanās (Automātiski - nepieciešami derīgi oficiālās Boks lietotnes akreditācijas dati)",
-              "manual": "Manuāla ievade"
-          }
+    "setup_method": {
+      "options": {
+        "cloud": "Pieteikšanās mākonī (automātiski — nepieciešami derīgi oficiālās Boks lietotnes akreditācijas dati)",
+        "manual": "Manuāla ievade"
       }
+    }
   },
   "entity": {
     "button": {
-      "sync_logs": {
-        "name": "Sinhronizēt žurnālus"
-      }
+      "sync_logs": { "name": "Sinhronizēt žurnālus" }
     },
     "lock": {
-      "door": {
-        "name": "Durvis"
-      }
+      "door": { "name": "Durvis" }
     },
     "sensor": {
-      "battery": {
-        "name": "Akumulators"
-      },
-      "last_connection": {
-        "name": "Pēdējais savienojums"
-      },
+      "battery": { "name": "Akumulators" },
+      "last_connection": { "name": "Pēdējais savienojums" },
       "last_event": {
         "name": "Pēdējais notikums",
         "state": {
@@ -128,29 +228,43 @@
           "code_key_invalid": "Izmantots nederīgs tastatūras kods",
           "door_closed": "Durvis aizvērtas",
           "door_opened": "Durvis atvērtas",
-          "history_erase": "Vēsture dzēsta",
-          "power_off": "Izslēgšana",
+          "history_erase": "Vēsture notīrīta",
+          "power_off": "Izslēgts",
           "block_reset": "Bloka atiestatīšana",
-          "power_on": "Ieslēgšana",
-          "ble_reboot": "BLE pārstartēšana",
+          "power_on": "Ieslēgts",
+          "ble_reboot": "Restart BLE",
           "scale_measure": "Nepārtraukta svaru mērīšana",
           "key_opening": "Atvēršana ar atslēgu",
-          "error": "Kļūda (Diagnostika)",
+          "error": "Kļūda (diagnostika)",
           "nfc_opening": "NFC atvēršana",
           "nfc_tag_registering": "NFC taga reģistrācijas skenēšana",
-          "unknown": "Nezināms notikums"
+          "nfc_tag_type_1": "La Poste",
+          "nfc_tag_type_2": "Vigik (terciārais)",
+          "nfc_tag_type_3": "Tags",
+          "unknown": "Nezināms notikums",
+          "opening_by": "Atvēra {name}",
+          "diagnostic_error_bc": "Iekšējā MFRC630 kļūda (0xBC)",
+          "diagnostic_error_integrity": "Integritātes kļūda (CRC/paritāte)",
+          "diagnostic_error_no_tag": "Tags nav konstatēts / Noilgums",
+          "diagnostic_error_collision": "Konstatēta tagu sadursme",
+          "diagnostic_error_buffer": "Bufera pārpilde",
+          "diagnostic_error_unknown": "Nezināma tehniska kļūda",
+          "power_off_reason_1": "Aparatūras atiestatīšana (PIN)",
+          "power_off_reason_2": "Sargsuns (automātiska restartēšana)",
+          "power_off_reason_3": "Programmatūras atiestatīšana",
+          "power_off_reason_4": "Sistēmas bloķēšana (Lockup)",
+          "power_off_reason_5": "Ieslēgšana",
+          "power_off_reason_6": "NFC modināšana",
+          "power_off_reason_7": "Sistēmas izslēgšanas modināšana",
+          "power_off_reason_8": "LPCOMP modināšana"
         }
       },
-      "master_codes_count": {
-        "name": "Galvenie kodi"
-      },
-      "single_use_codes_count": {
-        "name": "Vienreizējās lietošanas kodi"
-      },
+      "master_codes_count": { "name": "Galvenie kodi" },
+      "single_use_codes_count": { "name": "Vienreizējie kodi" },
       "battery_format": {
         "name": "Akumulatora formāts",
         "state": {
-          "measures-first-min-mean-max-last": "Detalizēts (Min/Vid/Maks)",
+          "measures-first-min-mean-max-last": "Detalizēts (Min/Vid/Max)",
           "measures-t1-t5-t10": "Detalizēts (T1/T5/T10)",
           "measure-single": "Vienkāršs",
           "unknown": "Nezināms",
@@ -166,45 +280,25 @@
           "other": "Cits"
         }
       },
-      "battery_level_first": {
-        "name": "Akumulatora spriegums (Pirmais)"
-      },
-      "battery_level_min": {
-        "name": "Akumulatora spriegums (Min)"
-      },
-      "battery_level_mean": {
-        "name": "Akumulatora spriegums (Vid)"
-      },
-      "battery_level_max": {
-        "name": "Akumulatora spriegums (Maks)"
-      },
-      "battery_level_last": {
-        "name": "Akumulatora spriegums (Pēdējais)"
-      },
-      "battery_level_t1": {
-        "name": "Akumulatora spriegums (T1)"
-      },
-      "battery_level_t5": {
-        "name": "Akumulatora spriegums (T5)"
-      },
-      "battery_level_t10": {
-        "name": "Akumulatora spriegums (T10)"
-      },
+      "battery_level_first": { "name": "Akumulatora spriegums (pirmais)" },
+      "battery_level_min": { "name": "Akumulatora spriegums (min)" },
+      "battery_level_mean": { "name": "Akumulatora spriegums (vidējais)" },
+      "battery_level_max": { "name": "Akumulatora spriegums (max)" },
+      "battery_level_last": { "name": "Akumulatora spriegums (pēdējais)" },
+      "battery_level_t1": { "name": "Akumulatora spriegums (T1)" },
+      "battery_level_t5": { "name": "Akumulatora spriegums (T5)" },
+      "battery_level_t10": { "name": "Akumulatora spriegums (T10)" },
       "maintenance_status": {
-        "name": "Uzturēšanas statuss",
+        "name": "Apkopes statuss",
         "state": {
-          "idle": "Dīkstāve",
+          "idle": "Dīkstāvē",
           "cleaning": "Galveno kodu tīrīšana"
         }
       },
-      "log_count": {
-        "name": "Žurnālu skaits"
-      }
+      "log_count": { "name": "Žurnālu skaits" }
     },
     "todo": {
-      "parcels": {
-        "name": "Pakas"
-      }
+      "parcels": { "name": "Pakas" }
     },
     "event": {
       "logs": {
@@ -216,33 +310,39 @@
           "code_key_invalid": "Izmantots nederīgs tastatūras kods",
           "door_closed": "Durvis aizvērtas",
           "door_opened": "Durvis atvērtas",
-          "history_erase": "Vēsture dzēsta",
-          "power_off": "Izslēgšana",
+          "history_erase": "Vēsture notīrīta",
+          "power_off": "Izslēgts",
           "block_reset": "Bloka atiestatīšana",
-          "power_on": "Ieslēgšana",
-          "ble_reboot": "BLE pārstartēšana",
+          "power_on": "Ieslēgts",
+          "ble_reboot": "Restart BLE",
           "scale_measure": "Nepārtraukta svaru mērīšana",
           "key_opening": "Atvēršana ar atslēgu",
-          "error": "Kļūda (Diagnostika)",
+          "error": "Kļūda (diagnostika)",
           "nfc_opening": "NFC atvēršana",
           "nfc_tag_registering": "NFC taga reģistrācijas skenēšana",
-          "unknown": "Nezināms notikums"
+          "nfc_tag_type_1": "La Poste",
+          "nfc_tag_type_2": "Vigik (terciārais)",
+          "nfc_tag_type_3": "Tags",
+          "unknown": "Nezināms notikums",
+          "opening_by": "Atvēra {name}"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "Programmaparatūras atjauninājums",
-        "no_firmware_downloaded": "No firmware downloaded for installation",
-        "notification_title": "Boks Firmware Update",
-        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
-        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
-        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
-        "download_failed_title": "Boks Firmware Update - Download Failed",
-        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
-        "network_error_title": "Boks Firmware Update - Network Error",
-        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
-        "generic_error_title": "Boks Firmware Update - Error"
+        "name": "Programmaparatūras atjaunināšana",
+        "state": {
+          "no_firmware_downloaded": "Instalēšanai nav lejupielādēta neviena programmaparatūra",
+          "notification_title": "Boks programmaparatūras atjaunināšana",
+          "firmware_ready_message": "Programmaparatūras atjauninājums {version} ir lejupielādēts.\nFaila atrašanās vieta: {path}\nLejupielādes URL: {url}\n\nSVARĪGI: Lūdzu, sazinieties ar izstrādātāju, lai saņemtu papildu norādījumus par to, kā manuāli lietot šo atjauninājumu.\nNemēģiniet mirgot šo failu bez īpašiem norādījumiem.",
+          "manual_action_required_title": "Boks programmaparatūras atjaunināšana — nepieciešama manuāla darbība",
+          "download_failed_message": "Neizdevās lejupielādēt programmaparatūras versiju {version}. HTTP statuss: {status}\nLūdzu, pārbaudiet programmaparatūras URL vai mēģiniet vēlreiz vēlāk.",
+          "download_failed_title": "Boks programmaparatūras atjaunināšana — lejupielāde neizdevās",
+          "network_error_message": "Tīkla kļūda, lejupielādējot programmaparatūras versiju {version}.\nKļūda: {error}\nLūdzu, pārbaudiet tīkla savienojumu un mēģiniet vēlreiz.",
+          "network_error_title": "Boks programmaparatūras atjaunināšana — tīkla kļūda",
+          "generic_error_message": "Kļūda, lejupielādējot programmaparatūras versiju {version}.\nKļūda: {error}\nLūdzu, mēģiniet vēlreiz vai sazinieties ar atbalsta dienestu.",
+          "generic_error_title": "Boks programmaparatūras atjaunināšana — kļūda"
+        }
       }
     }
   },
@@ -264,30 +364,30 @@
       "fields": {
         "code": {
           "name": "PIN kods",
-          "description": "6 rakstzīmju PIN kods, ko izmantot atvēršanai (burtciparu).",
+          "description": "6 ciparu PIN kods, ko izmantot atvēršanai (0-9, A, B).",
           "example": "123456"
         }
       }
     },
     "add_master_code": {
       "name": "Pievienot galveno kodu",
-      "description": "Pievieno jaunu galveno kodu Boks konkrētā indeksā. Pārraksta jebkuru esošu kodu šajā indeksā.",
+      "description": "Pievieno Boks jaunu galveno kodu noteiktā indeksā. Pārrakstīs jebkuru esošo kodu šajā indeksā.",
       "fields": {
         "code": {
           "name": "PIN kods",
-          "description": "6 rakstzīmju PIN kods (0-9, A, B).",
+          "description": "6 ciparu PIN kods (0-9, A, B).",
           "example": "1234AB"
         },
         "index": {
           "name": "Indekss",
-          "description": "Galvenā koda glabāšanas indekss (0-255).",
+          "description": "Galvenā koda uzglabāšanas indekss (0-255).",
           "example": "2"
         }
       }
     },
     "delete_master_code": {
       "name": "Dzēst galveno kodu",
-      "description": "Dzēš galveno kodu no Boks, izmantojot tā indeksu.",
+      "description": "Izdzēš galveno kodu no Boks, izmantojot tā indeksu.",
       "fields": {
         "index": {
           "name": "Indekss",
@@ -297,56 +397,56 @@
       }
     },
     "add_single_code": {
-      "name": "Pievienot vienreizējās lietošanas kodu",
-      "description": "Pievieno Boks jaunu vienreizējās lietošanas kodu.",
+      "name": "Pievienot vienreizēju kodu",
+      "description": "Pievieno Boks jaunu vienreizēju kodu.",
       "fields": {
         "code": {
           "name": "PIN kods",
-          "description": "6 rakstzīmju PIN kods (0-9, A, B).",
+          "description": "6 ciparu PIN kods (0-9, A, B).",
           "example": "1234AB"
         }
       }
     },
     "delete_single_code": {
-      "name": "Dzēst vienreizējās lietošanas kodu",
-      "description": "Dzēš vienreizējās lietošanas kodu no Boks, izmantojot tā vērtību.",
+      "name": "Dzēst vienreizēju kodu",
+      "description": "Izdzēš vienreizēju kodu no Boks, izmantojot tā vērtību.",
       "fields": {
         "code": {
           "name": "PIN kods",
-          "description": "Dzēšamais 6 rakstzīmju PIN kods (0-9, A, B).",
+          "description": "Dzēšamais 6 ciparu PIN kods (0-9, A, B).",
           "example": "1234AB"
         }
       }
     },
     "add_multi_code": {
-      "name": "Pievienot vairākkārtējas lietošanas kodu",
-      "description": "Pievieno Boks jaunu vairākkārtējas lietošanas kodu.",
+      "name": "Pievienot vairākkārtēju kodu",
+      "description": "Pievieno Boks jaunu vairākkārtēju kodu.",
       "fields": {
         "code": {
           "name": "PIN kods",
-          "description": "6 rakstzīmju PIN kods (0-9, A, B).",
+          "description": "6 ciparu PIN kods (0-9, A, B).",
           "example": "1234AB"
         }
       }
     },
     "delete_multi_code": {
-      "name": "Dzēst vairākkārtējas lietošanas kodu",
-      "description": "Dzēš vairākkārtējas lietošanas kodu no Boks, izmantojot tā vērtību.",
+      "name": "Dzēst vairākkārtēju kodu",
+      "description": "Izdzēš vairākkārtēju kodu no Boks, izmantojot tā vērtību.",
       "fields": {
         "code": {
           "name": "PIN kods",
-          "description": "Dzēšamais 6 rakstzīmju PIN kods (0-9, A, B).",
+          "description": "Dzēšamais 6 ciparu PIN kods (0-9, A, B).",
           "example": "1234AB"
         }
       }
     },
     "clean_master_codes": {
-      "name": "Iztīrīt galvenos kodus",
-      "description": "Skenē un dzēš galvenos kodus norādītajā indeksu diapazonā, lai noņemtu spokus. Ierobežojums: 100 indeksi vienā reizē.",
+      "name": "Notīrīt galvenos kodus",
+      "description": "Skenē un izdzēš galvenos kodus noteiktā indeksu diapazonā, lai noņemtu spoku kodus. Ierobežojums: 100 indeksi vienā reizē.",
       "fields": {
         "start_index": {
           "name": "Sākuma indekss",
-          "description": "Indekss, no kura sākt tīrīšanu (0-255)."
+          "description": "Indekss, ar kuru sākt tīrīšanu (0-255)."
         },
         "range": {
           "name": "Diapazons",
@@ -356,15 +456,41 @@
     },
     "sync_logs": {
       "name": "Sinhronizēt žurnālus",
-      "description": "Manuāli ienest žurnālus no Boks un aktivizēt saistītos notikumus."
+      "description": "Manuāli ielādē žurnālus no Boks un aktivizē saistītos notikumus."
     },
     "set_configuration": {
       "name": "Iestatīt konfigurāciju",
-      "description": "Mainīt Boks konfigurācijas iestatījumus (NFC, aparatūra utt.).",
+      "description": "Maina Boks konfigurācijas iestatījumus (NFC, aparatūra utt.).",
       "fields": {
         "laposte": {
           "name": "La Poste (Vigik)",
-          "description": "Iespējot vai atspējot La Poste tagu atpazīšanu."
+          "description": "Iespējo vai atspējo La Poste tagu atpazīšanu."
+        }
+      }
+    },
+    "nfc_scan_start": {
+      "name": "Sākt NFC skenēšanu",
+      "description": "Ieslēdz NFC taga skenēšanas režīmu uz 6 sekundēm."
+    },
+    "nfc_register_tag": {
+      "name": "Reģistrēt NFC tagu",
+      "description": "Reģistrē NFC tagu baltajā sarakstā. PRIEKŠNOSACĪJUMS: Vispirms jāpalaiž pakalpojums 'Sākt NFC skenēšanu' un jānoskenē tags.",
+      "fields": {
+        "uid": {
+          "name": "Taga UID",
+          "description": "Taga unikālais ID (piem., A1B2C3D4).",
+          "example": "A1B2C3D4"
+        },
+        "name": { "name": "Draudzīgs nosaukums", "description": "Papildu nosaukums saglabāšanai HA tagu reģistrā." }
+      }
+    },
+    "nfc_unregister_tag": {
+      "name": "Atcelt NFC taga reģistrāciju",
+      "description": "Izņem NFC tagu no Boks baltā saraksta.",
+      "fields": {
+        "uid": {
+          "name": "Taga UID",
+          "description": "Dzēšamā taga unikālais ID."
         }
       }
     }

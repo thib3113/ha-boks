@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 from homeassistant.components.logbook import LOGBOOK_ENTRY_MESSAGE, LOGBOOK_ENTRY_NAME
-from homeassistant.core import HomeAssistant, callback
 from homeassistant.const import ATTR_DEVICE_ID
+from homeassistant.core import HomeAssistant, callback
 
 from .const import DOMAIN, EVENT_LOG
 
@@ -26,20 +26,15 @@ def async_describe_events(
         """Describe boks log event."""
         _LOGGER.debug("Processing Boks log event: %s", event.data)
         data = event.data
+        device_id = data.get("device_id")
 
-        # Extract useful info
-        description_key = data.get("description", "unknown")
-
-        # Try to find the translation in our cache
-        # The cache contains the 'state' dict from entity.event.logs, so keys are 'door_closed', 'door_opened', etc.
-        translations = hass.data.get(DOMAIN, {}).get("translations", {})
-
-        message = translations.get(description_key, description_key)
+        # The message is now pre-translated and formatted by the coordinator in the 'description' field
+        message = data.get("description", "Unknown Event")
 
         return {
             LOGBOOK_ENTRY_NAME: "",
             LOGBOOK_ENTRY_MESSAGE: message,
-            ATTR_DEVICE_ID: data.get("device_id"),
+            ATTR_DEVICE_ID: device_id,
         }
 
     async_describe_event(DOMAIN, EVENT_LOG, async_describe_log_event)

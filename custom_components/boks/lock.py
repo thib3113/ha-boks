@@ -1,23 +1,21 @@
 """Lock platform for Boks."""
-from typing import Any
-import logging
 import asyncio
-import traceback
+import logging
 from datetime import datetime
+from typing import Any
 
 from homeassistant.components import bluetooth
 from homeassistant.components.lock import LockEntity, LockEntityFeature
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_ADDRESS, CONF_NAME
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, CONF_MASTER_CODE, TIMEOUT_DOOR_OPEN_MESSAGE
-from .coordinator import BoksDataUpdateCoordinator
 from .ble import BoksBluetoothDevice
 from .ble.const import BoksHistoryEvent, LOG_EVENT_TYPES
+from .const import DOMAIN, CONF_MASTER_CODE, TIMEOUT_DOOR_OPEN_MESSAGE, TIMEOUT_DOOR_CLOSE
+from .coordinator import BoksDataUpdateCoordinator
 from .entity import BoksEntity
 from .errors.boks_command_error import BoksCommandError
 
@@ -89,8 +87,7 @@ class BoksLock(BoksEntity, LockEntity):
     async def async_open(self, **kwargs: Any) -> None:
         """Open the door."""
         start_time = datetime.now()
-        _LOGGER.debug(f"async_open: Entered at {start_time}")
-        _LOGGER.debug(f"Call stack: {''.join(traceback.format_stack())}")
+        _LOGGER.debug("async_open: Entered at %s", start_time)
 
         if self._unlock_lock.locked():
             _LOGGER.warning("async_open: Unlock operation already in progress. Ignoring new request.")
@@ -102,7 +99,7 @@ class BoksLock(BoksEntity, LockEntity):
 
         # Use the unlock lock to prevent concurrent unlock requests
         async with self._unlock_lock:
-            _LOGGER.debug(f"async_open: Lock acquired at {datetime.now()} (elapsed: {(datetime.now() - start_time).total_seconds():.3f}s)")
+            _LOGGER.debug("async_open: Lock acquired at %s (elapsed: %.3fs)", datetime.now(), (datetime.now() - start_time).total_seconds())
 
             code = kwargs.get("code")
             if code:
@@ -110,66 +107,73 @@ class BoksLock(BoksEntity, LockEntity):
             ble_device: BoksBluetoothDevice = self.coordinator.ble_device
 
             # Always connect to increment reference counter
-            # Try with connectable=True first, then connectable=False
-            _LOGGER.debug(f"async_open: getting BLE device from address {self._entry.data[CONF_ADDRESS]}")
+            _LOGGER.debug("async_open: getting BLE device from address %s", self._entry.data[CONF_ADDRESS])
             device = bluetooth.async_ble_device_from_address(
                 self.hass, self._entry.data[CONF_ADDRESS], connectable=True
             )
             if not device:
                 _LOGGER.error("async_open: Device not found in cache")
                 raise BoksCommandError("device_not_in_cache")
-            
-            success = False
-            try:
-                # Wrap the entire connection and operation in a timeout
-                async with asyncio.timeout(20):
-                    _LOGGER.debug(f"async_open: Connecting to device... (elapsed: {(datetime.now() - start_time).total_seconds():.3f}s)")
-                    await ble_device.connect(device)
-                    _LOGGER.debug(f"async_open: Connected. (elapsed: {(datetime.now() - start_time).total_seconds():.3f}s)")
 
-                    # 1. Priority: Use stored Master Code if available
+            success = False
+            timeout_open = 40
+            try:
+                # 1. Operation: Connect and Open
+                async with asyncio.timeout(timeout_open):
+                    _LOGGER.debug("async_open: Connecting to device... (elapsed: %.3fs)", (datetime.now() - start_time).total_seconds())
+                    await ble_device.connect(device)
+                    _LOGGER.debug("async_open: Connected. (elapsed: %.3fs)", (datetime.now() - start_time).total_seconds())
+
+                    # Priority: Stored Master Code
                     if not code:
                         code = self._entry.data.get(CONF_MASTER_CODE)
                         if code:
                             _LOGGER.info("Using stored Master Code for opening.")
 
-                    # 2. Fallback: Try to generate a single-use code if no master code and we have the key
+                    # Fallback: Single-use code
                     if not code and ble_device.config_key_str:
-                        for attempt in range(2): # Try twice
+                        for attempt in range(2):
                             try:
-                                _LOGGER.debug(f"Attempting to generate single-use code (Attempt {attempt+1})...")
+                                _LOGGER.debug("Attempting to generate single-use code (Attempt %d)...", attempt + 1)
                                 code = await ble_device.create_pin_code(code_type="single")
-                                _LOGGER.debug("Generated single-use code successfully.")
                                 break
                             except Exception as e:
-                                _LOGGER.warning(f"Failed to generate single-use code (Attempt {attempt+1}): {e}")
-                                if attempt == 0:
-                                    await asyncio.sleep(2) # Wait a bit before retry
+                                _LOGGER.warning("Failed to generate single-use code (Attempt %d): %s", attempt + 1, e)
+                                if attempt == 0: await asyncio.sleep(2)
 
                     if not code:
-                        # Detailed error message for user
                         if not ble_device.config_key_str:
                             raise BoksCommandError("opening_failed_no_code_no_key")
-
                         raise BoksCommandError("opening_failed_no_code")
 
-                    # 3. Open the door
-                    _LOGGER.debug(f"async_open: Sending open_door command with code length {len(code) if code else 0}... (elapsed: {(datetime.now() - start_time).total_seconds():.3f}s)")
+                    # Open the door
+                    _LOGGER.debug("async_open: Sending open_door command with code length %d...", len(code) if code else 0)
                     await ble_device.open_door(code)
-                    _LOGGER.debug(f"async_open: open_door returned successfully. (elapsed: {(datetime.now() - start_time).total_seconds():.3f}s)")
 
                     # Update state immediately
                     self.coordinator.data["door_open"] = True
                     self.async_write_ha_state()
-
                     success = True
 
+                # 2. Wait for closure: Stay connected until door is closed
+                if success:
+                    _LOGGER.info("Door opened. Waiting for close event (max %ds)...", TIMEOUT_DOOR_CLOSE)
+                    closed = await ble_device.wait_for_door_closed(timeout=TIMEOUT_DOOR_CLOSE)
+
+                    if not closed:
+                        _LOGGER.warning("Door did not close within %ds, sync will happen on disconnect", TIMEOUT_DOOR_CLOSE)
+                    else:
+                        _LOGGER.debug("Door closed detected. Disconnecting to trigger auto-refresh.")
+
             except TimeoutError:
-                _LOGGER.error("async_open: Operation timed out after 20s")
-                raise HomeAssistantError("Operation timed out")
+                _LOGGER.error("async_open: Operation timed out after %ds", timeout_open)
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="operation_timed_out",
+                    translation_placeholders={"seconds": str(timeout_open)}
+                )
             except Exception as e:
-                _LOGGER.error(f"async_open: Error during operation: {e}")
-                # Re-raise to ensure HA knows about the failure
+                _LOGGER.error("async_open: Error during operation: %s", e)
                 raise e
 
             finally:
@@ -177,18 +181,16 @@ class BoksLock(BoksEntity, LockEntity):
                 if ble_device.is_connected:
                     _LOGGER.debug("async_open: Disconnecting in finally block.")
                     try:
-                        # Ensure disconnect doesn't hang forever
                         async with asyncio.timeout(5):
                             await asyncio.shield(ble_device.disconnect())
-                    except TimeoutError:
-                        _LOGGER.warning("async_open: Disconnect timed out")
                     except Exception as e:
-                        _LOGGER.error(f"async_open: Error during disconnect: {e}")
+                        _LOGGER.error("async_open: Error during disconnect: %s", e)
 
-            if success:
-                # Hold lock for a fixed duration to prevent spamming
-                _LOGGER.debug(f"async_open: Waiting {TIMEOUT_DOOR_OPEN_MESSAGE}s (anti-spam) with lock held...")
-                await asyncio.sleep(TIMEOUT_DOOR_OPEN_MESSAGE)
-                _LOGGER.debug(f"async_open: Anti-spam wait complete. (elapsed: {(datetime.now() - start_time).total_seconds():.3f}s)")
+                # Ensure the lock is held for at least the anti-spam duration
+                elapsed = (datetime.now() - start_time).total_seconds()
+                if elapsed < TIMEOUT_DOOR_OPEN_MESSAGE:
+                    wait_time = TIMEOUT_DOOR_OPEN_MESSAGE - elapsed
+                    _LOGGER.debug("Holding anti-spam lock for additional %.3fs", wait_time)
+                    await asyncio.sleep(wait_time)
 
-            _LOGGER.debug(f"async_open: Exiting. Success: {success}. Total time: {(datetime.now() - start_time).total_seconds():.3f}s")
+            _LOGGER.debug("async_open: Exiting. Success: %s. Total time: %.3fs", success, (datetime.now() - start_time).total_seconds())
