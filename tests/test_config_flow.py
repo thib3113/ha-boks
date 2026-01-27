@@ -107,14 +107,18 @@ async def test_bluetooth_discovery(hass: HomeAssistant, mock_bluetooth) -> None:
 
 async def test_options_flow_anonymize_logs(hass: HomeAssistant, mock_config_entry) -> None:
     """Test options flow with anonymize_logs."""
-    # Ensure options are valid ints for the schema
-    mock_config_entry.options = {
-        "scan_interval": 10,
-        "full_refresh_interval": 12,
-        CONF_ANONYMIZE_LOGS: False
-    }
     mock_config_entry.add_to_hass(hass)
     
+    # Ensure options are valid ints for the schema
+    hass.config_entries.async_update_entry(
+        mock_config_entry,
+        options={
+            "scan_interval": 10,
+            "full_refresh_interval": 12,
+            CONF_ANONYMIZE_LOGS: False
+        }
+    )
+
     result = await hass.config_entries.options.async_init(mock_config_entry.entry_id)
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "init"

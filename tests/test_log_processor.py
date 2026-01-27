@@ -2,6 +2,7 @@
 import asyncio
 from unittest.mock import MagicMock, AsyncMock, patch
 from datetime import datetime
+from types import SimpleNamespace
 import pytest
 
 from homeassistant.core import HomeAssistant
@@ -9,7 +10,6 @@ from homeassistant.util import dt as dt_util
 
 from custom_components.boks.const import DOMAIN
 from custom_components.boks.logic.log_processor import BoksLogProcessor
-from custom_components.boks.ble.log_entry import BoksLogEntry
 from custom_components.boks.ble.const import BoksHistoryEvent
 
 @pytest.fixture
@@ -42,7 +42,7 @@ async def test_async_enrich_log_entry_full_flow(hass, log_processor, mock_transl
     mock_tags_helper.async_update_item = AsyncMock()
     hass.data["tag"] = {"tags": mock_tags_helper}
 
-    log = BoksLogEntry(
+    log = SimpleNamespace(
         opcode=BoksHistoryEvent.NFC_OPENING,
         payload=bytearray.fromhex("03045a3edae0"),
         timestamp=1700000000,
