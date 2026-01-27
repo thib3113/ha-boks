@@ -212,7 +212,13 @@ class BoksBluetoothDevice:
         try:
             # Add a small delay before connecting to allow ESP proxies to release resources if we just disconnected
             await asyncio.sleep(1.0)
-            self._client = await establish_connection(BleakClient, device, self.address)
+            
+            # If device is a BluetoothScannerDevice wrapper, we need the underlying ble_device
+            # because bleak_retry_connector might try to access .details which is only on the BLEDevice
+            # but missing on the habluetooth wrapper.
+            ble_device_to_connect = getattr(device, "ble_device", device)
+            
+            self._client = await establish_connection(BleakClient, ble_device_to_connect, self.address)
             _LOGGER.debug("Physical BLE Connection Established to %s", 
                           BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs))
             if not self._notifications_subscribed:
