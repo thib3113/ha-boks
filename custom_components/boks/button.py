@@ -1,6 +1,6 @@
 """Button platform for Boks."""
 import logging
-from homeassistant.components import bluetooth
+
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
@@ -57,9 +57,9 @@ class BoksSyncLogsButton(CoordinatorEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         _LOGGER.info("Syncing Boks logs...")
-        
+
         try:
             # Use the coordinator's sync method which properly fires events
             await self.coordinator.async_sync_logs(update_state=True)
         except Exception as e:
-            _LOGGER.error(f"Failed to sync logs: {e}")
+            _LOGGER.error("Failed to sync logs: %s", e)

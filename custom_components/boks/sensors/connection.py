@@ -1,14 +1,16 @@
 """Last connection sensor for Boks."""
+from datetime import datetime
+
 from homeassistant.components.sensor import (
     SensorEntity,
     SensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
-from datetime import datetime
+from homeassistant.helpers.entity import EntityCategory
 
-from ..entity import BoksEntity
 from ..coordinator import BoksDataUpdateCoordinator
+from ..entity import BoksEntity
 
 
 class BoksLastConnectionSensor(BoksEntity, SensorEntity):
@@ -16,6 +18,8 @@ class BoksLastConnectionSensor(BoksEntity, SensorEntity):
 
     _attr_translation_key = "last_connection"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(self, coordinator: BoksDataUpdateCoordinator, entry: ConfigEntry) -> None:
         """Initialize the sensor."""

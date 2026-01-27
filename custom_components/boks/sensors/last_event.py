@@ -5,11 +5,10 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers.restore_state import RestoreEntity
-
 from homeassistant.util import dt as dt_util
 
-from ..entity import BoksEntity
 from ..coordinator import BoksDataUpdateCoordinator
+from ..entity import BoksEntity
 
 
 class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
@@ -62,7 +61,7 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
         # Format the state to be readable
         # We use event_type (e.g. 'code_ble_valid') which maps to translation keys
         event_type = latest_log.get("event_type", "unknown")
-        
+
         # Update restored state with new value
         self._restored_state = event_type
         return event_type
@@ -103,8 +102,13 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
         }
 
         # Add all other keys from the log as extras (e.g., 'code', 'error_code', etc.)
-        extras = {k: v for k, v in latest_log.items() if k not in standard_keys}
-        attributes.update(extras)
+        for k, v in latest_log.items():
+            if k == "extra_data" and isinstance(v, dict):
+                for extra_k, extra_v in v.items():
+                    if extra_v is not None:
+                        attributes[extra_k] = extra_v
+            elif k not in standard_keys and v is not None:
+                attributes[k] = v
 
         # Add last 10 events to attributes (Newest First)
         if isinstance(logs, list):
@@ -112,7 +116,7 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
             last_events_chunk = logs[-10:] if len(logs) >= 10 else logs
             # Reverse them to have Newest -> Oldest
             last_events_reversed = reversed(last_events_chunk)
-            
+
             # Format events for display
             formatted_events = []
             for log in last_events_reversed:
@@ -125,17 +129,22 @@ class BoksLastEventSensor(BoksEntity, SensorEntity, RestoreEntity):
                         ts_str = dt_util.as_local(dt_obj).strftime("%Y-%m-%d %H:%M:%S")
                     except Exception:
                         pass
-                
+
                 formatted_event = {
                     "timestamp": ts_str,
                     "description": log.get("description"),
                     "event_type": log.get("event_type"),
                 }
-                
+
                 # Add extras for this history item
-                log_extras = {k: v for k, v in log.items() if k not in standard_keys}
-                formatted_event.update(log_extras)
-                
+                for k, v in log.items():
+                    if k == "extra_data" and isinstance(v, dict):
+                        for extra_k, extra_v in v.items():
+                            if extra_v is not None:
+                                formatted_event[extra_k] = extra_v
+                    elif k not in standard_keys and v is not None:
+                        formatted_event[k] = v
+
                 formatted_events.append(formatted_event)
             attributes["last_10_events"] = formatted_events
 

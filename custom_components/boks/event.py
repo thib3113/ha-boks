@@ -4,14 +4,14 @@ from homeassistant.components.event import (
     EventEntity,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.const import CONF_ADDRESS
-from homeassistant.helpers import device_registry as dr
 
-from .const import DOMAIN, EVENT_LOG
 from .ble.const import LOG_EVENT_TYPES
+from .const import DOMAIN, EVENT_LOG
 from .coordinator import BoksDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,94 +61,29 @@ class BoksLogEvent(CoordinatorEntity, EventEntity):
         if latest_logs and last_fetch != self._last_log_timestamp:
             self._last_log_timestamp = last_fetch
 
-            # Process new logs
-            for i, log in enumerate(latest_logs):
-                # Skip None log entries
-                if log is None:
-                    _LOGGER.warning("Skipping None log entry at index %d", i)
+            # Get device_id for logbook integration
+            device_registry = dr.async_get(self.hass)
+            device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])})
+            device_id = device_entry.id if device_entry else None
+
+            # Process new logs (already enriched by coordinator)
+            for log_entry in latest_logs:
+                if not log_entry:
                     continue
 
-                # Debug logging to verify data flow
-                _LOGGER.debug("Processing log entry at index %d: %s (type: %s)", i, log, type(log))
+                event_type = log_entry.get("event_type", "unknown")
 
-                # Create a clean dictionary for the event data
-                event_type = log.get("event_type", "unknown") if isinstance(log, dict) else getattr(log, "event_type", "unknown")
+                # Prepare final data for bus event
+                data = log_entry.copy()
+                data["type"] = event_type  # Ensure 'type' field is present for consistency
+                data["device_id"] = device_id
 
-                # Get device_id for logbook integration
-                device_registry = dr.async_get(self.hass)
-                device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])})
-                device_id = device_entry.id if device_entry else None
-
-                # Safely access log attributes with fallbacks
-                opcode = log.get("opcode", "unknown") if isinstance(log, dict) else getattr(log, "opcode", "unknown")
-                payload = log.get("payload", "") if isinstance(log, dict) else getattr(log, "payload", "")
-                timestamp = log.get("timestamp", None) if isinstance(log, dict) else getattr(log, "timestamp", None)
-                description = log.get("description", "Unknown Event") if isinstance(log, dict) else getattr(log, "description", "Unknown Event")
-
-                # Additional safety check for None values
-                if opcode is None:
-                    opcode = "unknown"
-                if payload is None:
-                    payload = ""
-                if event_type is None:
-                    event_type = "unknown"
-
-                # Translate description server-side using our manual cache
-                # We use event_type (e.g. 'door_closed') as the key
-                translations = self.hass.data.get(DOMAIN, {}).get("translations", {})
-                
-                # The keys in our manual cache are like 'door_closed', 'code_ble_valid', etc.
-                # event_type holds exactly these keys.
-                # Fallback to the original English description if translation is missing
-                description = translations.get(event_type, description)
-                
-                if description is None:
-                    description = "Unknown Event"
-                
-                data = {
-                    "opcode": opcode,
-                    "payload": payload,
-                    "timestamp": timestamp,
-                    "description": description,
-                    "type": event_type,
-                    "device_id": device_id,
-                }
-                # Add extra_data if present
-                if isinstance(log, dict):
-                    known_fields = {"opcode", "payload", "timestamp", "event_type", "description", "type"}
-                    extra_data = {k: v for k, v in log.items() if k not in known_fields}
-                else:
-                    # For object-based logs, we can't easily extract extra data
-                    # Let's try to access a 'details' attribute if it exists
-                    extra_data = {}
-                    # Safety check for None log object
-                    if log is not None and hasattr(log, 'details') and log.details is not None:
-                        # If details is a dict, merge it into extra_data
-                        if isinstance(log.details, dict):
-                            extra_data.update(log.details)
-                        else:
-                            # Otherwise, add it as a 'details' field
-                            extra_data['details'] = log.details
-
-                # Additional safety check for extra_data
-                if extra_data is None:
-                    extra_data = {}
-
-                if extra_data:
-                    # Ensure all values in extra_data are serializable
-                    safe_extra_data = {}
-                    for k, v in extra_data.items():
-                        if v is not None:
-                            safe_extra_data[k] = v
-                        else:
-                            safe_extra_data[k] = "None"
-                    data["extra_data"] = safe_extra_data
-
-                # Convert bytes to hex if needed
-                if isinstance(data["payload"], bytes):
-                    data["payload"] = data["payload"].hex()
-                elif data["payload"] is None:
-                    data["payload"] = ""
+                # Flatten extra_data into top level and remove the key
+                if "extra_data" in data and isinstance(data["extra_data"], dict):
+                    extra = data.pop("extra_data")
+                    for key, value in extra.items():
+                        if value is not None:
+                            data[key] = value
 
                 # Trigger the event with the specific event type as the state
                 _LOGGER.debug("Triggering event: %s with data: %s", event_type, data)

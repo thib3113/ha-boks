@@ -43,6 +43,16 @@ C'est la véritable puissance de l'intégration.
 
 *   **Génération Automatique** : Ajoutez une tâche "Colis Amazon" dans la Todo List, et l'intégration va **créer automatiquement** un code PIN unique sur la Boks et l'ajouter à la description de la tâche.
 
+### 💳 Gestion du NFC
+*Nécessite une Boks Modèle 4.0 ou supérieur et un firmware 4.3.3+.*
+
+Si votre Boks est équipée d'un lecteur NFC, vous pouvez gérer vos badges directement.
+
+*   **Scan et Découverte** : Lancez le service `boks.nfc_scan_start`. Le boîtier passe en mode écoute pendant **20 secondes**. Présentez un badge inconnu pour recevoir une notification Home Assistant contenant son UID.
+*   **Enregistrement de Badges** : Ajoutez des badges à la whitelist de la Boks via le service `boks.nfc_register_tag`.
+*   **Intégration Registre HA** : L'intégration est couplée au registre de tags natif de Home Assistant. Si vous nommez un badge dans HA, son nom apparaîtra automatiquement dans les journaux d'ouverture à la place de l'UID technique.
+*   **Support Vigik** : L'intégration reconnaît et distingue nativement les ouvertures par badges **La Poste** ou autres accès Vigik tertiaires.
+
 ### 🧩 Extension Navigateur
 L'utilisation de l'[Extension Web Boks](https://github.com/thib3113/ha-boks-webextension) facilite la vie lors de vos commandes :
 1.  Vous êtes sur un site marchand (ex: Amazon), dans le champ "Digicode" ou "Instructions de livraison".

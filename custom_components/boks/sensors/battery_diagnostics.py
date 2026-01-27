@@ -1,17 +1,16 @@
 """Battery diagnostic sensors for Boks."""
 import logging
 from typing import Any
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
-    SensorStateClass,
 )
-from homeassistant.const import UnitOfElectricPotential, CONF_ADDRESS, EntityCategory, STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from ..entity import BoksEntity
 from ..coordinator import BoksDataUpdateCoordinator
+from ..entity import BoksEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,34 +26,29 @@ class BoksRetainingSensor(BoksEntity, SensorEntity, RestoreEntity):
         """Handle entity which will be added."""
         await super().async_added_to_hass()
         last_state = await self.async_get_last_state()
-        
-        if last_state:
-            _LOGGER.debug(f"Restoring state for {self.entity_id}: {last_state.state}")
-            if last_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-                try:
-                    if self.device_class == SensorDeviceClass.VOLTAGE:
-                        self._last_valid_value = float(last_state.state)
-                    else:
-                        self._last_valid_value = last_state.state
-                    _LOGGER.debug(f"Restored value for {self.entity_id}: {self._last_valid_value}")
-                except ValueError:
-                    _LOGGER.warning(f"Could not convert restored state '{last_state.state}' for {self.entity_id}")
-                    self._last_valid_value = last_state.state
+        if last_state and last_state.state not in ("unknown", "unavailable"):
+            _LOGGER.debug("Restoring state for %s: %s", self.entity_id, last_state.state)
+            try:
+                if self._attr_device_class == SensorDeviceClass.VOLTAGE:
+                    self._last_valid_value = float(last_state.state)
+                else:
+                    self._last_valid_value = int(last_state.state)
+                _LOGGER.debug("Restored value for %s: %s", self.entity_id, self._last_valid_value)
+            except ValueError:
+                _LOGGER.warning("Could not convert restored state '%s' for %s", last_state.state, self.entity_id)
         else:
-            _LOGGER.debug(f"No state to restore for {self.entity_id}")
+            _LOGGER.debug("No state to restore for %s", self.entity_id)
 
     @property
-    def native_value(self) -> Any | None:
-        """Return the state of the sensor, retaining last valid value if current is None."""
-        current_val = self._get_current_value()
-        
+    def native_value(self) -> StateType:
+        """Return the state of the sensor."""
+        current_val = self.coordinator.data.get(self._data_key)
+
+        # If we have a new live value, update last_valid and return it
         if current_val is not None:
-            if current_val != self._last_valid_value:
-                 _LOGGER.debug(f"Updating {self.entity_id} with new live value: {current_val}")
+            _LOGGER.debug("Updating %s with new live value: %s", self.entity_id, current_val)
             self._last_valid_value = current_val
             return current_val
-            
-        return self._last_valid_value
 
     def _get_current_value(self) -> Any | None:
         """Get the current value from coordinator data. To be implemented by subclasses."""

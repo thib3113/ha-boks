@@ -60,6 +60,12 @@ class BoksNotificationOpcode(IntEnum):
     NOTIFY_CODE_GENERATION_ERROR = 0xC1
     NOTIFY_CODES_COUNT = 0xC3
     NOTIFY_SET_CONFIGURATION_SUCCESS = 0xC4
+    NOTIFY_NFC_TAG_FOUND = 0xC5
+    ERROR_NFC_TAG_ALREADY_EXISTS_SCAN = 0xC6
+    ERROR_NFC_SCAN_TIMEOUT = 0xC7
+    NOTIFY_NFC_TAG_REGISTERED = 0xC8
+    ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER = 0xC9
+    NOTIFY_NFC_TAG_UNREGISTERED = 0xCA
     ERROR_CRC = 0xE0
     ERROR_UNAUTHORIZED = 0xE1
     ERROR_BAD_REQUEST = 0xE2
@@ -104,12 +110,12 @@ class BoksDiagnosticErrorCode(IntEnum):
     MFRC630_ERROR_BUFFER = 0x03
 
 ERROR_DESCRIPTIONS = {
-    BoksDiagnosticErrorCode.MFRC630_ERROR_BC: "Erreur interne MFRC630 (0xBC)",
-    BoksDiagnosticErrorCode.MFRC630_ERROR_INTEGRITY: "Erreur d'intégrité (CRC/Parité)",
-    BoksDiagnosticErrorCode.MFRC630_ERROR_NO_TAG: "Aucun tag détecté / Timeout",
-    BoksDiagnosticErrorCode.MFRC630_ERROR_COLLISION: "Collision de tags détectée",
-    BoksDiagnosticErrorCode.MFRC630_ERROR_BUFFER: "Dépassement de mémoire tampon (Buffer Overflow)",
-    "UNKNOWN_ERROR": "Erreur technique inconnue",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_BC: "diagnostic_error_bc",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_INTEGRITY: "diagnostic_error_integrity",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_NO_TAG: "diagnostic_error_no_tag",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_COLLISION: "diagnostic_error_collision",
+    BoksDiagnosticErrorCode.MFRC630_ERROR_BUFFER: "diagnostic_error_buffer",
+    "UNKNOWN_ERROR": "diagnostic_error_unknown",
 }
 
 LOG_EVENT_DESCRIPTIONS = {
@@ -159,3 +165,9 @@ class BoksCodeType(StrEnum):
 class BoksConfigType(IntEnum):
     """Configuration types for Boks (SET_CONFIGURATION)."""
     SCAN_LAPOSTE_NFC_TAGS = 0x01
+
+class BoksNfcTagType(IntEnum):
+    """NFC Tag types for Boks."""
+    LA_POSTE = 0x01
+    VIGIK_TERTIARY = 0x02
+    USER_BADGE = 0x03

@@ -5,23 +5,26 @@ import logging
 from datetime import timedelta, datetime
 from typing import Callable, List
 
+from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import translation  # Import translation helper
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
-from homeassistant.exceptions import HomeAssistantError
-from homeassistant.components import bluetooth
-from homeassistant.const import CONF_ADDRESS
-from homeassistant.helpers import translation # Import translation helper
 from homeassistant.util import dt as dt_util
+from packaging import version
 
 from .ble import BoksBluetoothDevice
+from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, \
+    TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS  # Import DOMAIN and defaults
 from .errors import BoksError
-from .ble.log_entry import BoksLogEntry # Import BoksLogEntry
-from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS # Import DOMAIN and defaults
+from .logic.log_processor import BoksLogProcessor
+from .packets.base import BoksRXPacket
 from .util import process_device_info, is_firmware_version_greater_than
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,6 +40,9 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             config_key=entry.data.get(CONF_CONFIG_KEY),
             anonymize_logs=entry.options.get(CONF_ANONYMIZE_LOGS, False)
         )
+        # Initialize log processor
+        self.log_processor = BoksLogProcessor(hass, entry.data[CONF_ADDRESS])
+
         # Register callback for push updates (door status, battery info)
         self.ble_device.register_status_callback(self._handle_status_update)
 
@@ -64,10 +70,35 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         self.data = {} # Initialize data to an empty dictionary after super init
         self._maintenance_status = {"running": False}
         self._device_info = None
+        self._translations: dict[str, str] = {}
 
     @property
     def maintenance_status(self):
         return self._maintenance_status
+
+    def set_translations(self, translations: dict[str, str]):
+        """Set pre-loaded translations."""
+        self._translations = translations
+
+    def get_text(self, category: str, key: str, **kwargs) -> str:
+        """Get a translated text from the pre-loaded cache. Defaults to key name."""
+        # HA translation keys follow the pattern: component.<domain>.<category>.<key>
+        # For 'exceptions', it's component.<domain>.exceptions.<key>.message
+        full_key = f"component.{DOMAIN}.{category}.{key}"
+        if category == "exceptions":
+            full_key += ".message"
+
+        text = self._translations.get(full_key, key)
+        try:
+            return text.format(**kwargs)
+        except Exception as e:
+            _LOGGER.warning("Failed to format translation %s: %s", full_key, e)
+            return text
+
+    async def async_enrich_log_entry(self, log: BoksRXPacket | dict, translations: dict[str, str] = None) -> dict:
+        """Enrich a log entry using the dedicated processor."""
+        return await self.log_processor.async_enrich_log_entry(log, translations or self._translations)
+
 
     @property
     def device_info(self):
@@ -95,9 +126,14 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         if self.data is None:
             self.data = {}
 
+        # If there are raw logs, process them
+        if "latest_logs_raw" in status_data:
+            logs_raw = status_data.pop("latest_logs_raw")
+            self.hass.async_create_task(self._process_pushed_logs(logs_raw))
+
         self.data.update(status_data)
         self.data["last_connection"] = dt_util.now().isoformat()
-        
+
         # Persist battery format if detected
         if "battery_stats" in status_data:
             stats = status_data["battery_stats"]
@@ -105,12 +141,42 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             if new_format and new_format != "unknown":
                 current_stored_format = self.entry.data.get("battery_format")
                 if new_format != current_stored_format:
-                    _LOGGER.info(f"Detected new battery format: {new_format}. Persisting to config.")
+                    _LOGGER.info("Detected new battery format: %s. Persisting to config.", new_format)
                     new_data = dict(self.entry.data)
                     new_data["battery_format"] = new_format
                     self.hass.config_entries.async_update_entry(self.entry, data=new_data)
 
         self.async_set_updated_data(self.data)
+
+    async def _process_pushed_logs(self, logs_raw: List[dict]):
+        """Process logs that were pushed via status update."""
+        if not logs_raw:
+            return
+
+        _LOGGER.debug("Processing %d pushed logs", len(logs_raw))
+        try:
+            translations = await translation.async_get_translations(self.hass, self.hass.config.language, "entity", {DOMAIN})
+        except Exception:
+            translations = {}
+
+        event_data = {
+            "device_id": self.entry.entry_id,
+            "address": self.entry.data[CONF_ADDRESS],
+            "logs": []
+        }
+
+        for log in logs_raw:
+            try:
+                log_entry = await self.async_enrich_log_entry(log, translations)
+                event_data["logs"].append(log_entry)
+            except Exception as e:
+                _LOGGER.warning("Error processing pushed log: %s", e)
+
+        if event_data["logs"]:
+            self.hass.bus.async_fire(f"{DOMAIN}_logs_retrieved", event_data)
+            self.data["latest_logs"] = event_data["logs"]
+            self.data["last_log_fetch_ts"] = datetime.now().isoformat()
+            self.async_set_updated_data(self.data)
 
 
     async def async_sync_logs(self, update_state: bool = True) -> dict:
@@ -139,16 +205,16 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
             log_count = await self.ble_device.get_logs_count()
             if log_count > 0:
-                _LOGGER.info(f"Found {log_count} logs. Downloading...")
-                logs_from_device: List[BoksLogEntry] = await self.ble_device.get_logs(log_count)
-                _LOGGER.debug(f"Raw logs response from device: {logs_from_device}")
+                _LOGGER.info("Found %d logs. Downloading...", log_count)
+                logs_from_device: List[dict] = await self.ble_device.get_logs(log_count)
+                _LOGGER.debug("Raw logs response from device: %s", logs_from_device)
 
                 if logs_from_device:
-                    _LOGGER.info(f"Retrieved {len(logs_from_device)} logs.")
+                    _LOGGER.info("Retrieved %d logs.", len(logs_from_device))
                     # Filter out None log entries
                     valid_logs = [log for log in logs_from_device if log is not None]
                     if len(valid_logs) != len(logs_from_device):
-                        _LOGGER.warning(f"Filtered out {len(logs_from_device) - len(valid_logs)} None log entries")
+                        _LOGGER.warning("Filtered out %d None log entries", len(logs_from_device) - len(valid_logs))
 
                     # Load translations once
                     # Use the helper function, not a method on hass
@@ -156,7 +222,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         # Fetch translations for the 'entity' category to get sensor state translations
                         translations = await translation.async_get_translations(self.hass, self.hass.config.language, "entity", {DOMAIN})
                     except Exception as e:
-                        _LOGGER.warning(f"Failed to load translations: {e}")
+                        _LOGGER.warning("Failed to load translations: %s", e)
                         translations = {}
 
                     event_data = {
@@ -166,35 +232,30 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     }
 
                     # Process logs with debug logging
+                    has_power_on = False
                     for i, log in enumerate(valid_logs):
-                        _LOGGER.debug(f"Processing log {i}: {log} (type: {type(log)})")
-                        # Additional safety check for None log objects
+                        _LOGGER.debug("Processing log %d: %s (type: %s)", i, log, type(log))
                         if log is not None:
                             try:
-                                # Construct the translation key.
-                                # The keys in translations/fr.json under "entity" -> "sensor" -> "last_event" -> "state"
-                                # map to: component.boks.entity.sensor.last_event.state.{event_type}
-                                event_type = getattr(log, "event_type", "unknown")
-                                key = f"component.{DOMAIN}.entity.sensor.last_event.state.{event_type}"
-
-                                # Use translated description if available, otherwise fallback to existing description
-                                translated_description = translations.get(key, log.description)
-
-                                log_entry = {
-                                    "opcode": getattr(log, "opcode", "unknown"),
-                                    "payload": getattr(log, "payload", b"").hex() if getattr(log, "payload", None) is not None else "",
-                                    "timestamp": getattr(log, "timestamp", 0),
-                                    "event_type": event_type,
-                                    "description": translated_description, # Use translated description
-                                    **(getattr(log, "extra_data", {}) or {}),
-                                }
+                                log_entry = await self.async_enrich_log_entry(log, translations)
                                 event_data["logs"].append(log_entry)
-                                _LOGGER.debug(f"Added log entry: {log_entry}")
+
+                                if log_entry.get("event_type") == "power_on":
+                                    has_power_on = True
+
+                                _LOGGER.debug("Added enriched log entry: %s", log_entry)
                             except Exception as e:
-                                _LOGGER.warning(f"Error processing log at index {i}: {e}")
-                                _LOGGER.warning(f"Log object: {log}")
+                                _LOGGER.warning("Error processing log at index %d: %s", i, e)
                         else:
-                            _LOGGER.warning(f"Skipping None log at index {i}")
+                            _LOGGER.warning("Skipping None log at index %d", i)
+
+                    # If power_on was detected, or just as a final check if logs were received,
+                    # we can poll the door status to be 100% sure of the live state.
+                    if has_power_on:
+                        _LOGGER.info("Power ON detected in logs, polling live door status...")
+                        door_open = await self.ble_device.get_door_status()
+                        self.data["door_open"] = door_open
+
                     self.hass.bus.async_fire(f"{DOMAIN}_logs_retrieved", event_data)
 
                     result["latest_logs"] = event_data["logs"]
@@ -209,7 +270,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.debug("No logs to retrieve.")
 
         except Exception as e:
-            _LOGGER.warning(f"Failed to sync logs: {e}")
+            _LOGGER.warning("Failed to sync logs: %s", e)
         finally:
             # Always disconnect to decrement reference counter
             await asyncio.shield(self.ble_device.disconnect())
@@ -253,7 +314,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             battery_level = await self.ble_device.get_battery_level()
                             data["battery_level"] = battery_level
                             self._last_battery_update = now
-                            _LOGGER.debug(f"Battery level fetched: {battery_level}")
+                            _LOGGER.debug("Battery level fetched: %s", battery_level)
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery level: %s", e)
 
@@ -263,7 +324,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                                 data["battery_stats"] = battery_stats
                                 if "temperature" in battery_stats and battery_stats["temperature"] is not None:
                                     data["battery_temperature"] = battery_stats["temperature"]
-                                _LOGGER.debug(f"Battery stats fetched: {battery_stats}")
+                                _LOGGER.debug("Battery stats fetched: %s", battery_stats)
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery stats: %s", e)
                     else:
@@ -274,7 +335,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     try:
                         counts = await self.ble_device.get_code_counts()
                         data.update(counts)
-                        _LOGGER.debug(f"Code counts fetched: {counts}")
+                        _LOGGER.debug("Code counts fetched: %s", counts)
                     except BoksError as e:
                         _LOGGER.warning("Could not fetch code counts: %s", e)
                     except asyncio.TimeoutError:
@@ -289,7 +350,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                              device_info_interval_hours = self.full_refresh_interval_hours * 2
                              if (now - last_fetch_dt) < timedelta(hours=device_info_interval_hours):
                                  should_fetch_device_info = False
-                                 _LOGGER.debug(f"Skipping device info update (last update < {device_info_interval_hours}h ago)")
+                                 _LOGGER.debug("Skipping device info update (last update < %dh ago)", device_info_interval_hours)
 
                     if should_fetch_device_info:
                         _LOGGER.debug("Fetching device information...")
@@ -303,7 +364,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             device_entry = device_registry.async_get_device(
                                 identifiers={(DOMAIN, self.entry.data[CONF_ADDRESS])},
                             )
-       
+
                             if device_entry:
                                 processed_info = process_device_info(self.entry.data, device_info)
                                 update_kwargs = {}
@@ -315,13 +376,13 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                                     update_kwargs["manufacturer"] = processed_info["manufacturer"]
                                 if "model" in processed_info:
                                     update_kwargs["model"] = processed_info["model"]
-       
+
                                 if update_kwargs:
                                     device_registry.async_update_device(
                                         device_entry.id, **update_kwargs
                                     )
                                     _LOGGER.info("Device registry updated with new info: %s", update_kwargs)
-       
+
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch device information: %s", e)
 
@@ -348,7 +409,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         except Exception as err:
             # If we fail completely (cannot connect), we keep old data if available
             if self.data:
-                _LOGGER.warning(f"Update failed, keeping old data: {err}")
+                _LOGGER.warning("Update failed, keeping old data: %s", err)
                 return self.data
             raise UpdateFailed(f"Error communicating with Boks: {err}") from err
 
@@ -365,24 +426,27 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
     async def trigger_firmware_update_check(self, required_version: str) -> bool:
         """
         Trigger a firmware update check and download.
-        
+
         Args:
             required_version: The minimum firmware version required (e.g., "4.3.3")
-            
+
         Returns:
             bool: True if firmware was successfully downloaded, False otherwise
         """
         # Get the update entity for this coordinator
         update_entity = None
-        for entity in self.hass.data.get("entity_components", {}).get("update", {}).entities:
-            if entity.unique_id == f"{self.entry.entry_id}_firmware_update":
-                update_entity = entity
-                break
-                
+        update_component = self.hass.data.get("entity_components", {}).get("update")
+
+        if update_component:
+            for entity in update_component.entities:
+                if entity.unique_id == f"{self.entry.entry_id}_firmware_update":
+                    update_entity = entity
+                    break
+
         if not update_entity:
             _LOGGER.error("Could not find firmware update entity")
             return False
-            
+
         # Trigger the update check on the update entity
         return await update_entity.trigger_update_check(required_version)
 
@@ -406,7 +470,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
         if software_revision:
             if not is_firmware_version_greater_than(software_revision, required_version):
-                _LOGGER.warning(f"Firmware version {software_revision} is not greater than {required_version}. Triggering update check for {update_target_version}.")
+                _LOGGER.warning("Firmware version %s is not greater than %s. Triggering update check for %s.", software_revision, required_version, update_target_version)
 
                 update_triggered = await self.trigger_firmware_update_check(update_target_version)
 
@@ -426,4 +490,48 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     }
                 )
         else:
-            _LOGGER.warning(f"Could not determine software revision to check against {required_version}")
+            _LOGGER.warning("Could not determine software revision to check against %s", required_version)
+
+    async def async_ensure_prerequisites(self, feature_name: str, min_hw: str, min_sw: str) -> None:
+        """
+        Ensure hardware and software prerequisites are met.
+        Raises HomeAssistantError if not.
+        """
+        hw_version = self.device_info.get("hw_version")
+        sw_version = self.device_info.get("sw_version")
+
+        # 1. Hardware Check
+        if hw_version:
+            try:
+                if version.parse(hw_version) < version.parse(min_hw):
+                    _LOGGER.error("Hardware version %s is insufficient for %s. Required: %s", hw_version, feature_name, min_hw)
+                    raise BoksError(
+                        "hardware_unsupported",
+                        {
+                            "feature": feature_name,
+                            "required_hw": min_hw,
+                            "current_hw": hw_version
+                        }
+                    )
+            except (version.InvalidVersion, ValueError) as e:
+                _LOGGER.warning("Error parsing HW version '%s': %s", hw_version, e)
+        else:
+             _LOGGER.warning("Could not determine HW version for %s prerequisites", feature_name)
+
+        # 2. Software Check
+        if sw_version:
+            if not is_firmware_version_greater_than(sw_version, min_sw) and sw_version != min_sw:
+                _LOGGER.error("Software version %s is insufficient for %s. Required: %s", sw_version, feature_name, min_sw)
+                # Trigger update check
+                await self.trigger_firmware_update_check(min_sw)
+
+                raise BoksError(
+                    "firmware_update_required",
+                    {
+                        "feature": feature_name,
+                        "required_sw": min_sw,
+                        "current_sw": sw_version
+                    }
+                )
+        else:
+             _LOGGER.warning("Could not determine SW version for %s prerequisites", feature_name)

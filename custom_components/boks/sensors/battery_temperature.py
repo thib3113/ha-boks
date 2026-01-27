@@ -41,8 +41,9 @@ class BoksBatteryTemperatureSensor(BoksEntity, SensorEntity):
         
         # Check for invalid temperature (255 or None)
         if current_temp is None or current_temp == 255:
-            _LOGGER.debug(f"Invalid temperature reading (255 or None) for {self.entity_id}. Returning last valid: {self._last_valid_temperature}")
-            return self._last_valid_temperature # Return last valid or None if never set
+            _LOGGER.debug("Invalid temperature reading (255 or None) for %s. Returning last valid: %s", self.entity_id, self._last_valid_temperature)
+            return self._last_valid_temperature
+
         
         # Update and return valid temperature
         self._last_valid_temperature = current_temp

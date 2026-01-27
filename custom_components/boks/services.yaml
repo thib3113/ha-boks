@@ -185,3 +185,47 @@ set_configuration:
       required: false
       selector:
         boolean: {}
+
+nfc_scan_start:
+  name: translation::services.nfc_scan_start.name
+  description: translation::services.nfc_scan_start.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+
+nfc_register_tag:
+  name: translation::services.nfc_register_tag.name
+  description: translation::services.nfc_register_tag.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    uid:
+      name: translation::services.nfc_register_tag.fields.uid.name
+      description: translation::services.nfc_register_tag.fields.uid.description
+      required: true
+      selector:
+        text:
+    name:
+      name: translation::services.nfc_register_tag.fields.name.name
+      description: translation::services.nfc_register_tag.fields.name.description
+      required: false
+      selector:
+        text:
+
+nfc_unregister_tag:
+  name: translation::services.nfc_unregister_tag.name
+  description: translation::services.nfc_unregister_tag.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    uid:
+      name: translation::services.nfc_unregister_tag.fields.uid.name
+      description: translation::services.nfc_unregister_tag.fields.uid.description
+      required: true
+      selector:
+        text:

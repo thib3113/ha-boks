@@ -20,60 +20,7 @@ Voici les valeurs `event_type` courantes que vous pourriez recevoir :
 *   `code_key_valid` : Un code valide a été entré via le clavier physique.
 *   `code_ble_invalid` : Une tentative de code invalide a été effectuée via BLE.
 *   `code_key_invalid` : Une tentative de code invalide a été effectuée via le clavier physique.
+*   `nfc_opening` : Ouverture de la Boks via un badge NFC.
+*   `nfc_tag_registering` : Un badge a été scanné pendant une procédure d'enregistrement.
 *   `error` : Une erreur s'est produite sur l'appareil Boks.
 *   ... et potentiellement d'autres types d'événements indiquant divers états ou actions.
-
-## Exemples de Déclencheurs d'Automatisation
-
-Vous pouvez utiliser le déclencheur "Événement" dans les automatisations Home Assistant pour réagir à des valeurs `event_type` spécifiques de votre Boks.
-
-### Exemple 1 : Notification lors de l'ouverture de la porte du Boks
-
-Cette automatisation envoie une notification à votre application mobile chaque fois que la porte du Boks est ouverte.
-
-```yaml
-alias: Notifier quand la porte du Boks est ouverte
-description: "Envoie une notification à votre téléphone lorsque la porte du Boks est ouverte."
-trigger:
-  - platform: state
-    entity_id: event.boks_logs # Surveiller l'entité événement Boks
-condition:
-  - condition: template # Utiliser une condition de template pour vérifier l'attribut event_type
-    value_template: "{{ state_attr('event.boks_logs', 'event_type') == 'door_opened' }}"
-action:
-  - service: notify.mobile_app_iphone # Remplacez par votre service de notification
-    data:
-      message: "Votre Boks a été ouverte !"
-mode: queued
-```
-
-> ⚠️ **Avertissement** : Lorsque vous utilisez l'entité `event.boks_logs` dans les automatisations, assurez-vous d'utiliser le nom d'entité correct car il peut varier en fonction du nom de votre appareil. Vérifiez le nom de l'entité dans votre instance Home Assistant pour garantir l'exactitude.
-
-*   **Explication** :
-    *   Le `trigger` écoute tout changement d'état sur `event.boks_logs`.
-    *   La `condition` vérifie ensuite si l'attribut `event_type` de `event.boks_logs` est `door_opened`.
-    *   Si la condition est remplie, l'`action` envoie une notification.
-
-### Exemple 2 : Enregistrer tous les événements Boks dans une notification persistante
-
-Cette automatisation crée une notification persistante dans Home Assistant pour chaque événement de votre Boks.
-
-```yaml
-alias: Enregistrer tous les événements Boks
-description: "Crée une notification persistante pour chaque événement signalé par le Boks."
-trigger:
-  - platform: state
-    entity_id: event.boks_logs
-action:
-  - service: persistent_notification.create
-    data_template:
-      title: "Événement Boks : {{ state_attr('event.boks_logs', 'event_type') }}"
-      message: "Nouvel événement reçu du Boks : {{ states('event.boks_logs') }} à {{ now().strftime('%H:%M:%S') }}. Détails : {{ state_attr('event.boks_logs', 'event_data') | tojson }}"
-mode: queued
-```
-
-*   **Explication** :
-    *   Cette automatisation se déclenche sur tout changement d'état de `event.boks_logs`.
-    *   Elle crée ensuite une notification persistante avec l'`event_type` dans le titre et un message plus détaillé incluant l'état brut et toute `event_data`.
-
-[Ajouter d'autres exemples ou des détails sur des cas d'utilisation spécifiques pour les automatisations.]

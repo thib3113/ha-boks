@@ -1,83 +1,191 @@
 {
+  "common": {
+    "maintenance_success_title": "Boks Huolto",
+    "maintenance_success_msg": "Pääkoodien puhdistus suoritettu.\n{range} indeksiä skannattu alkaen kohdasta {start_index}.",
+    "nfc_tag_found_title": "Boks NFC-tunniste havaittu",
+    "nfc_tag_found_msg": "Uusi NFC-tunniste, jonka UID on {uid}, havaittiin Boks-laitteessa.",
+    "nfc_tag_found_msg_named": "Tunniste {name} ({uid}) skannattiin Boks-laitteessa.",
+    "nfc_tag_found_register_help": "Käytä boks.nfc_register_tag-palvelua yhdistääksesi sen nimeen.",
+    "nfc_tag_exists_title": "Boks NFC-tunniste on jo rekisteröity",
+    "nfc_tag_exists_msg": "NFC-tunniste, jonka UID on {uid}, on jo rekisteröity tähän Boks-laitteeseen.",
+    "nfc_tag_exists_msg_named": "Tunniste {name} ({uid}) on jo rekisteröity tähän Boks-laitteeseen.",
+    "nfc_tag_exists_msg_unknown": "Esitetty NFC-tunniste on jo rekisteröity tähän Boks-laitteeseen.",
+    "nfc_scan_started_title": "NFC-skannaus aktivoitu",
+    "nfc_scan_started_msg": "Boks on kuuntelutilassa. Esitä NFC-tunnisteesi välittömästi (6 sekunnin aikakatkaisu).",
+    "nfc_scan_timeout_title": "NFC-skannaus päättynyt",
+    "nfc_scan_timeout_msg": "6 sekunnin viive on kulunut umpeen. Tunnistetta ei havaittu.",
+    "nfc_register_error_title": "Rekisteröintivirhe",
+    "nfc_register_error_msg": "Tunnisteen {uid} rekisteröinti epäonnistui. Laite ei vastannut."
+  },
   "config": {
     "step": {
       "cloud": {
-        "title": "Boks-kirjautuminen",
-        "description": "Syötä Boks-sovelluksesi tunnukset hakeaksesi laiteavaimet automaattisesti.",
+        "title": "Boks Kirjautuminen",
+        "description": "Anna Boks-sovelluksen tunnistetiedot hakeaksesi laiteavaimesi automaattisesti.",
         "data": {
           "username": "Sähköposti",
           "password": "Salasana"
         }
       },
       "device_selection": {
-        "title": "Valitse Boksisi",
-        "description": "Valitse, minkä Boksin haluat lisätä.",
+        "title": "Valitse Boks-laitteesi",
+        "description": "Valitse, minkä Boks-laitteen haluat lisätä.",
         "data": {
           "device": "Laite"
         }
       },
       "user": {
-        "title": "Manuaalinen määritys",
-        "description": "Syötä Boks-tunnuksesi.\n\n**Etusijajärjestys:**\n1. **Pääavain (64 merkkiä):** Täysi käyttöoikeus.\n2. **Määritysavaimella (8 merkkiä):** Vakiokäyttöoikeus.",
+        "title": "Manuaalinen konfigurointi",
+        "description": "Anna Boks-tunnistetietosi.\n\n**Ensisijaisuusjärjestys:**\n1. **Pääavain (64 merkkiä):** Täysi pääsy.\n2. **Konfigurointiavain (8 merkkiä):** Vakiopääsy.",
         "data": {
           "mac": "Bluetooth-osoite",
           "master_code": "Pääkoodi",
-          "credential": "Tunniste (ConfigKey tai MasterKey)"
+          "credential": "Tunnistetieto (konfigurointiavain tai pääavain)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Yhteyttä Boks-sovellusliittymään ei saatu.",
+      "cannot_connect": "Yhteyden muodostaminen Boks-sovellusliittymään epäonnistui.",
       "invalid_auth": "Virheellinen sähköpostiosoite tai salasana.",
-      "boks_not_found": "Tältä tililtä ei löytynyt MAC-osoitetta vastaavaa Boksia.",
-      "cannot_retrieve_key": "Määritysavaimen noutaminen pilvestä epäonnistui.",
-      "device_not_found": "Laitetta ei löytynyt luettelosta.",
+      "boks_not_found": "Tällä tilillä ei löytynyt MAC-osoitetta vastaavaa Boks-laitetta.",
+      "cannot_retrieve_key": "Konfigurointiavainta ei voitu hakea pilvestä.",
+      "device_not_found": "Laitetta ei löytynyt listalta.",
       "device_not_in_cache": "Laitetta ei löytynyt Bluetooth-välimuistista. Yhdistettävää polkua ei ole saatavilla.",
       "no_devices_found": "Tältä tililtä ei löytynyt Boks-laitteita.",
-      "connection_error": "Yhteysvirhe laitteita haettaessa.",
-      "invalid_credential_format": "Virheellinen tunnistemuoto. On oltava 8/64 heksamerkkiä",
-      "invalid_master_code_format": "Virheellinen pääkoodin muoto. On oltava 6-numeroinen koodi (0-9, A, B).",
+      "connection_error": "Yhteysvirhe laitteita noudettaessa.",
+      "invalid_credential_format": "Virheellinen tunnistetiedon muoto. Täytyy olla 8/64 heksamerkkiä.",
+      "invalid_master_code_format": "Virheellinen pääkoodin muoto. Täytyy olla 6-numeroinen koodi (0-9, A, B).",
       "unknown": "Tapahtui tuntematon virhe.",
-      "pin_code_invalid_length": "PIN-koodin on oltava 6 merkkiä pitkä",
-      "pin_code_invalid": "Virheellinen PIN-koodi",
-      "unauthorized": "Luvaton",
-      "config_key_required": "Tähän toimintoon vaaditaan määritysavaimen.",
-      "invalid_code_format": "Virheellinen koodimuoto (on oltava 6 merkkiä väliltä 0-9, A, B)",
-      "create_code_failed": "Koodin luominen epäonnistui (laite palautti virheen)",
-      "change_master_code_failed": "Pääkoodin vaihtaminen epäonnistui (laite palautti virheen)",
-      "unknown_code_type": "Tuntematon koodityyppi",
+      "pin_code_invalid_length": "PIN-koodin on oltava 6 merkkiä pitkä.",
+      "pin_code_invalid": "Virheellinen PIN-koodi.",
+      "unauthorized": "Ei valtuuksia.",
+      "config_key_required": "Konfigurointiavain vaaditaan tätä toimintoa varten.",
+      "invalid_code_format": "Virheellinen koodin muoto (on oltava 6 merkkiä väliltä 0-9, A, B).",
+      "create_code_failed": "Koodin luominen epäonnistui (laite palautti virheen).",
+      "change_master_code_failed": "Pääkoodin vaihtaminen epäonnistui (laite palautti virheen).",
+      "unknown_code_type": "Tuntematon koodityyppi.",
       "unknown_device": "Bluetooth-sovitin ei näe laitetta.",
       "not_connectable": "Havaittu laite ei ole yhdistettävissä (todennäköisesti passiivisen välityspalvelimen kautta).",
-      "todo_entity_not_found_for_device": "Tehtäväkokonaisuutta ei löytynyt laitteelle {target_device_id}",
+      "todo_entity_not_found_for_device": "Laitteelle {target_device_id} ei löytynyt Todo-entiteettiä.",
       "target_devices_not_boks": "Kohdelaitteet {device_ids} eivät ole Boks-laitteita.",
-      "target_entities_not_boks": "Kohdekokonaisuudet {entity_ids} kuuluvat muihin kuin Boks-laitteisiin.",
+      "target_entities_not_boks": "Kohde-entiteetit {entity_ids} kuuluvat muille kuin Boks-laitteille.",
       "target_device_missing": "Kohde-Boks-laitetta ei löytynyt tai sitä ei ole määritetty. Määritä device_id tai entity_id.",
-      "multiple_devices_found": "Löytyi useita Boks-laitteita. Määritä kohdekokonaisuus tai -laite.",
-      "no_devices_configured": "Boks-laitteita ei ole määritetty.",
-      "cannot_resolve_todo": "Kohde-Boks-tehtäväluetteloa ei voitu ratkaista.",
-      "todo_integration_not_loaded": "Tehtäväintegraatiota ei ole ladattu.",
-      "todo_entity_not_found": "Tehtäväkokonaisuutta {target_entity_id} ei löytynyt tai sitä ei ole ladattu.",
-      "config_key_invalid_length": "Määritysavaimen on oltava täsmälleen 8 merkkiä pitkä.",
-      "ble_client_none": "BLE-asiakas on Ei mitään, komentoa ei voi lähettää",
-      "timeout_waiting_response": "Aikakatkaisu odotettaessa vastausta opkoodiin {opcode}",
+      "multiple_devices_found": "Löytyi useita Boks-laitteita. Määritä kohde-entiteetti tai -laite.",
+      "no_devices_configured": "Boks-laitteita ei ole konfiguroitu.",
+      "cannot_resolve_todo": "Kohde-Boks-tehtäväluetteloa ei voitu selvittää.",
+      "todo_integration_not_loaded": "Todo-integraatiota ei ole ladattu.",
+      "todo_entity_not_found": "Todo-entiteettiä {target_entity_id} ei löytynyt tai sitä ei ole ladattu.",
+      "config_key_invalid_length": "Konfigurointiavaimen on oltava tasan 8 merkkiä pitkä.",
+      "ble_client_none": "BLE-asiakas on None, komentoa ei voida lähettää.",
+      "timeout_waiting_response": "Aikakatkaisu odotettaessa vastausta opkoodille {opcode}.",
       "ble_error": "BLE-virhe: {error}",
-      "ble_internal_error": "BLE:n sisäinen virhe: {error}",
-      "entity_not_parcel_list": "Kokonaisuus {target_entity_id} ei ole Boks-pakettiluettelo.",
-      "maintenance_already_running": "Huoltotehtävä on jo käynnissä. Odota, että se valmistuu.",
-      "delete_code_failed": "Koodin poistaminen epäonnistui (laite palautti virheen)",
-      "set_configuration_failed": "Määrityksen {config_type} asettaminen epäonnistui (laite palautti virheen)",
-      "laposte_firmware_version_required": "Laiteohjelmiston version on oltava suurempi kuin {required_version}, jotta La Poste -ominaisuus voidaan ottaa käyttöön. Nykyinen versio: {current_version}",
-      "firmware_version_required": "Laiteohjelmiston version on oltava suurempi kuin {required_version}, jotta tätä ominaisuutta voidaan käyttää. Nykyinen versio: {current_version}",
-      "firmware_update_failed": "Laiteohjelmistopäivityksen käynnistäminen versiolle {version} epäonnistui",
-      "door_opened_recently": "Ovi avattiin äskettäin. Odota {seconds} sekuntia ennen kuin avaat uudelleen.",
-      "opening_failed_no_code": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda.",
-      "opening_failed_no_code_no_key": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda (määritysavainta ei saatavilla)."
+      "ble_internal_error": "Sisäinen BLE-virhe: {error}",
+      "entity_not_parcel_list": "Entiteetti {target_entity_id} ei ole Boks-pakettiluettelo.",
+      "maintenance_already_running": "Huoltotehtävä on jo käynnissä. Odota, kunnes se on valmis.",
+      "delete_code_failed": "Koodin poistaminen epäonnistui (laite palautti virheen).",
+      "set_configuration_failed": "Konfiguroinnin {config_type} asettaminen epäonnistui (laite palautti virheen).",
+      "laposte_firmware_version_required": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} La Poste -ominaisuuden käyttöönottamiseksi. Nykyinen versio: {current_version}",
+      "firmware_version_required": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} tämän ominaisuuden käyttämiseksi. Nykyinen versio: {current_version}",
+      "firmware_update_failed": "Laiteohjelmiston päivityksen käynnistäminen versiolle {version} epäonnistui.",
+      "door_opened_recently": "Ovi avattiin äskettäin. Odota {seconds} sekuntia ennen kuin avaat sen uudelleen.",
+      "opening_failed_no_code": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda.",
+      "opening_failed_no_code_no_key": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda (konfigurointiavainta ei ole saatavilla).",
+      "hardware_unsupported": "Ominaisuus {feature} vaatii Boks-version v{required_hw} tai uudemman. Nykyinen versiosi on v{current_hw}.",
+      "firmware_update_required": "Ominaisuus {feature} vaatii laiteohjelmistoversion {required_sw}. Nykyinen versiosi on {current_sw}.",
+      "unexpected_create_code_error": "Odottamaton virhe koodia luotaessa: {error}",
+      "unexpected_delete_code_error": "Odottamaton virhe koodia poistettaessa: {error}",
+      "unexpected_set_configuration_error": "Odottamaton virhe konfigurointia muutettaessa: {error}",
+      "unexpected_register_tag_error": "Odottamaton virhe tunnistetta rekisteröitäessä: {error}",
+      "unexpected_unregister_tag_error": "Odottamaton virhe tunnisteen rekisteröintiä poistettaessa: {error}"
     },
     "abort": {
-      "already_configured": "Tämä Boks on jo määritetty.",
+      "already_configured": "Tämä Boks on jo konfiguroitu.",
       "not_connectable": "Havaittu laite ei ole yhdistettävissä (todennäköisesti passiivisen välityspalvelimen kautta).",
-      "cannot_connect": "Laitteeseen ei saatu yhteyttä. Tarkista, että se on kantaman sisällä ja yhdistettävissä."
+      "cannot_connect": "Yhteyden muodostaminen laitteeseen epäonnistui. Tarkista, että se on kantaman sisällä ja yhdistettävissä."
     }
+  },
+  "exceptions": {
+    "cannot_connect": { "message": "Yhteyden muodostaminen Boks-sovellusliittymään epäonnistui." },
+    "invalid_auth": { "message": "Virheellinen sähköpostiosoite tai salasana." },
+    "boks_not_found": { "message": "Tällä tilillä ei löytynyt MAC-osoitetta vastaavaa Boks-laitetta." },
+    "cannot_retrieve_key": { "message": "Konfigurointiavainta ei voitu hakea pilvestä." },
+    "device_not_found": { "message": "Laitetta ei löytynyt listalta." },
+    "device_not_in_cache": { "message": "Laitetta ei löytynyt Bluetooth-välimuistista. Yhdistettävää polkua ei ole saatavilla." },
+    "no_devices_found": { "message": "Tältä tililtä ei löytynyt Boks-laitteita." },
+    "connection_error": { "message": "Yhteysvirhe laitteita noudettaessa." },
+    "invalid_credential_format": { "message": "Virheellinen tunnistetiedon muoto. Täytyy olla 8/64 heksamerkkiä." },
+    "invalid_master_code_format": { "message": "Virheellinen pääkoodin muoto. Täytyy olla 6-numeroinen koodi (0-9, A, B)." },
+    "unknown": { "message": "Tapahtui tuntematon virhe." },
+    "pin_code_invalid_length": { "message": "PIN-koodin on oltava 6 merkkiä pitkä." },
+    "pin_code_invalid": { "message": "Virheellinen PIN-koodi." },
+    "unauthorized": { "message": "Ei valtuuksia." },
+    "config_key_required": { "message": "Konfigurointiavain vaaditaan tätä toimintoa varten." },
+    "invalid_code_format": { "message": "Koodin muoto on virheellinen (on oltava 6 merkkiä väliltä 0-9, A, B)." },
+    "create_code_failed": { "message": "Koodin luominen epäonnistui (laite palautti virheen)." },
+    "change_master_code_failed": { "message": "Pääkoodin vaihtaminen epäonnistui (laite palautti virheen)." },
+    "unknown_code_type": { "message": "Tuntematon koodityyppi." },
+    "unknown_device": { "message": "Bluetooth-sovitin ei näe laitetta." },
+    "not_connectable": { "message": "Havaittu laite ei ole yhdistettävissä (todennäköisesti passiivisen välityspalvelimen kautta)." },
+    "todo_entity_not_found_for_device": { "message": "Laitteelle {target_device_id} ei löytynyt Todo-entiteettiä." },
+    "target_devices_not_boks": { "message": "Kohdelaitteet {device_ids} eivät ole Boks-laitteita." },
+    "target_entities_not_boks": { "message": "Kohde-entiteetit {entity_ids} kuuluvat muille kuin Boks-laitteille." },
+    "target_device_missing": { "message": "Kohde-Boks-laitetta ei löytynyt tai sitä ei ole määritetty. Määritä device_id tai entity_id." },
+    "multiple_devices_found": { "message": "Löytyi useita Boks-laitteita. Määritä kohde-entiteetti tai -laite." },
+    "no_devices_configured": { "message": "Boks-laitteita ei ole konfiguroitu." },
+    "no_devices_found": { "message": "Tältä tililtä ei löytynyt Boks-laitteita." },
+    "not_connectable": { "message": "Havaittu laite ei ole yhdistettävissä (todennäköisesti passiivisen välityspalvelimen kautta)." },
+    "opening_failed_no_code": { "message": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda." },
+    "opening_failed_no_code_no_key": { "message": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda (konfigurointiavainta ei ole saatavilla)." },
+    "operation_timed_out": { "message": "Toiminto aikakatkaistiin {seconds} sekunnin kuluttua." },
+    "pin_code_invalid": { "message": "Virheellinen PIN-koodi." },
+    "pin_code_invalid_length": { "message": "PIN-koodin on oltava 6 merkkiä pitkä." },
+    "set_configuration_failed": { "message": "Konfiguroinnin {config_type} asettaminen epäonnistui (laite palautti virheen)." },
+    "target_device_missing": { "message": "Kohde-Boks-laitetta ei löytynyt tai sitä ei ole määritetty. Määritä device_id tai entity_id." },
+    "target_devices_not_boks": { "message": "Kohdelaitteet {device_ids} eivät ole Boks-laitteita." },
+    "target_entities_not_boks": { "message": "Kohde-entiteetit {entity_ids} kuuluvat muille kuin Boks-laitteille." },
+    "timeout_waiting_response": { "message": "Aikakatkaisu odotettaessa vastausta opkoodille {opcode}." },
+    "todo_entity_not_found": { "message": "Todo-entiteettiä {target_entity_id} ei löytynyt tai sitä ei ole ladattu." },
+    "todo_entity_not_found_for_device": { "message": "Laitteelle {target_device_id} ei löytynyt Todo-entiteettiä." },
+    "todo_integration_not_loaded": { "message": "Todo-integraatiota ei ole ladattu." },
+    "unauthorized": { "message": "Ei valtuuksia." },
+    "unknown": { "message": "Tapahtui tuntematon virhe." },
+    "unknown_code_type": { "message": "Tuntematon koodityyppi." },
+    "unknown_device": { "message": "Bluetooth-sovitin ei näe laitetta." },
+    "ble_client_none": { "message": "BLE-asiakas on None, komentoa ei voida lähettää." },
+    "ble_error": { "message": "BLE-virhe: {error}" },
+    "ble_internal_error": { "message": "Sisäinen BLE-virhe: {error}" },
+    "boks_not_found": { "message": "Tällä tilillä ei löytynyt MAC-osoitetta vastaavaa Boks-laitetta." },
+    "busy": { "message": "Laite varattu: toinen toiminto kuuntelee jo ilmoituksia." },
+    "cannot_connect": { "message": "Yhteyden muodostaminen Boks-sovellusliittymään epäonnistui." },
+    "cannot_resolve_todo": { "message": "Kohde-Boks-tehtäväluetteloa ei voitu selvittää." },
+    "cannot_retrieve_key": { "message": "Konfigurointiavainta ei voitu hakea pilvestä." },
+    "change_master_code_failed": { "message": "Pääkoodin vaihtaminen epäonnistui (laite palautti virheen)." },
+    "config_key_invalid_length": { "message": "Konfigurointiavaimen on oltava tasan 8 merkkiä pitkä." },
+    "config_key_required": { "message": "Konfigurointiavain vaaditaan tätä toimintoa varten." },
+    "connection_error": { "message": "Yhteysvirhe laitteita noudettaessa." },
+    "create_code_failed": { "message": "Koodin luominen epäonnistui (laite palautti virheen)." },
+    "delete_code_failed": { "message": "Koodin poistaminen epäonnistui (laite palautti virheen)." },
+    "device_not_found": { "message": "Laitetta ei löytynyt listalta." },
+    "device_not_in_cache": { "message": "Laitetta ei löytynyt Bluetooth-välimuistista. Yhdistettävää polkua ei ole saatavilla." },
+    "door_opened_recently": { "message": "Ovi avattiin äskettäin. Odota {seconds} sekuntia ennen kuin avaat sen uudelleen." },
+    "entity_not_parcel_list": { "message": "Entiteetti {target_entity_id} ei ole Boks-pakettiluettelo." },
+    "firmware_update_failed": { "message": "Laiteohjelmiston päivityksen käynnistäminen versiolle {version} epäonnistui." },
+    "firmware_update_required": { "message": "Ominaisuus {feature} vaatii laiteohjelmistoversion {required_sw}. Nykyinen versiosi on {current_sw}." },
+    "firmware_version_required": { "message": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} tämän ominaisuuden käyttämiseksi. Nykyinen versio: {current_version}" },
+    "hardware_unsupported": { "message": "Ominaisuus {feature} vaatii Boks-version v{required_hw} tai uudemman. Nykyinen versiosi on v{current_hw}." },
+    "invalid_auth": { "message": "Virheellinen sähköpostiosoite tai salasana." },
+    "invalid_code_format": { "message": "Koodin muoto on virheellinen (on oltava 6 merkkiä väliltä 0-9, A, B)." },
+    "invalid_credential_format": { "message": "Virheellinen tunnistetiedon muoto. Täytyy olla 8/64 heksamerkkiä." },
+    "invalid_master_code_format": { "message": "Virheellinen pääkoodin muoto. Täytyy olla 6-numeroinen koodi (0-9, A, B)." },
+    "invalid_master_code_index": { "message": "Virheellinen pääkoodin indeksi (oltava välillä 0-255)." },
+    "invalid_uid_format": { "message": "Virheellinen NFC UID -muoto." },
+    "item_not_found": { "message": "Elementtiä ei löytynyt" },
+    "laposte_firmware_version_required": { "message": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} La Poste -ominaisuuden käyttöönottamiseksi. Nykyinen versio: {current_version}" },
+    "lock_entity_not_found": { "message": "Lukko-entiteettiä ei löytynyt tälle laitteelle." },
+    "maintenance_already_running": { "message": "Huoltotehtävä on jo käynnissä. Odota, kunnes se on valmis." },
+    "maintenance_error_msg": { "message": "Pääkoodien puhdistus epäonnistui indeksissä {current_idx}.\nVirhe: {error}" },
+    "maintenance_error_title": { "message": "Boks Huoltovirhe" },
+    "nfc_tag_already_exists": { "message": "Tämä NFC-tunniste on jo rekisteröity Boks-laitteeseen." }
   },
   "options": {
     "step": {
@@ -85,72 +193,78 @@
         "data": {
           "scan_interval": "Kyselyväli (minuuttia)",
           "full_refresh_interval": "Täysi päivitysväli (tuntia)",
-          "master_code": "Pääkoodi avaamista varten (valinnainen)",
-          "anonymize_logs": "Lokien anonymisointi (korvaa avaimet ja PIN-koodit väärennetyillä arvoilla jakamista varten)"
+          "master_code": "Pääkoodi avaamiseen (valinnainen)",
+          "anonymize_logs": "Anonymisoi lokit (korvaa avaimet ja PIN-koodit kuvitteellisilla arvoilla)"
         },
-        "description": "Määritä, kuinka usein Home Assistant muodostaa yhteyden Boksiin tilan päivittämiseksi."
+        "description": "Määritä, kuinka usein Home Assistant ottaa yhteyden Boks-laitteeseen tilan päivittämiseksi."
       }
     }
   },
   "selector": {
-      "setup_method": {
-          "options": {
-              "cloud": "Pilvikirjautuminen (automaattinen - vaatii voimassa olevat tunnukset viralliseen Boks-sovellukseen)",
-              "manual": "Manuaalinen syöttö"
-          }
+    "setup_method": {
+      "options": {
+        "cloud": "Pilvikirjautuminen (automaattinen - vaatii voimassa olevat tunnistetiedot viralliseen Boks-sovellukseen)",
+        "manual": "Manuaalinen syöttö"
       }
+    }
   },
   "entity": {
     "button": {
-      "sync_logs": {
-        "name": "Synkronoi lokit"
-      }
+      "sync_logs": { "name": "Synkronoi lokit" }
     },
     "lock": {
-      "door": {
-        "name": "Ovi"
-      }
+      "door": { "name": "Ovi" }
     },
     "sensor": {
-      "battery": {
-        "name": "Akku"
-      },
-      "last_connection": {
-        "name": "Viimeisin yhteys"
-      },
+      "battery": { "name": "Akku" },
+      "last_connection": { "name": "Viimeisin yhteys" },
       "last_event": {
         "name": "Viimeisin tapahtuma",
         "state": {
           "no_events": "Ei tapahtumia",
-          "code_ble_valid": "Käytetty kelvollista BLE-koodia",
-          "code_key_valid": "Käytetty kelvollista näppäimistökoodia",
+          "code_ble_valid": "Käytetty voimassa olevaa BLE-koodia",
+          "code_key_valid": "Käytetty voimassa olevaa näppäimistökoodia",
           "code_ble_invalid": "Virheellinen BLE-komento",
           "code_key_invalid": "Käytetty virheellistä näppäimistökoodia",
           "door_closed": "Ovi suljettu",
           "door_opened": "Ovi avattu",
           "history_erase": "Historia tyhjennetty",
-          "power_off": "Virta pois",
+          "power_off": "Virta katkaistu",
           "block_reset": "Lohkon nollaus",
-          "power_on": "Virta päällä",
-          "ble_reboot": "BLE:n uudelleenkäynnistys",
-          "scale_measure": "Jatkuva vaa'an mittaus",
+          "power_on": "Virta kytketty",
+          "ble_reboot": "Restart BLE",
+          "scale_measure": "Jatkuva vaakamittaus",
           "key_opening": "Avaus avaimella",
           "error": "Virhe (diagnostiikka)",
           "nfc_opening": "NFC-avaus",
           "nfc_tag_registering": "NFC-tunnisteen rekisteröintiskannaus",
-          "unknown": "Tuntematon tapahtuma"
+          "nfc_tag_type_1": "La Poste",
+          "nfc_tag_type_2": "Vigik (tertiäärinen)",
+          "nfc_tag_type_3": "Tunniste",
+          "unknown": "Tuntematon tapahtuma",
+          "opening_by": "Avaaja: {name}",
+          "diagnostic_error_bc": "Sisäinen MFRC630-virhe (0xBC)",
+          "diagnostic_error_integrity": "Eheysvirhe (CRC/pariteetti)",
+          "diagnostic_error_no_tag": "Tunnistetta ei havaittu / aikakatkaisu",
+          "diagnostic_error_collision": "Tunnisteiden törmäys havaittu",
+          "diagnostic_error_buffer": "Puskurin ylivuoto",
+          "diagnostic_error_unknown": "Tuntematon tekninen virhe",
+          "power_off_reason_1": "Laitteiston nollaus (PIN)",
+          "power_off_reason_2": "Watchdog (automaattinen uudelleenkäynnistys)",
+          "power_off_reason_3": "Ohjelmiston nollaus",
+          "power_off_reason_4": "Järjestelmän lukkiutuminen (Lockup)",
+          "power_off_reason_5": "Virta kytketty",
+          "power_off_reason_6": "NFC-herätys",
+          "power_off_reason_7": "Järjestelmän sammutusherätys",
+          "power_off_reason_8": "LPCOMP-herätys"
         }
       },
-      "master_codes_count": {
-        "name": "Pääkoodit"
-      },
-      "single_use_codes_count": {
-        "name": "Kertakäyttöiset koodit"
-      },
+      "master_codes_count": { "name": "Pääkoodit" },
+      "single_use_codes_count": { "name": "Kertakäyttökoodit" },
       "battery_format": {
-        "name": "Akun muoto",
+        "name": "Akkumuoto",
         "state": {
-          "measures-first-min-mean-max-last": "Yksityiskohtainen (min/keskiarvo/maksimi)",
+          "measures-first-min-mean-max-last": "Yksityiskohtainen (Min/Keski/Max)",
           "measures-t1-t5-t10": "Yksityiskohtainen (T1/T5/T10)",
           "measure-single": "Yksinkertainen",
           "unknown": "Tuntematon",
@@ -160,101 +274,87 @@
       "battery_type": {
         "name": "Akkutyyppi",
         "state": {
-          "lsh14": "LSH14 (litium)",
-          "8x_aaa": "8x AAA (alkali)",
+          "lsh14": "LSH14 (Litium)",
+          "8x_aaa": "8x AAA (Alkaali)",
           "unknown": "Tuntematon",
           "other": "Muu"
         }
       },
-      "battery_level_first": {
-        "name": "Akun jännite (ensimmäinen)"
-      },
-      "battery_level_min": {
-        "name": "Akun jännite (min)"
-      },
-      "battery_level_mean": {
-        "name": "Akun jännite (keskiarvo)"
-      },
-      "battery_level_max": {
-        "name": "Akun jännite (maksimi)"
-      },
-      "battery_level_last": {
-        "name": "Akun jännite (viimeinen)"
-      },
-      "battery_level_t1": {
-        "name": "Akun jännite (T1)"
-      },
-      "battery_level_t5": {
-        "name": "Akun jännite (T5)"
-      },
-      "battery_level_t10": {
-        "name": "Akun jännite (T10)"
-      },
+      "battery_level_first": { "name": "Akun jännite (ensimmäinen)" },
+      "battery_level_min": { "name": "Akun jännite (min)" },
+      "battery_level_mean": { "name": "Akun jännite (keski)" },
+      "battery_level_max": { "name": "Akun jännite (max)" },
+      "battery_level_last": { "name": "Akun jännite (viimeinen)" },
+      "battery_level_t1": { "name": "Akun jännite (T1)" },
+      "battery_level_t5": { "name": "Akun jännite (T5)" },
+      "battery_level_t10": { "name": "Akun jännite (T10)" },
       "maintenance_status": {
         "name": "Huollon tila",
         "state": {
-          "idle": "Vapaa",
+          "idle": "Valmiustila",
           "cleaning": "Pääkoodien puhdistus"
         }
       },
-      "log_count": {
-        "name": "Lokien määrä"
-      }
+      "log_count": { "name": "Lokien määrä" }
     },
     "todo": {
-      "parcels": {
-        "name": "Paketit"
-      }
+      "parcels": { "name": "Paketit" }
     },
     "event": {
       "logs": {
         "name": "Lokit",
         "state": {
-          "code_ble_valid": "Käytetty kelvollista BLE-koodia",
-          "code_key_valid": "Käytetty kelvollista näppäimistökoodia",
+          "code_ble_valid": "Käytetty voimassa olevaa BLE-koodia",
+          "code_key_valid": "Käytetty voimassa olevaa näppäimistökoodia",
           "code_ble_invalid": "Virheellinen BLE-komento",
           "code_key_invalid": "Käytetty virheellistä näppäimistökoodia",
           "door_closed": "Ovi suljettu",
           "door_opened": "Ovi avattu",
           "history_erase": "Historia tyhjennetty",
-          "power_off": "Virta pois",
+          "power_off": "Virta katkaistu",
           "block_reset": "Lohkon nollaus",
-          "power_on": "Virta päällä",
-          "ble_reboot": "BLE:n uudelleenkäynnistys",
-          "scale_measure": "Jatkuva vaa'an mittaus",
+          "power_on": "Virta kytketty",
+          "ble_reboot": "Restart BLE",
+          "scale_measure": "Jatkuva vaakamittaus",
           "key_opening": "Avaus avaimella",
           "error": "Virhe (diagnostiikka)",
           "nfc_opening": "NFC-avaus",
           "nfc_tag_registering": "NFC-tunnisteen rekisteröintiskannaus",
-          "unknown": "Tuntematon tapahtuma"
+          "nfc_tag_type_1": "La Poste",
+          "nfc_tag_type_2": "Vigik (tertiäärinen)",
+          "nfc_tag_type_3": "Tunniste",
+          "unknown": "Tuntematon tapahtuma",
+          "opening_by": "Avaaja: {name}"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "Laiteohjelmistopäivitys",
-        "no_firmware_downloaded": "No firmware downloaded for installation",
-        "notification_title": "Boks Firmware Update",
-        "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
-        "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
-        "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
-        "download_failed_title": "Boks Firmware Update - Download Failed",
-        "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
-        "network_error_title": "Boks Firmware Update - Network Error",
-        "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
-        "generic_error_title": "Boks Firmware Update - Error"
+        "name": "Laiteohjelmiston päivitys",
+        "state": {
+          "no_firmware_downloaded": "Asennettavaa laiteohjelmistoa ei ole ladattu",
+          "notification_title": "Boks-laiteohjelmiston päivitys",
+          "firmware_ready_message": "Laiteohjelmiston päivitys {version} on ladattu.\nTiedoston sijainti: {path}\nLatausosoite: {url}\n\nTÄRKEÄÄ: Ota yhteyttä kehittäjään saadaksesi lisäohjeita tämän päivityksen manuaaliseen asentamiseen.\nÄlä yritä flashata tätä tiedostoa ilman nimenomaisia ohjeita.",
+          "manual_action_required_title": "Boks-laiteohjelmiston päivitys - Manuaalinen toiminto vaaditaan",
+          "download_failed_message": "Laiteohjelmiston päivityksen version {version} lataus epäonnistui. HTTP-tila: {status}\nTarkista laiteohjelmiston osoite tai yritä myöhemmin uudelleen.",
+          "download_failed_title": "Boks-laiteohjelmiston päivitys - Lataus epäonnistui",
+          "network_error_message": "Verkkovirhe ladattaessa laiteohjelmiston versiota {version}.\nVirhe: {error}\nTarkista verkkoyhteytesi ja yritä uudelleen.",
+          "network_error_title": "Boks-laiteohjelmiston päivitys - Verkkovirhe",
+          "generic_error_message": "Virhe ladattaessa laiteohjelmiston versiota {version}.\nVirhe: {error}\nYritä uudelleen tai ota yhteyttä tukeen.",
+          "generic_error_title": "Boks-laiteohjelmiston päivitys - Virhe"
+        }
       }
     }
   },
   "services": {
     "add_parcel": {
       "name": "Lisää paketti",
-      "description": "Lisää uuden paketin luetteloon",
+      "description": "Lisää uuden paketin listaan",
       "fields": {
         "description": {
           "name": "Kuvaus",
-          "description": "Lisää pakettiin kuvaus",
-          "example": "Kirjatoimitus"
+          "description": "Lisää paketin kuvauksen",
+          "example": "Kirjalähetys"
         }
       }
     },
@@ -264,14 +364,14 @@
       "fields": {
         "code": {
           "name": "PIN-koodi",
-          "description": "6-merkkinen PIN-koodi, jota käytetään avaamiseen (0-9, A, B).",
+          "description": "6-merkkinen PIN-koodi avaamiseen (0-9, A, B).",
           "example": "123456"
         }
       }
     },
     "add_master_code": {
       "name": "Lisää pääkoodi",
-      "description": "Lisää uuden pääkoodin Boksiin tiettyyn indeksiin. Korvaa kaikki olemassa olevat koodit kyseisessä indeksissä.",
+      "description": "Lisää uuden pääkoodin Boks-laitteeseen tiettyyn indeksiin. Korvaa mahdollisen olemassa olevan koodin tässä indeksissä.",
       "fields": {
         "code": {
           "name": "PIN-koodi",
@@ -287,7 +387,7 @@
     },
     "delete_master_code": {
       "name": "Poista pääkoodi",
-      "description": "Poistaa pääkoodin Boksista sen indeksin avulla.",
+      "description": "Poistaa pääkoodin Boks-laitteesta sen indeksin avulla.",
       "fields": {
         "index": {
           "name": "Indeksi",
@@ -297,8 +397,8 @@
       }
     },
     "add_single_code": {
-      "name": "Lisää kertakäyttöinen koodi",
-      "description": "Lisää uuden kertakäyttöisen koodin Boksiin.",
+      "name": "Lisää kertakäyttökoodi",
+      "description": "Lisää uuden kertakäyttökoodin Boks-laitteeseen.",
       "fields": {
         "code": {
           "name": "PIN-koodi",
@@ -308,8 +408,8 @@
       }
     },
     "delete_single_code": {
-      "name": "Poista kertakäyttöinen koodi",
-      "description": "Poistaa kertakäyttöisen koodin Boksista sen arvon avulla.",
+      "name": "Poista kertakäyttökoodi",
+      "description": "Poistaa kertakäyttökoodin Boks-laitteesta sen arvon avulla.",
       "fields": {
         "code": {
           "name": "PIN-koodi",
@@ -319,8 +419,8 @@
       }
     },
     "add_multi_code": {
-      "name": "Lisää monikäyttöinen koodi",
-      "description": "Lisää uuden monikäyttöisen koodin Boksiin.",
+      "name": "Lisää monikäyttökoodi",
+      "description": "Lisää uuden monikäyttökoodin Boks-laitteeseen.",
       "fields": {
         "code": {
           "name": "PIN-koodi",
@@ -330,8 +430,8 @@
       }
     },
     "delete_multi_code": {
-      "name": "Poista monikäyttöinen koodi",
-      "description": "Poistaa monikäyttöisen koodin Boksista sen arvon avulla.",
+      "name": "Poista monikäyttökoodi",
+      "description": "Poistaa monikäyttökoodin Boks-laitteesta sen arvon avulla.",
       "fields": {
         "code": {
           "name": "PIN-koodi",
@@ -342,7 +442,7 @@
     },
     "clean_master_codes": {
       "name": "Puhdista pääkoodit",
-      "description": "Skannaa ja poistaa pääkoodit määritetyltä indeksialueelta haamukoodien poistamiseksi. Rajoitus: 100 indeksiä per ajo.",
+      "description": "Skannaa ja poistaa pääkoodit määritetyllä indeksialueella haamukoodien poistamiseksi. Rajoitus: 100 indeksiä per ajo.",
       "fields": {
         "start_index": {
           "name": "Aloitusindeksi",
@@ -356,15 +456,40 @@
     },
     "sync_logs": {
       "name": "Synkronoi lokit",
-      "description": "Hae lokit manuaalisesti Boksista ja käynnistä niihin liittyvät tapahtumat."
+      "description": "Hakee lokit manuaalisesti Boks-laitteesta ja käynnistää niihin liittyvät tapahtumat."
     },
     "set_configuration": {
-      "name": "Aseta määritys",
-      "description": "Muokkaa Boks-määritysasetuksia (NFC, laitteisto jne.).",
+      "name": "Aseta konfiguraatio",
+      "description": "Muuttaa Boks-konfiguraatioasetuksia (NFC, laitteisto jne.).",
       "fields": {
         "laposte": {
           "name": "La Poste (Vigik)",
-          "description": "Ota La Poste -tunnisteen tunnistus käyttöön tai poista se käytöstä."
+          "description": "Ota käyttöön tai poista käytöstä La Poste -tunnisteiden tunnistus."
+        }
+      }
+    },
+    "nfc_scan_start": {
+      "name": "Käynnistä NFC-skannaus",
+      "description": "Käynnistää NFC-tunnisteen skannaustilan 6 sekunniksi."
+    },
+    "nfc_register_tag": {
+      "name": "Rekisteröi NFC-tunniste",
+      "description": "Rekisteröi NFC-tunnisteen sallittujen luetteloon. ESIVAATIMUS: Sinun on ensin suoritettava 'Käynnistä NFC-skannaus' ja skannattava tunniste.",
+      "fields": {
+        "uid": {
+          "name": "Tunnisteen UID",
+          "description": "Tunnisteen yksilöllinen tunniste (esim. A1B2C3D4)."
+        },
+        "name": { "name": "Ystävällinen nimi", "description": "Valinnainen nimi, joka tallennetaan HA-tunnisterekisteriin." }
+      }
+    },
+    "nfc_unregister_tag": {
+      "name": "Poista NFC-tunnisteen rekisteröinti",
+      "description": "Poistaa NFC-tunnisteen Boks-laitteen sallittujen luettelosta.",
+      "fields": {
+        "uid": {
+          "name": "Tunnisteen UID",
+          "description": "Poistettavan tunnisteen yksilöllinen tunniste."
         }
       }
     }
