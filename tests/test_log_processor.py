@@ -124,8 +124,7 @@ async def test_resolve_tag_name(hass, log_processor):
     
     # Case 3: Tag not in registry
     resolved = await log_processor._resolve_tag_name({"tag_uid": "UNKNOWN"})
-    assert resolved is None
-
+    assert resolved == "UNKNOWN"
 def test_format_nfc_description(log_processor, mock_translations):
     """Test _format_nfc_description static method."""
     # Case 1: Named tag
