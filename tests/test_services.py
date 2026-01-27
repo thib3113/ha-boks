@@ -226,11 +226,22 @@ async def test_handle_nfc_scan_start_success(mock_hass, mock_coordinator):
     await async_setup_services(mock_hass)
     handler = handlers["nfc_scan_start"]
     
+    # Mock async_create_task to capture the coroutine
+    captured_tasks = []
+    def mock_create_task(coro):
+        captured_tasks.append(coro)
+        return MagicMock()
+    mock_hass.async_create_task = mock_create_task
+
     with (
         patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator),
         patch("homeassistant.helpers.device_registry.async_get", return_value=mock_dr)
     ):
         await handler(call)
+        
+        # Await the background task
+        if captured_tasks:
+            await captured_tasks[0]
         
         mock_coordinator.async_ensure_prerequisites.assert_called_with("NFC", "4.0", "4.3.3")
         mock_coordinator.ble_device.connect.assert_called()

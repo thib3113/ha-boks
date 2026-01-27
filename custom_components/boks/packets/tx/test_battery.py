@@ -2,7 +2,7 @@
 from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 
-class TestBatteryPacket(BoksTXPacket):
+class BatteryTestPacket(BoksTXPacket):
     """Command to trigger a battery test."""
 
     def __init__(self):

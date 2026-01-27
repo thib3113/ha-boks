@@ -37,6 +37,7 @@ TIMEOUT_COMMAND_RESPONSE = 10.0
 TIMEOUT_NFC_LISTENING = 6.0 # Time the Boks hardware stays in NFC listening mode
 TIMEOUT_NFC_WAIT_RESULT = 7.0 # Security margin for HA to wait for NFC result
 TIMEOUT_LOG_RETRIEVAL_BASE = 15.0 # Minimum timeout for logs
+TIMEOUT_LOG_COUNT_STABILIZATION = 0.1 # Time to wait for potentially multiple log count responses
 DELAY_POST_DOOR_CLOSE_SYNC = 5.0 # Wait before syncing after door close/open
 DELAY_BATTERY_UPDATE = 1.0 # Wait before updating battery after door events
 DELAY_LOG_COUNT_COLLECTION = 2.0 # Time to collect log count notifications

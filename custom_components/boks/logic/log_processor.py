@@ -99,12 +99,29 @@ class BoksLogProcessor:
             type_key = f"component.{DOMAIN}.entity.sensor.last_event.state.nfc_tag_type_{tag_type}"
             extra_data["tag_type_description"] = translations.get(type_key, f"Type {tag_type}")
 
+    def _get_tags_collection(self):
+        """Retrieve the tags collection helper robustly."""
+        if "tag" not in self.hass.data:
+            return None
+        
+        tag_manager = self.hass.data["tag"]
+        
+        # Case 1: Standard structure hass.data['tag']['tags']
+        if isinstance(tag_manager, dict) and "tags" in tag_manager:
+            return tag_manager["tags"]
+            
+        # Case 2: Direct collection object (observed in some environments)
+        if hasattr(tag_manager, "data"):
+             return tag_manager
+             
+        return None
+
     async def _resolve_tag_name(self, extra_data: dict) -> str | None:
-        """Look up tag name in HA Registry."""
+        """Look up tag name in HA Registry (Tags and Entity Registry)."""
         tag_uid = extra_data.get("tag_uid")
         tag_name = extra_data.get("tag_name")
 
-        if not tag_uid or tag_name or "tag" not in self.hass.data:
+        if not tag_uid or tag_name:
             return tag_name
 
         try:
@@ -114,51 +131,55 @@ class BoksLogProcessor:
             
             _LOGGER.debug("Resolving tag name for UID: %s (Normalized: %s)", tag_uid, tag_id_lookup)
             
-            tag_manager = self.hass.data["tag"]
-            
-            # 1. Try helper.data (Standard HA internal storage)
-            tags_helper = tag_manager.get("tags") if isinstance(tag_manager, dict) else None
-            resolved_tag_info = None
-            
+            # 1. Try Tag Registry (Standard)
+            tags_helper = self._get_tags_collection()
             if tags_helper and hasattr(tags_helper, "data") and tag_id_lookup in tags_helper.data:
                 resolved_tag_info = tags_helper.data[tag_id_lookup]
-                _LOGGER.debug("Found tag info in tags_helper.data: %s", resolved_tag_info)
-
-            # 2. Try async_get_tag (Official component method)
-            if not resolved_tag_info and hasattr(tag_manager, "async_get_tag"):
-                resolved_tag_info = await tag_manager.async_get_tag(tag_id_lookup)
-                _LOGGER.debug("Found tag info via async_get_tag: %s", resolved_tag_info)
-
-            # 3. Try to iterate if dict
-            if not resolved_tag_info and isinstance(tag_manager, dict):
-                # Some versions/configs might store it differently
-                for key, value in tag_manager.items():
-                    if key == "tags" and hasattr(value, "data"):
-                         if tag_id_lookup in value.data:
-                             resolved_tag_info = value.data[tag_id_lookup]
-                             break
-
-            if resolved_tag_info:
                 name = resolved_tag_info.get("name")
-                _LOGGER.debug("Resolved tag name: %s", name)
-                return name
-                
-            _LOGGER.debug("No tag name found in HA registry for %s", tag_id_lookup)
+                if name:
+                    _LOGGER.debug("Resolved tag name from Tag Registry: %s", name)
+                    return name
+
+            # 2. Try Entity Registry (Fallback for tags managed as entities)
+            try:
+                from homeassistant.helpers import entity_registry as er
+                ent_reg = er.async_get(self.hass)
+                # Find entities belonging to 'tag' platform with matching unique_id
+                for entry in ent_reg.entities.values():
+                    if entry.platform == "tag" and entry.unique_id == tag_id_lookup:
+                        # Only return 'name' (user set). Ignore 'original_name' (usually "Tag <ID>")
+                        if entry.name:
+                            _LOGGER.debug("Resolved tag name from Entity Registry: %s", entry.name)
+                            return entry.name
+            except Exception as e:
+                _LOGGER.debug("Failed to lookup in entity registry: %s", e)
+
+            # 3. Last Resort Fallback: UID
+            _LOGGER.debug("No custom tag name found for %s. Using UID.", tag_id_lookup)
+            return tag_uid
+
         except Exception as e:
             _LOGGER.debug("Failed to lookup tag name for %s: %s", tag_uid, e)
 
-        return None
+        return tag_uid
 
     @staticmethod
     def _format_nfc_description(event_type: str, extra_data: dict, translations: dict[str, str], current_desc: str) -> str:
-        """Format description specifically for NFC openings."""
-        if event_type != "nfc_opening":
+        """Format description specifically for NFC openings and scans."""
+        if event_type not in ("nfc_opening", "nfc_tag_registering_scan"):
             return current_desc
 
-        tag_uid = extra_data.get("tag_uid")
+        tag_uid = extra_data.get("tag_uid") or extra_data.get("scan_uid")
         tag_name = extra_data.get("tag_name")
-        pattern_key = f"component.{DOMAIN}.entity.sensor.last_event.state.opening_by"
-        pattern = translations.get(pattern_key, "Opening by {name}")
+        
+        # Use specific pattern for scanning vs opening if available
+        if event_type == "nfc_tag_registering_scan":
+             pattern_key = f"component.{DOMAIN}.entity.sensor.last_event.state.nfc_tag_registering_scan_desc"
+             # Fallback to a generic "Scan of {name}" if key missing
+             pattern = translations.get(pattern_key, "Scan of {name}")
+        else:
+             pattern_key = f"component.{DOMAIN}.entity.sensor.last_event.state.opening_by"
+             pattern = translations.get(pattern_key, "Opening by {name}")
 
         # Determine display name
         display_name = tag_name
@@ -179,8 +200,7 @@ class BoksLogProcessor:
 
         try:
             tag_id_lookup = tag_uid.replace(":", "").upper()
-            tag_manager = self.hass.data["tag"]
-            tags_helper = tag_manager.get("tags") if isinstance(tag_manager, dict) else None
+            tags_helper = self._get_tags_collection()
 
             if not (tags_helper and tag_id_lookup in tags_helper.data):
                 return

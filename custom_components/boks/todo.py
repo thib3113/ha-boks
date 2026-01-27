@@ -3,6 +3,7 @@ import logging
 import uuid
 from datetime import timedelta
 
+from homeassistant.util import dt as dt_util
 from homeassistant.components.todo import (
     TodoItem,
     TodoItemStatus,

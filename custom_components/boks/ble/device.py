@@ -4,12 +4,13 @@ import asyncio
 import logging
 import time
 from datetime import datetime, timedelta
-from typing import Callable, Any, List, Optional
+from typing import Callable, Any, List, Optional, Dict
 
 from bleak import BleakClient
-from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
+from bleak.backends.device import BLEDevice
 from bleak_retry_connector import establish_connection
+
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 
@@ -19,25 +20,27 @@ from .const import (
     BoksHistoryEvent,
 )
 from .protocol import BoksProtocol
-from ..const import (
-    DOMAIN,
-    TIMEOUT_DOOR_CLOSE,
-    TIMEOUT_COMMAND_RESPONSE,
-    DELAY_RETRY,
-)
 from ..errors import BoksError, BoksAuthError
 from ..logic.anonymizer import BoksAnonymizer
 from ..packets.base import BoksTXPacket, BoksRXPacket
 from ..packets.factory import PacketFactory
+from ..packets.rx.door_status import DoorStatusPacket
+from ..packets.rx.door_opened import DoorOpenedPacket
+from ..packets.rx.door_closed import DoorClosedPacket
 from ..packets.rx.code_ble_valid import CodeBleValidPacket
 from ..packets.rx.code_key_valid import CodeKeyValidPacket
-from ..packets.rx.door_closed import DoorClosedPacket
-from ..packets.rx.door_opened import DoorOpenedPacket
-from ..packets.rx.door_status import DoorStatusPacket
-from ..packets.rx.error_response import ErrorResponsePacket
-from ..packets.rx.key_opening import KeyOpeningPacket
 from ..packets.rx.nfc_opening import NfcOpeningPacket
+from ..packets.rx.key_opening import KeyOpeningPacket
+from ..packets.rx.error_response import ErrorResponsePacket
 from ..packets.rx.nfc_scan_result import NfcScanResultPacket
+from ..const import (
+    DOMAIN,
+    TIMEOUT_DOOR_CLOSE,
+    TIMEOUT_COMMAND_RESPONSE,
+    TIMEOUT_LOG_COUNT_STABILIZATION,
+    DELAY_POST_DOOR_CLOSE_SYNC,
+    DELAY_RETRY,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -123,24 +126,87 @@ class BoksBluetoothDevice:
     async def _connect(self, device: BLEDevice = None) -> None:
         """Internal connect (without lock)."""
         self._connection_users += 1
+        _LOGGER.debug("BLE Session Start. Active Sessions: %d", self._connection_users)
         if self.is_connected:
             return
 
         _LOGGER.debug("Connecting to Boks %s (Subscribed: %s)", self.address, self._notifications_subscribed)
 
         if device is None:
-            device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=True)
-            if not device:
-                device = bluetooth.async_ble_device_from_address(self.hass, self.address, connectable=False)
+            # Get all devices known to HA for this address
+            devices = bluetooth.async_scanner_devices_by_address(self.hass, self.address, connectable=True)
+            
+            if not devices:
+                _LOGGER.warning("No connectable BLE adapter found for %s. Scanners available: %s", 
+                                self.address, 
+                                [d.name for d in bluetooth.async_scanner_devices_by_address(self.hass, self.address, connectable=False)])
+                raise BoksError("no_connectable_adapter")
+
+            # Log all candidates for debugging
+            _LOGGER.debug("Available Connectable Scanners for %s:", self.address)
+            best_device = None
+            best_rssi = -1000
+
+            for dev in devices:
+                # INSPECTION LOG: Let's see what's inside this object
+                _LOGGER.debug("DEBUG: Inspecting device object type: %s", type(dev))
+                _LOGGER.debug("DEBUG: Device attributes: %s", dir(dev))
+                
+                details = getattr(dev, "details", {})
+                
+                # Try to find RSSI in common places
+                rssi = getattr(dev, "rssi", -100)
+                if rssi == -100 and hasattr(dev, "advertisement_data"):
+                     rssi = getattr(dev.advertisement_data, "rssi", -100)
+                
+                # Safely get name, some scanner objects might not have it or it's a property that can fail
+                name = getattr(dev, "name", "Unknown")
+                source = details.get("source", "unknown")
+                _LOGGER.debug(" - Candidate: %s | RSSI: %s | Source: %s", name, rssi, source)
+                
+                # Simple logic: Pick the one with best RSSI
+                if rssi > best_rssi:
+                    best_rssi = rssi
+                    best_device = dev
+            
+            if best_device:
+                device = best_device
+                # Safely get name again for the selected device log
+                best_name = getattr(device, "name", "Unknown")
+                _LOGGER.debug("Selected Best Candidate: %s (Source: %s, RSSI: %s)", 
+                              best_name, getattr(device, "details", {}).get("source"), best_rssi)
+            else:
+                 # Fallback to the first one if logic fails
+                 device = devices[0]
+
+        if device:
+             # Try to log details about the proxy/adapter
+             details = getattr(device, "details", {})
+             
+             # Use HA's official way to get the latest RSSI for this address
+             rssi = "Unknown"
+             service_info = bluetooth.async_last_service_info(self.hass, self.address, connectable=True)
+             if service_info:
+                 rssi = service_info.rssi
+             
+             name = getattr(device, "name", "Unknown")
+             _LOGGER.debug("BLE Device to use: %s. RSSI: %s, Source: %s", 
+                           name, rssi, details.get("source", "unknown"))
+        else:
+             _LOGGER.debug("BLE Device not found in HA cache.")
 
         try:
+            # Add a small delay before connecting to allow ESP proxies to release resources if we just disconnected
+            await asyncio.sleep(1.0)
             self._client = await establish_connection(BleakClient, device, self.address)
+            _LOGGER.debug("Physical BLE Connection Established to %s", self.address)
             if not self._notifications_subscribed:
                 await self._client.start_notify(BoksServiceUUID.NOTIFY_CHARACTERISTIC, self._notification_handler)
                 self._notifications_subscribed = True
                 _LOGGER.info("Subscribed to notifications from Boks %s", self.address)
         except Exception as e:
             self._connection_users = max(0, self._connection_users - 1)
+            _LOGGER.debug("BLE Session Aborted (Connection Failed). Active Sessions: %d", self._connection_users)
             _LOGGER.error("Failed to connect to Boks %s: %s", self.address, e)
             raise
 
@@ -153,6 +219,7 @@ class BoksBluetoothDevice:
         """Internal disconnect (without lock)."""
         if self._connection_users > 0:
             self._connection_users -= 1
+            _LOGGER.debug("BLE Session End. Active Sessions: %d", self._connection_users)
 
         if self._connection_users > 0:
             return
@@ -177,7 +244,7 @@ class BoksBluetoothDevice:
             await asyncio.shield(self._client.disconnect())
         self._client = None
         self._notifications_subscribed = False
-        _LOGGER.info("Disconnected from Boks")
+        _LOGGER.info("Physical BLE Connection Closed (Disconnected from Boks)")
 
     async def _perform_final_refresh(self) -> None:
         """Perform a final data refresh before disconnecting (expects no lock or internal calls)."""
@@ -210,6 +277,7 @@ class BoksBluetoothDevice:
         """Force disconnect from the Boks (reset reference counting)."""
         async with self._lock:
             self._connection_users = 0
+            _LOGGER.debug("BLE Sessions Force Cleared. Active Sessions: 0")
             self._refresh_needed = False
             # Clear any pending futures
             for future in self._response_futures.values():
@@ -223,7 +291,7 @@ class BoksBluetoothDevice:
                         await self._client.disconnect()
                 except Exception as e:
                     _LOGGER.debug("Error during force disconnect: %s", e)
-
+            
             self._client = None
             self._notifications_subscribed = False
             _LOGGER.info("Force disconnected from Boks")
@@ -237,48 +305,79 @@ class BoksBluetoothDevice:
                       direction, packet.opcode, packet.get_opcode_name(),
                       log_info["payload"], log_info["raw"], log_info.get("suffix", ""))
 
-    async def send_packet(self, packet: BoksTXPacket, wait_for_opcodes: List[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
-        """Send a packet object and optionally wait for a specific response packet."""
+    async def _send_packet(self, packet: BoksTXPacket, wait_for_opcodes: List[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
+        """Internal send packet without lock/connection handling."""
         raw_bytes = packet.to_bytes()
+        
+        future = None
+        future_key = ""
+
+        if not self._client or not self._client.is_connected:
+             raise BoksError("ble_client_not_connected")
+
+        try:
+            if wait_for_opcodes:
+                future = asyncio.get_running_loop().create_future()
+                future_key = ",".join(map(str, wait_for_opcodes))
+                self._response_futures[future_key] = future
+
+            self._log_packet("TX", packet)
+            await self._client.write_gatt_char(BoksServiceUUID.WRITE_CHARACTERISTIC, raw_bytes, response=False)
+
+            if future:
+                resp_data = await asyncio.wait_for(future, timeout=timeout)
+                return PacketFactory.from_rx_data(resp_data)
+            return None
+
+        except asyncio.TimeoutError:
+            if future_key in self._response_futures:
+                del self._response_futures[future_key]
+            raise BoksError("timeout_waiting_response", {"opcode": f"0x{packet.opcode:02X}"})
+
+        except (BleakError, AttributeError, OSError) as e:
+            if future_key in self._response_futures:
+                del self._response_futures[future_key]
+            if isinstance(e, AttributeError):
+                 raise BoksError("ble_internal_error", {"error": str(e)})
+            raise BoksError("ble_error", {"error": str(e)})
+
+    async def send_packet(self, packet: BoksTXPacket, wait_for_opcodes: List[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
+        """Send a packet object and optionally wait for a specific response packet (Public)."""
         max_attempts = 2
 
         for attempt in range(max_attempts):
-            future = None
-            future_key = ""
             try:
-                if not self.is_connected:
-                    await self.connect()
-                if self._client is None:
-                    raise BoksError("ble_client_none")
-
-                if wait_for_opcodes:
-                    future = asyncio.get_running_loop().create_future()
-                    future_key = ",".join(map(str, wait_for_opcodes))
-                    self._response_futures[future_key] = future
-
-                self._log_packet("TX", packet)
-                await self._client.write_gatt_char(BoksServiceUUID.WRITE_CHARACTERISTIC, raw_bytes, response=False)
-
-                if future:
-                    resp_data = await asyncio.wait_for(future, timeout=timeout)
-                    return PacketFactory.from_rx_data(resp_data)
-                return None
-            except asyncio.TimeoutError:
-                if future_key in self._response_futures:
-                    del self._response_futures[future_key]
+                async with self._lock:
+                    await self._connect()
+                    try:
+                        return await self._send_packet(packet, wait_for_opcodes, timeout)
+                    finally:
+                        await self._disconnect()
+            
+            except BoksError as e:
+                # If we are disconnected or there is an error, force disconnect and retry
                 await self.force_disconnect()
-                raise BoksError("timeout_waiting_response", {"opcode": f"0x{packet.opcode:02X}"})
-            except (BleakError, AttributeError, OSError) as e:
-                if future_key in self._response_futures:
-                    del self._response_futures[future_key]
+                
                 is_last_attempt = (attempt == max_attempts - 1)
-                _LOGGER.warning("BLE Error during send (Attempt %d/%d): %s", attempt + 1, max_attempts, e)
-                await self.force_disconnect()
+                _LOGGER.warning("BoksError during send (Attempt %d/%d): %s", attempt + 1, max_attempts, e)
+                
                 if is_last_attempt:
-                    if isinstance(e, AttributeError):
-                         raise BoksError("ble_internal_error", {"error": str(e)})
-                    raise BoksError("ble_error", {"error": str(e)})
-                await asyncio.sleep(DELAY_RETRY)
+                    raise e
+                
+                import random
+                await asyncio.sleep(DELAY_RETRY + random.uniform(0, 1.0))
+            
+            except Exception as e:
+                await self.force_disconnect()
+                is_last_attempt = (attempt == max_attempts - 1)
+                _LOGGER.warning("Unexpected error during send (Attempt %d/%d): %s", attempt + 1, max_attempts, e)
+                
+                if is_last_attempt:
+                    raise e
+                
+                import random
+                await asyncio.sleep(DELAY_RETRY + random.uniform(0, 1.0))
+
         return None
 
     def _notification_handler(self, _sender: int, data: bytearray):
@@ -379,9 +478,12 @@ class BoksBluetoothDevice:
 
     async def get_battery_level(self) -> int:
         """Get battery level."""
-        if not self.is_connected:
-            await self.connect()
-        return await self._get_battery_level()
+        async with self._lock:
+            await self._connect()
+            try:
+                return await self._get_battery_level()
+            finally:
+                await self._disconnect()
 
     async def _get_battery_level(self) -> int:
         """Internal get battery level."""
@@ -397,9 +499,12 @@ class BoksBluetoothDevice:
 
     async def get_battery_stats(self) -> dict | None:
         """Get battery statistics and format."""
-        if not self.is_connected:
-            await self.connect()
-        return await self._get_battery_stats()
+        async with self._lock:
+            await self._connect()
+            try:
+                return await self._get_battery_stats()
+            finally:
+                await self._disconnect()
 
     async def _get_battery_stats(self) -> dict | None:
         """Internal get battery stats."""
@@ -423,16 +528,19 @@ class BoksBluetoothDevice:
 
     async def get_internal_firmware_revision(self) -> str | None:
         """Get internal firmware revision."""
-        if not self.is_connected:
-            await self.connect()
-        if self._client is None:
-            return None
-        try:
-            payload = await self._client.read_gatt_char(BoksServiceUUID.INTERNAL_FIRMWARE_REVISION_CHARACTERISTIC)
-            return payload.decode('ascii').strip()
-        except Exception as e:
-            _LOGGER.debug("Failed to read firmware revision: %s", e)
-        return None
+        async with self._lock:
+            await self._connect()
+            try:
+                if self._client is None:
+                    return None
+                try:
+                    payload = await self._client.read_gatt_char(BoksServiceUUID.INTERNAL_FIRMWARE_REVISION_CHARACTERISTIC)
+                    return payload.decode('ascii').strip()
+                except Exception as e:
+                    _LOGGER.debug("Failed to read firmware revision: %s", e)
+                return None
+            finally:
+                await self._disconnect()
 
     async def get_door_status(self) -> bool:
         """Get current door status."""
@@ -446,30 +554,33 @@ class BoksBluetoothDevice:
 
     async def get_device_information(self) -> dict:
         """Read device information."""
-        if not self.is_connected:
-            await self.connect()
-        if self._client is None:
-            return {}
-        info = {}
-        chars = {
-            BoksServiceUUID.MANUFACTURER_NAME_CHARACTERISTIC: "manufacturer_name",
-            BoksServiceUUID.MODEL_NUMBER_CHARACTERISTIC: "model_number",
-            BoksServiceUUID.SERIAL_NUMBER_CHARACTERISTIC: "serial_number",
-            BoksServiceUUID.SOFTWARE_REVISION_CHARACTERISTIC: "software_revision",
-            BoksServiceUUID.HARDWARE_REVISION_CHARACTERISTIC: "hardware_revision",
-            BoksServiceUUID.INTERNAL_FIRMWARE_REVISION_CHARACTERISTIC: "firmware_revision",
-            BoksServiceUUID.SYSTEM_ID_CHARACTERISTIC: "system_id",
-        }
-        for char_uuid, key in chars.items():
+        async with self._lock:
+            await self._connect()
             try:
-                payload = await self._client.read_gatt_char(char_uuid)
-                if key == "system_id":
-                    info[key] = payload.hex()
-                else:
-                    info[key] = payload.decode('ascii').strip()
-            except Exception as e:
-                _LOGGER.debug("Failed to read %s: %s", key, e)
-        return info
+                if self._client is None:
+                    return {}
+                info = {}
+                chars = {
+                    BoksServiceUUID.MANUFACTURER_NAME_CHARACTERISTIC: "manufacturer_name",
+                    BoksServiceUUID.MODEL_NUMBER_CHARACTERISTIC: "model_number",
+                    BoksServiceUUID.SERIAL_NUMBER_CHARACTERISTIC: "serial_number",
+                    BoksServiceUUID.SOFTWARE_REVISION_CHARACTERISTIC: "software_revision",
+                    BoksServiceUUID.HARDWARE_REVISION_CHARACTERISTIC: "hardware_revision",
+                    BoksServiceUUID.INTERNAL_FIRMWARE_REVISION_CHARACTERISTIC: "firmware_revision",
+                    BoksServiceUUID.SYSTEM_ID_CHARACTERISTIC: "system_id",
+                }
+                for char_uuid, key in chars.items():
+                    try:
+                        payload = await self._client.read_gatt_char(char_uuid)
+                        if key == "system_id":
+                            info[key] = payload.hex()
+                        else:
+                            info[key] = payload.decode('ascii').strip()
+                    except Exception as e:
+                        _LOGGER.debug("Failed to read %s: %s", key, e)
+                return info
+            finally:
+                await self._disconnect()
 
     async def open_door(self, code: str = None) -> bool:
         """Open the door."""
@@ -495,25 +606,62 @@ class BoksBluetoothDevice:
 
     async def get_logs_count(self) -> int:
         """Get logs count."""
-        if not self.is_connected:
-            await self.connect()
-        return await self._get_logs_count()
+        async with self._lock:
+            await self._connect()
+            try:
+                return await self._get_logs_count()
+            finally:
+                await self._disconnect()
 
     async def _get_logs_count(self) -> int:
-        """Internal get logs count."""
+        """Internal get logs count with stabilization."""
         from ..packets.tx.get_logs_count import GetLogsCountPacket
         from ..packets.rx.log_count import LogCountPacket
-        packet = GetLogsCountPacket()
-        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_LOGS_COUNT])
-        if isinstance(resp, LogCountPacket):
-            return resp.count
+        
+        counts: list[int] = []
+        
+        def handle_count(data: bytearray):
+            p = PacketFactory.from_rx_data(data)
+            if isinstance(p, LogCountPacket):
+                counts.append(p.count)
+
+        # Register a temporary listener to collect all responses for a short window
+        self.register_opcode_callback(BoksNotificationOpcode.NOTIFY_LOGS_COUNT, handle_count)
+        try:
+            packet = GetLogsCountPacket()
+            
+            # 1. Wait for the FIRST response reliably using the standard mechanism
+            # This ensures we don't exit if the device takes >100ms to reply
+            first_resp = await self._send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_LOGS_COUNT])
+            
+            # If we got a response via send_packet, ensure it's in our counts list
+            # (The callback might have caught it too, but duplication is fine since we take max)
+            if isinstance(first_resp, LogCountPacket):
+                counts.append(first_resp.count)
+
+            # 2. Wait a short window for potential subsequent "correction" responses (0 then 3)
+            await asyncio.sleep(TIMEOUT_LOG_COUNT_STABILIZATION)
+            
+            if counts:
+                max_count = max(counts)
+                if len(counts) > 1:
+                    _LOGGER.debug("Stabilized log count: %d (from multiple responses: %s)", max_count, counts)
+                return max_count
+        except Exception as e:
+            _LOGGER.warning("Error during stabilized log count fetch: %s", e)
+        finally:
+            self.unregister_opcode_callback(BoksNotificationOpcode.NOTIFY_LOGS_COUNT, handle_count)
+            
         return 0
 
     async def get_logs(self, count: int) -> List[dict]:
         """Retrieve logs."""
-        if not self.is_connected:
-            await self.connect()
-        return await self._get_logs(count)
+        async with self._lock:
+            await self._connect()
+            try:
+                return await self._get_logs(count)
+            finally:
+                await self._disconnect()
 
     async def _get_logs(self, count: int) -> List[dict]:
         """Internal retrieve logs."""
@@ -533,7 +681,7 @@ class BoksBluetoothDevice:
                  logs_received_event.set()
         self._notify_callback = log_callback
         try:
-            await self.send_packet(packet)
+            await self._send_packet(packet)
             await asyncio.wait_for(logs_received_event.wait(), timeout=5.0 + (count * 1.5))
         except asyncio.TimeoutError:
             _LOGGER.warning("Timeout waiting for logs. Received %d/%d", len(logs), count)

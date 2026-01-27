@@ -153,7 +153,7 @@ LOG_EVENT_TYPES = {
     BoksHistoryEvent.KEY_OPENING: "key_opening",
     BoksHistoryEvent.ERROR: "error",
     BoksHistoryEvent.NFC_OPENING: "nfc_opening",
-    BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "nfc_tag_registering",
+    BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN: "nfc_tag_registering_scan",
 }
 
 class BoksCodeType(StrEnum):
