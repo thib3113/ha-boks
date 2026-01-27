@@ -42,6 +42,49 @@ Modifie les paramètres internes (ex: activer/désactiver la reconnaissance des 
 
 ---
 
+## 📡 Détail des Événements
+
+L'intégration Boks émet des événements riches que vous pouvez utiliser pour des automatisations avancées.
+
+### Entité et Bus d'Événements
+
+Vous pouvez écouter les événements de deux manières :
+1.  **Entité** : `event.votre_boks_logs` (Le dernier événement est stocké dans l'attribut `event_type`).
+2.  **Bus d'Événements** : `boks_log_entry` (Contient la charge utile complète à chaque nouvel événement).
+
+### Structure des Données
+
+Voici les données disponibles dans la charge utile de l'événement (`trigger.event.data`) :
+
+| Champ | Description | Exemple |
+| :--- | :--- | :--- |
+| `type` | Le type d'événement (voir liste ci-dessous) | `code_ble_valid` |
+| `device_id` | L'ID de l'appareil Home Assistant | `abcdef123456...` |
+| `timestamp` | Date et heure de l'événement | `2023-10-27T10:00:00+00:00` |
+| `code` | Le code PIN utilisé (si applicable) | `1234AB` |
+| `user` | L'index utilisateur ou nom (si connu) | `0` (Master Code Index) |
+| `extra_data` | Données brutes supplémentaires | `{...}` |
+
+### Types d'Événements (`event_type`)
+
+| Type | Description |
+| :--- | :--- |
+| `door_opened` | La porte a été ouverte. |
+| `door_closed` | La porte a été fermée. |
+| `code_ble_valid` | Ouverture réussie via Bluetooth (App ou HA). |
+| `code_key_valid` | Ouverture réussie via le clavier physique. |
+| `code_ble_invalid` | Code erroné saisi via Bluetooth. |
+| `code_key_invalid` | Code erroné saisi sur le clavier. |
+| `nfc_opening` | Ouverture via un badge NFC. |
+| `key_opening` | Ouverture via la clé mécanique de secours. |
+| `error` | Erreur système générique. |
+| `power_on` | L'appareil a démarré (mise sous tension). |
+| `power_off` | L'appareil s'est éteint (ex: piles retirées). |
+| `ble_reboot` | Le module Bluetooth a redémarré. |
+| `history_erase` | L'historique des logs a été effacé. |
+
+---
+
 ## 🚀 Blueprints (Automatisations Prêtes à l'Emploi)
 
 Pour vous simplifier la vie, nous fournissons plusieurs Blueprints adaptés à différents besoins.

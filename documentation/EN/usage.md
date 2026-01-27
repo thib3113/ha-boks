@@ -42,6 +42,49 @@ Modifies internal settings (e.g., enable/disable La Poste badge recognition).
 
 ---
 
+## 📡 Event Details
+
+The Boks integration emits rich events that you can use for advanced automations.
+
+### Entity and Event Bus
+
+You can listen to events in two ways:
+1.  **Entity**: `event.your_boks_logs` (The latest event is stored in the `event_type` attribute).
+2.  **Event Bus**: `boks_log_entry` (Contains the full payload for each new event).
+
+### Data Structure
+
+Here is the data available in the event payload (`trigger.event.data`):
+
+| Field | Description | Example |
+| :--- | :--- | :--- |
+| `type` | The event type (see list below) | `code_ble_valid` |
+| `device_id` | The Home Assistant device ID | `abcdef123456...` |
+| `timestamp` | Date and time of the event | `2023-10-27T10:00:00+00:00` |
+| `code` | The PIN code used (if applicable) | `1234AB` |
+| `user` | User index or name (if known) | `0` (Master Code Index) |
+| `extra_data` | Additional raw data | `{...}` |
+
+### Event Types (`event_type`)
+
+| Type | Description |
+| :--- | :--- |
+| `door_opened` | The door was opened. |
+| `door_closed` | The door was closed. |
+| `code_ble_valid` | Successful opening via Bluetooth (App or HA). |
+| `code_key_valid` | Successful opening via the physical keypad. |
+| `code_ble_invalid` | Incorrect code entered via Bluetooth. |
+| `code_key_invalid` | Incorrect code entered on the keypad. |
+| `nfc_opening` | Opening via an NFC badge. |
+| `key_opening` | Opening via the mechanical backup key. |
+| `error` | Generic system error. |
+| `power_on` | The device powered on. |
+| `power_off` | The device powered off (e.g., batteries removed). |
+| `ble_reboot` | The Bluetooth module rebooted. |
+| `history_erase` | The log history was erased. |
+
+---
+
 ## 🚀 Blueprints (Ready-to-use Automations)
 
 To make things easier, we provide several Blueprints tailored to different needs.
