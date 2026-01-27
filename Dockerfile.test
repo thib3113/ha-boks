@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Install system dependencies
 # git: required for some pip packages
@@ -6,6 +6,7 @@ FROM python:3.11-slim
 RUN apt-get update && apt-get install -y \
     git \
     tzdata \
+    build-essential \
     && ln -fs /usr/share/zoneinfo/Europe/Paris /etc/localtime \
     && dpkg-reconfigure -f noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
