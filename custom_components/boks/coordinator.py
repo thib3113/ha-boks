@@ -23,6 +23,7 @@ from .ble import BoksBluetoothDevice
 from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, \
     TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS  # Import DOMAIN and defaults
 from .errors import BoksError
+from .logic.anonymizer import BoksAnonymizer
 from .logic.log_processor import BoksLogProcessor
 from .packets.base import BoksRXPacket
 from .util import process_device_info, is_firmware_version_greater_than

@@ -16,6 +16,7 @@ from .ble import BoksBluetoothDevice
 from .ble.const import BoksHistoryEvent, LOG_EVENT_TYPES
 from .const import DOMAIN, CONF_MASTER_CODE, TIMEOUT_DOOR_OPEN_MESSAGE, TIMEOUT_DOOR_CLOSE
 from .coordinator import BoksDataUpdateCoordinator
+from .logic.anonymizer import BoksAnonymizer
 from .entity import BoksEntity
 from .errors.boks_command_error import BoksCommandError
 
@@ -108,7 +109,7 @@ class BoksLock(BoksEntity, LockEntity):
 
             # Always connect to increment reference counter
             _LOGGER.debug("async_open: getting BLE device from address %s", 
-                      BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self._coordinator.ble_device.anonymize_logs))
+                      BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self.coordinator.ble_device.anonymize_logs))
             device = bluetooth.async_ble_device_from_address(
                 self.hass, self._entry.data[CONF_ADDRESS], connectable=True
             )

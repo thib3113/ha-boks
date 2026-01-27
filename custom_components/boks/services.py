@@ -12,6 +12,7 @@ from homeassistant.helpers import entity_registry as er
 from .ble.const import BoksConfigType
 from .const import DOMAIN, MAX_MASTER_CODE_CLEAN_RANGE, TIMEOUT_NFC_LISTENING, TIMEOUT_NFC_WAIT_RESULT
 from .coordinator import BoksDataUpdateCoordinator
+from .logic.anonymizer import BoksAnonymizer
 from .errors import BoksError
 from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
 from .todo import BoksParcelTodoList

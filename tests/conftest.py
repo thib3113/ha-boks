@@ -67,6 +67,7 @@ def mock_boks_ble_device():
         mock_ble.get_logs_count = AsyncMock(return_value=0)
         mock_ble.get_logs = AsyncMock(return_value=[])
         mock_ble.register_status_callback = MagicMock()
+        mock_ble.anonymize_logs = False
         yield mock_ble
 
 @pytest.fixture
