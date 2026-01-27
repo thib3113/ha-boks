@@ -59,7 +59,7 @@ class BoksBluetoothDevice:
         self._config_key_str = config_key
 
         _LOGGER.debug("BoksBluetoothDevice initialized with address: %s, Config Key Present: %s",
-                       address, bool(config_key))
+                       BoksAnonymizer.anonymize_mac(address, anonymize_logs), bool(config_key))
 
         self._client: Optional[BleakClient] = None
         self._lock = asyncio.Lock()
@@ -130,7 +130,9 @@ class BoksBluetoothDevice:
         if self.is_connected:
             return
 
-        _LOGGER.debug("Connecting to Boks %s (Subscribed: %s)", self.address, self._notifications_subscribed)
+        _LOGGER.debug("Connecting to Boks %s (Subscribed: %s)", 
+                      BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs), 
+                      self._notifications_subscribed)
 
         if device is None:
             # Get all devices known to HA for this address
@@ -138,13 +140,14 @@ class BoksBluetoothDevice:
             
             if not devices:
                 _LOGGER.warning("No connectable BLE adapter found for %s. Scanners available: %s", 
-                                self.address, 
+                                BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs), 
                                 [d.name for d in bluetooth.async_scanner_devices_by_address(self.hass, self.address, connectable=False)])
                 raise BoksError("no_connectable_adapter")
 
             # Log all candidates for debugging
             if _LOGGER.isEnabledFor(logging.DEBUG):
-                _LOGGER.debug("Available Connectable Scanners for %s:", self.address)
+                _LOGGER.debug("Available Connectable Scanners for %s:", 
+                              BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs))
             
             best_device = None
             best_rssi = -1000
@@ -157,9 +160,12 @@ class BoksBluetoothDevice:
 
                 if _LOGGER.isEnabledFor(logging.DEBUG):
                     details = getattr(dev, "details", {})
+                    if not isinstance(details, dict):
+                        details = {}
                     name = getattr(dev, "name", "Unknown")
                     source = details.get("source", "unknown")
-                    _LOGGER.debug(" - Candidate: %s | RSSI: %s | Source: %s | Type: %s", name, rssi, source, type(dev))
+                    _LOGGER.debug(" - Candidate: %s | RSSI: %s | Source: %s | Type: %s", 
+                                  name, rssi, BoksAnonymizer.anonymize_mac(source, self.anonymize_logs), type(dev))
                     # dir(dev) is very heavy
                     _LOGGER.debug("DEBUG: Device attributes: %s", dir(dev))
                 
@@ -172,8 +178,14 @@ class BoksBluetoothDevice:
                 if _LOGGER.isEnabledFor(logging.DEBUG):
                     best_name = getattr(device, "name", "Unknown")
                     best_details = getattr(device, "details", {})
+                    # Ensure best_details is a dict before calling .get()
+                    if not isinstance(best_details, dict):
+                        best_details = {}
+                    best_source = best_details.get("source", "unknown")
                     _LOGGER.debug("Selected Best Candidate: %s (Source: %s, RSSI: %s)", 
-                                  best_name, best_details.get("source"), best_rssi)
+                                  best_name, 
+                                  BoksAnonymizer.anonymize_mac(best_source, self.anonymize_logs), 
+                                  best_rssi)
             else:
                  # Fallback to the first one if logic fails
                  device = devices[0]
@@ -182,6 +194,8 @@ class BoksBluetoothDevice:
              if _LOGGER.isEnabledFor(logging.DEBUG):
                  # Try to log details about the proxy/adapter
                  details = getattr(device, "details", {})
+                 if not isinstance(details, dict):
+                     details = {}
                  
                  # Use HA's official way to get the latest RSSI for this address (Heavy lookup)
                  rssi = "Unknown"
@@ -191,7 +205,7 @@ class BoksBluetoothDevice:
                  
                  name = getattr(device, "name", "Unknown")
                  _LOGGER.debug("BLE Device to use: %s. RSSI: %s, Source: %s", 
-                               name, rssi, details.get("source", "unknown"))
+                               name, rssi, BoksAnonymizer.anonymize_mac(details.get("source", "unknown"), self.anonymize_logs))
         else:
              _LOGGER.debug("BLE Device not found in HA cache.")
 
@@ -199,15 +213,20 @@ class BoksBluetoothDevice:
             # Add a small delay before connecting to allow ESP proxies to release resources if we just disconnected
             await asyncio.sleep(1.0)
             self._client = await establish_connection(BleakClient, device, self.address)
-            _LOGGER.debug("Physical BLE Connection Established to %s", self.address)
+            _LOGGER.debug("Physical BLE Connection Established to %s", 
+                          BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs))
             if not self._notifications_subscribed:
                 await self._client.start_notify(BoksServiceUUID.NOTIFY_CHARACTERISTIC, self._notification_handler)
                 self._notifications_subscribed = True
-                _LOGGER.info("Subscribed to notifications from Boks %s", self.address)
+                _LOGGER.info("Subscribed to notifications from Boks %s", 
+                             BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs))
         except Exception as e:
             self._connection_users = max(0, self._connection_users - 1)
             _LOGGER.debug("BLE Session Aborted (Connection Failed). Active Sessions: %d", self._connection_users)
-            _LOGGER.error("Failed to connect to Boks %s: %s", self.address, e)
+            
+            error_msg = BoksAnonymizer.anonymize_log_message(str(e), self.anonymize_logs)
+            _LOGGER.error("Failed to connect to Boks %s: %s", 
+                          BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs), error_msg)
             raise
 
     async def disconnect(self) -> None:
@@ -359,7 +378,8 @@ class BoksBluetoothDevice:
                 await self.force_disconnect()
                 
                 is_last_attempt = (attempt == max_attempts - 1)
-                _LOGGER.warning("BoksError during send (Attempt %d/%d): %s", attempt + 1, max_attempts, e)
+                error_msg = BoksAnonymizer.anonymize_log_message(str(e), self.anonymize_logs)
+                _LOGGER.warning("BoksError during send (Attempt %d/%d): %s", attempt + 1, max_attempts, error_msg)
                 
                 if is_last_attempt:
                     raise e
@@ -370,7 +390,8 @@ class BoksBluetoothDevice:
             except Exception as e:
                 await self.force_disconnect()
                 is_last_attempt = (attempt == max_attempts - 1)
-                _LOGGER.warning("Unexpected error during send (Attempt %d/%d): %s", attempt + 1, max_attempts, e)
+                error_msg = BoksAnonymizer.anonymize_log_message(str(e), self.anonymize_logs)
+                _LOGGER.warning("Unexpected error during send (Attempt %d/%d): %s", attempt + 1, max_attempts, error_msg)
                 
                 if is_last_attempt:
                     raise e

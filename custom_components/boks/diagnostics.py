@@ -43,11 +43,15 @@ async def async_get_config_entry_diagnostics(
 
     ble_info = {}
     if ble_device:
+        details = getattr(ble_device, "details", {})
+        if not isinstance(details, dict):
+            details = {"raw_details": str(details)}
+
         ble_info = {
             "name": getattr(ble_device, "name", None),
             "address": getattr(ble_device, "address", None),
             "rssi": getattr(ble_device, "rssi", None),
-            "details": str(getattr(ble_device, "details", {})),
+            "details": str(details),
         }
 
         # Try to extract manufacturer data if available

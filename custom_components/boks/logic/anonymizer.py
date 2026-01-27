@@ -15,6 +15,37 @@ class BoksAnonymizer:
     """Helper class to anonymize sensitive data in packets and strings."""
 
     @staticmethod
+    def anonymize_mac(mac: Optional[str], anonymize: bool = True) -> Optional[str]:
+        """Mask a MAC address (e.g. AA:BB:CC:DD:EE:FF -> AA:BB:CC:XX:XX:XX) if anonymize is True."""
+        if not mac or not anonymize:
+            return mac
+        
+        parts = mac.split(":")
+        if len(parts) != 6:
+            # Handle potential other formats or non-MAC strings
+            if len(mac) > 8:
+                return f"{mac[:8]}..."
+            return "***"
+            
+        return f"{parts[0]}:{parts[1]}:{parts[2]}:XX:XX:XX"
+
+    @staticmethod
+    def anonymize_log_message(message: str, anonymize: bool = True) -> str:
+        """Find and mask all MAC addresses in a string if anonymize is True."""
+        if not message or not anonymize:
+            return message
+        
+        import re
+        # Pattern for MAC addresses (case insensitive)
+        mac_pattern = r'([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})'
+        
+        def replace_mac(match):
+            mac = match.group(0)
+            return BoksAnonymizer.anonymize_mac(mac, True)
+            
+        return re.sub(mac_pattern, replace_mac, message)
+
+    @staticmethod
     def anonymize_uid(uid: Optional[str], anonymize: bool = True) -> Optional[str]:
         """Mask an NFC UID (e.g. 5A3EDAE0 -> 5A...E0) for display if anonymize is True."""
         if not uid or not anonymize:

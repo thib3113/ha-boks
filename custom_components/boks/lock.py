@@ -107,7 +107,8 @@ class BoksLock(BoksEntity, LockEntity):
             ble_device: BoksBluetoothDevice = self.coordinator.ble_device
 
             # Always connect to increment reference counter
-            _LOGGER.debug("async_open: getting BLE device from address %s", self._entry.data[CONF_ADDRESS])
+            _LOGGER.debug("async_open: getting BLE device from address %s", 
+                      BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self._coordinator.ble_device.anonymize_logs))
             device = bluetooth.async_ble_device_from_address(
                 self.hass, self._entry.data[CONF_ADDRESS], connectable=True
             )

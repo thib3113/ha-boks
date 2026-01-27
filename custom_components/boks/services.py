@@ -147,7 +147,8 @@ async def async_setup_services(hass: HomeAssistant):
             code = code.strip().upper()
 
         coordinator = get_coordinator_from_call(hass, call)
-        _LOGGER.info("Open Door requested via service for %s", coordinator.ble_device.address)
+        _LOGGER.info("Open Door requested via service for %s", 
+                     BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
 
         # Get the lock entity to use its open logic
         lock_entity = None
@@ -162,7 +163,8 @@ async def async_setup_services(hass: HomeAssistant):
 
         if lock_entity:
             await lock_entity.async_open(code=code)
-            _LOGGER.info("Open Door service completed for %s", coordinator.ble_device.address)
+            _LOGGER.info("Open Door service completed for %s", 
+                         BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
         else:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
@@ -431,10 +433,12 @@ async def async_setup_services(hass: HomeAssistant):
     async def handle_sync_logs(call: ServiceCall):
         """Handle the sync logs service call."""
         coordinator = get_coordinator_from_call(hass, call)
-        _LOGGER.info("Manual log sync requested via service for %s", coordinator.ble_device.address)
+        _LOGGER.info("Manual log sync requested via service for %s", 
+                     BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
         try:
             await coordinator.async_sync_logs(update_state=True)
-            _LOGGER.info("Manual log sync completed for %s", coordinator.ble_device.address)
+            _LOGGER.info("Manual log sync completed for %s", 
+                         BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
         except Exception as e:
             _LOGGER.error("Failed to sync logs via service: %s", e)
             raise

@@ -48,7 +48,8 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
         self.entry = entry
         _LOGGER.debug("BoksDataUpdateCoordinator initialized with Address: %s, Config Key Present: %s",
-                       entry.data[CONF_ADDRESS], bool(entry.data.get(CONF_CONFIG_KEY)))
+                       BoksAnonymizer.anonymize_mac(entry.data[CONF_ADDRESS], self.ble_device.anonymize_logs), 
+                       bool(entry.data.get(CONF_CONFIG_KEY)))
         self._last_battery_update = None
         self.full_refresh_interval_hours = entry.options.get("full_refresh_interval", DEFAULT_FULL_REFRESH_INTERVAL)
         # Set the full refresh interval on the BLE device
@@ -200,7 +201,8 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             if ble_device_struct:
                 await self.ble_device.connect(device=ble_device_struct)
             else:
-                _LOGGER.warning("Could not find BLE device for log sync, attempting connection by address only")
+                _LOGGER.warning("Could not find BLE device for log sync, attempting connection by address only for %s", 
+                                BoksAnonymizer.anonymize_mac(self.entry.data[CONF_ADDRESS], self.ble_device.anonymize_logs))
                 await self.ble_device.connect()
 
             log_count = await self.ble_device.get_logs_count()
