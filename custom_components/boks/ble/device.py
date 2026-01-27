@@ -143,55 +143,55 @@ class BoksBluetoothDevice:
                 raise BoksError("no_connectable_adapter")
 
             # Log all candidates for debugging
-            _LOGGER.debug("Available Connectable Scanners for %s:", self.address)
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                _LOGGER.debug("Available Connectable Scanners for %s:", self.address)
+            
             best_device = None
             best_rssi = -1000
 
             for dev in devices:
-                # INSPECTION LOG: Let's see what's inside this object
-                _LOGGER.debug("DEBUG: Inspecting device object type: %s", type(dev))
-                _LOGGER.debug("DEBUG: Device attributes: %s", dir(dev))
-                
-                details = getattr(dev, "details", {})
-                
-                # Try to find RSSI in common places
+                # Core selection logic (Keep it lean)
                 rssi = getattr(dev, "rssi", -100)
                 if rssi == -100 and hasattr(dev, "advertisement_data"):
                      rssi = getattr(dev.advertisement_data, "rssi", -100)
+
+                if _LOGGER.isEnabledFor(logging.DEBUG):
+                    details = getattr(dev, "details", {})
+                    name = getattr(dev, "name", "Unknown")
+                    source = details.get("source", "unknown")
+                    _LOGGER.debug(" - Candidate: %s | RSSI: %s | Source: %s | Type: %s", name, rssi, source, type(dev))
+                    # dir(dev) is very heavy
+                    _LOGGER.debug("DEBUG: Device attributes: %s", dir(dev))
                 
-                # Safely get name, some scanner objects might not have it or it's a property that can fail
-                name = getattr(dev, "name", "Unknown")
-                source = details.get("source", "unknown")
-                _LOGGER.debug(" - Candidate: %s | RSSI: %s | Source: %s", name, rssi, source)
-                
-                # Simple logic: Pick the one with best RSSI
                 if rssi > best_rssi:
                     best_rssi = rssi
                     best_device = dev
             
             if best_device:
                 device = best_device
-                # Safely get name again for the selected device log
-                best_name = getattr(device, "name", "Unknown")
-                _LOGGER.debug("Selected Best Candidate: %s (Source: %s, RSSI: %s)", 
-                              best_name, getattr(device, "details", {}).get("source"), best_rssi)
+                if _LOGGER.isEnabledFor(logging.DEBUG):
+                    best_name = getattr(device, "name", "Unknown")
+                    best_details = getattr(device, "details", {})
+                    _LOGGER.debug("Selected Best Candidate: %s (Source: %s, RSSI: %s)", 
+                                  best_name, best_details.get("source"), best_rssi)
             else:
                  # Fallback to the first one if logic fails
                  device = devices[0]
 
         if device:
-             # Try to log details about the proxy/adapter
-             details = getattr(device, "details", {})
-             
-             # Use HA's official way to get the latest RSSI for this address
-             rssi = "Unknown"
-             service_info = bluetooth.async_last_service_info(self.hass, self.address, connectable=True)
-             if service_info:
-                 rssi = service_info.rssi
-             
-             name = getattr(device, "name", "Unknown")
-             _LOGGER.debug("BLE Device to use: %s. RSSI: %s, Source: %s", 
-                           name, rssi, details.get("source", "unknown"))
+             if _LOGGER.isEnabledFor(logging.DEBUG):
+                 # Try to log details about the proxy/adapter
+                 details = getattr(device, "details", {})
+                 
+                 # Use HA's official way to get the latest RSSI for this address (Heavy lookup)
+                 rssi = "Unknown"
+                 service_info = bluetooth.async_last_service_info(self.hass, self.address, connectable=True)
+                 if service_info:
+                     rssi = service_info.rssi
+                 
+                 name = getattr(device, "name", "Unknown")
+                 _LOGGER.debug("BLE Device to use: %s. RSSI: %s, Source: %s", 
+                               name, rssi, details.get("source", "unknown"))
         else:
              _LOGGER.debug("BLE Device not found in HA cache.")
 
