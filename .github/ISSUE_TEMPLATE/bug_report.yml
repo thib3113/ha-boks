@@ -1,0 +1,59 @@
+name: "🐛 Bug Report / Signaler un Bug"
+description: "Create a report to help us improve / Créer un rapport pour nous aider à améliorer"
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **English:** Thanks for taking the time to fill out this bug report!
+        **Français :** Merci de prendre le temps de remplir ce rapport de bug !
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Describe the Bug / Description du Bug"
+      description: "A clear and concise description of what the bug is. / Une description claire et concise du problème."
+      placeholder: "I did X and Y happened... / J'ai fait X et Y est arrivé..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "To Reproduce / Pour Reproduire"
+      description: "Steps to reproduce the behavior. / Étapes pour reproduire le comportement."
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior / Comportement Attendu"
+      description: "A clear and concise description of what you expected to happen. / Une description claire de ce qui devait arriver."
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: "Integration Version / Version de l'Intégration"
+      placeholder: "v1.2.3"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Debug Logs / Journaux de Débogage"
+      description: |
+        **IMPORTANT:** Please enable **"Anonymize logs"** in the integration configuration before copying logs!
+        **IMPORTANT :** Veuillez activer l'option **"Anonymiser les logs"** dans la configuration de l'intégration avant de copier les journaux !
+
+        Paste logs here / Collez les logs ici :
+      render: shell
