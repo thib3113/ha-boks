@@ -1,0 +1,70 @@
+blueprint:
+  name: Boks - Door Left Open Alert (Active Check)
+  description: >
+    Checks if the Boks door has been left open for a certain time.
+    It actively polls the device (sync logs) to verify the status before notifying,
+    ensuring the alert is accurate even if the closing event was missed initially.
+  domain: automation
+  input:
+    door_entity:
+      name: Boks Door Entity
+      description: Select the lock entity (e.g., lock.my_boks_door)
+      selector:
+        entity:
+          domain: lock
+          integration: boks
+    open_duration:
+      name: Open Duration
+      description: How long the door must be open before triggering the check (in minutes).
+      default: 5
+      selector:
+        number:
+          min: 1
+          max: 60
+          unit_of_measurement: "min"
+    sync_delay:
+      name: Sync Wait Time
+      description: Seconds to wait after triggering a log sync before checking the status again.
+      default: 15
+      selector:
+        number:
+          min: 5
+          max: 60
+          unit_of_measurement: "sec"
+    notify_device:
+      name: Mobile Device to Notify
+      description: The device that will receive the notifications.
+      selector:
+        device:
+          integration: mobile_app
+
+trigger:
+  - platform: state
+    entity_id: !input door_entity
+    to: "unlocked"
+    for:
+      minutes: !input open_duration
+
+variables:
+  open_duration: !input open_duration
+
+action:
+  # 1. Force a sync to get the real status (in case BLE event was missed)
+  - service: boks.sync_logs
+    target:
+      entity_id: !input door_entity
+
+  # 2. Wait for the sync to complete and state to update
+  - delay: !input sync_delay
+
+  # 3. Check if door is STILL open (unlocked)
+  - condition: state
+    entity_id: !input door_entity
+    state: "unlocked"
+
+  # 4. Notify
+  - domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    title: "⚠️ Boks Door Open"
+    message: "Your Boks door has been left open for more than {{ open_duration }} minutes."

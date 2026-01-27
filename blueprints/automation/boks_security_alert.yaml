@@ -1,0 +1,35 @@
+blueprint:
+  name: Boks - Security Alert (Invalid Code)
+  description: >
+    Sends a critical notification when an invalid PIN code is attempted on the Boks
+    (via Keypad or Bluetooth).
+  domain: automation
+  input:
+    log_entity:
+      name: Boks Log Event Entity
+      description: Select the event entity (e.g., event.my_boks_logs)
+      selector:
+        entity:
+          domain: event
+          integration: boks
+    notify_device:
+      name: Mobile Device to Notify
+      description: The device that will receive the notifications.
+      selector:
+        device:
+          integration: mobile_app
+
+trigger:
+  - platform: state
+    entity_id: !input log_entity
+    attribute: event_type
+    to:
+      - "code_ble_invalid"
+      - "code_key_invalid"
+
+action:
+  - domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    title: "🚨 Boks Security Alert"
+    message: "An invalid code attempt was detected on your Boks!"

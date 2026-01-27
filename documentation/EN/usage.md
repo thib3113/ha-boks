@@ -42,22 +42,22 @@ Modifies internal settings (e.g., enable/disable La Poste badge recognition).
 
 ---
 
-## 🚀 Blueprint (Simplified Automations)
+## 🚀 Blueprints (Ready-to-use Automations)
 
-To simplify configuration, we provide a ready-to-use **Blueprint** that bundles the most common scenarios.
+To make things easier, we provide several Blueprints tailored to different needs.
 
-### 📥 [Import Boks Notifications Blueprint](../../blueprints/automation/boks_notifications.yaml)
+### 📥 1. [Parcel Delivered Notification](../../blueprints/automation/boks_parcel_delivered.yaml)
+Sends you a notification when a code from the parcel list is used.
 
-This Blueprint allows you to configure in a few clicks:
-*   ✅ Parcel Delivered Notification
-*   🚪 Door Opening Notification
-*   🚨 Alert on Invalid Code
-*   🔋 Low Battery Alert
+### 📥 2. [Security Alert (Invalid Code)](../../blueprints/automation/boks_security_alert.yaml)
+Immediate critical notification if an incorrect PIN code is entered on the Boks.
 
-To use it:
-1.  Copy the `blueprints/automation/boks_notifications.yaml` file to your `blueprints/automation/` folder.
-2.  Go to **Settings > Automations & Scenes > Blueprints**.
-3.  Search for "Boks Notifications" and click "Create Automation".
+### 📥 3. [Low Battery Alert](../../blueprints/automation/boks_battery_alert.yaml)
+Robust battery monitoring (handles HA restarts and delays to avoid false alerts).
+
+### 📥 4. [Door Left Open Alert](../../blueprints/automation/boks_door_left_open.yaml)
+Smartly checks if the door has been left open.
+*   *Feature*: Performs an active check (Bluetooth sync) before sending the alert to ensure the door is truly open.
 
 ---
 
@@ -82,9 +82,9 @@ action:
       message: "The parcel '{{ trigger.event.data.description }}' was deposited using code {{ trigger.event.data.code }}."
 ```
 
-### 2. Door Left Open Alert
+### 2. Door Left Open Alert (Simple Version)
 If the door remains open for more than 5 minutes, receive an alert.
-*Note: The `lock` entity is considered "unlocked" as long as the door is physically open.*
+*Note: For a more reliable version that checks the actual status, use the provided Blueprint.*
 
 ```yaml
 alias: "Boks: Door Left Open"

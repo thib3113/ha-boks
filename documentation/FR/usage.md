@@ -42,22 +42,22 @@ Modifie les paramètres internes (ex: activer/désactiver la reconnaissance des 
 
 ---
 
-## 🚀 Blueprint (Automatisations Simplifiées)
+## 🚀 Blueprints (Automatisations Prêtes à l'Emploi)
 
-Pour simplifier la configuration, nous fournissons un **Blueprint** prêt à l'emploi qui regroupe les scénarios les plus courants.
+Pour vous simplifier la vie, nous fournissons plusieurs Blueprints adaptés à différents besoins.
 
-### 📥 [Importer le Blueprint Boks Notifications](../../blueprints/automation/boks_notifications.yaml)
+### 📥 1. [Notification de Colis Livré](../../blueprints/automation/boks_parcel_delivered.yaml)
+Vous envoie une notification quand un code de la liste de colis est utilisé.
 
-Ce Blueprint vous permet de configurer en quelques clics :
-*   ✅ Notification de colis livré
-*   🚪 Notification d'ouverture de porte
-*   🚨 Alerte en cas de code faux
-*   🔋 Alerte batterie faible
+### 📥 2. [Alerte Sécurité (Code Invalide)](../../blueprints/automation/boks_security_alert.yaml)
+Notification critique immédiate si un code PIN erroné est saisi sur la Boks.
 
-Pour l'utiliser :
-1.  Copiez le fichier `blueprints/automation/boks_notifications.yaml` dans votre dossier `blueprints/automation/`.
-2.  Allez dans **Paramètres > Automatisations et scènes > Blueprints**.
-3.  Cherchez "Boks Notifications" et cliquez sur "Créer une automatisation".
+### 📥 3. [Alerte Batterie Faible](../../blueprints/automation/boks_battery_alert.yaml)
+Surveillance robuste de la batterie (avec gestion des redémarrages HA et temporisation pour éviter les fausses alertes).
+
+### 📥 4. [Alerte Porte Restée Ouverte](../../blueprints/automation/boks_door_left_open.yaml)
+Vérifie intelligemment si la porte est restée ouverte.
+*   *Particularité* : Effectue une vérification active (synchronisation Bluetooth) avant d'envoyer l'alerte pour s'assurer que la porte est réellement ouverte.
 
 ---
 
@@ -82,9 +82,9 @@ action:
       message: "Le colis '{{ trigger.event.data.description }}' a été déposé avec le code {{ trigger.event.data.code }}."
 ```
 
-### 2. Alerte Porte Restée Ouverte
+### 2. Alerte Porte Restée Ouverte (Version Simple)
 Si la porte reste ouverte plus de 5 minutes, recevez une alerte.
-*Note : L'entité `lock` est considérée comme "déverrouillée" tant que la porte est physiquement ouverte.*
+*Note : Pour une version plus fiable qui vérifie l'état réel, utilisez le Blueprint fourni.*
 
 ```yaml
 alias: "Boks: Alerte Porte Ouverte"
