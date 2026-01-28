@@ -36,6 +36,26 @@ The Boks integration offers a tiered approach to functionality based on the cred
 
 6.  **Submit**: Click "Submit" to complete the configuration and activate the integration with the selected features.
 
+## System Options
+
+Once the integration is installed, you can modify its options by clicking **Configure** on the Boks integration card (via Devices & Services).
+
+### Available Settings
+
+*   **Update Interval (minutes)** (`scan_interval`):
+    *   Sets how often Home Assistant attempts to connect to the Boks to check its status (e.g., battery).
+    *   *Note*: A frequency that is too high may reduce battery life.
+
+*   **Full Refresh Interval (hours)** (`full_refresh_interval`):
+    *   Sets the frequency for a full data synchronization (logs, deep configuration).
+
+*   **Master Code for Opening (Optional)** (`master_code`):
+    *   Allows you to change the default code used by the "Open" action (`lock.open`). Useful if you have manually changed the code on the device.
+
+*   **Anonymize Logs** (`anonymize_logs`):
+    *   **Crucial for Support**: If enabled, all PIN codes and sensitive identifiers will be replaced with dummy values (e.g., `1234AB`) in Home Assistant debug logs.
+    *   Enable this option **before** sharing your logs for a support request or bug report.
+
 ## Advanced Configuration
 
 ### Battery Format Persistence
@@ -47,8 +67,6 @@ The Boks device supports different battery measurement formats, which are automa
 *   **measures-first-min-mean-max-last**: Detailed measurements including min, mean, and max values
 
 The integration automatically detects the battery format during the first door opening and stores it in the configuration. This ensures that the appropriate battery diagnostic sensors are created and available even when the device is offline. If the battery format changes (e.g., due to a firmware update), the integration will detect and update the stored format during the next door opening.
-
-[Add details about any advanced configuration options, if applicable. E.g., multiple Boks devices, specific settings.]
 
 ## Reconfiguring an Existing Integration
 

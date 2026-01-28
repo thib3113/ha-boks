@@ -4,7 +4,7 @@
 
 # Home Assistant Boks Integration
 
-> 🇫🇷 **[Lire la documentation en Français](documentation/FR/introduction.md)**
+> 🇫🇷 **[Lire la documentation en Français](documentation/FR/README.md)**
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 [![GitHub License](https://img.shields.io/github/license/thib3113/ha-boks?color=blue)](LICENSE)
@@ -132,7 +132,7 @@ logger:
 
 For comprehensive guides, please refer to:
 
-*   [Introduction](documentation/EN/introduction.md)
+*   [Introduction](documentation/EN/README.md)
 *   [Features](documentation/EN/features.md)
 *   [Prerequisites](documentation/EN/prerequisites.md)
 *   [Installation](documentation/EN/installation.md)
