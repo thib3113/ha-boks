@@ -304,12 +304,23 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
                     now = datetime.now()
 
-                    # Only fetch battery if we don't have it yet (first run)
-                    # Afterwards, battery is updated only via door events (see device.py)
-                    should_fetch_battery = "battery_level" not in data
+                    # Determine if we should perform a full refresh
+                    should_full_refresh = True
+                    if "device_info_service" in data:
+                         last_fetch = data.get("last_device_info_fetch")
+                         if last_fetch:
+                             last_fetch_dt = datetime.fromisoformat(last_fetch)
+                             # Full refresh interval is used for both device info and periodic battery check
+                             if (now - last_fetch_dt) < timedelta(hours=self.full_refresh_interval_hours):
+                                 should_full_refresh = False
+
+                    # Fetch battery level:
+                    # 1. If we don't have it yet (First run)
+                    # 2. On every Full Refresh (Periodic check)
+                    should_fetch_battery = "battery_level" not in data or should_full_refresh
 
                     if should_fetch_battery:
-                        _LOGGER.debug("Fetching battery level and stats (Initial)...")
+                        _LOGGER.debug("Fetching battery level (Reason: %s)...", "Initial" if "battery_level" not in data else "Full Refresh")
                         try:
                             battery_level = await self.ble_device.get_battery_level()
                             data["battery_level"] = battery_level
@@ -318,17 +329,20 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         except Exception as e:
                             _LOGGER.warning("Failed to fetch battery level: %s", e)
 
-                        try:
-                            battery_stats = await self.ble_device.get_battery_stats()
-                            if battery_stats:
-                                data["battery_stats"] = battery_stats
-                                if "temperature" in battery_stats and battery_stats["temperature"] is not None:
-                                    data["battery_temperature"] = battery_stats["temperature"]
-                                _LOGGER.debug("Battery stats fetched: %s", battery_stats)
-                        except Exception as e:
-                            _LOGGER.warning("Failed to fetch battery stats: %s", e)
+                        # Only fetch detailed stats on initial run or if we really suspect they might be available
+                        # (Usually they are pushed after door opening, pulling them randomly often yields nothing)
+                        if "battery_stats" not in data:
+                            try:
+                                battery_stats = await self.ble_device.get_battery_stats()
+                                if battery_stats:
+                                    data["battery_stats"] = battery_stats
+                                    if "temperature" in battery_stats and battery_stats["temperature"] is not None:
+                                        data["battery_temperature"] = battery_stats["temperature"]
+                                    _LOGGER.debug("Battery stats fetched: %s", battery_stats)
+                            except Exception as e:
+                                _LOGGER.warning("Failed to fetch battery stats: %s", e)
                     else:
-                        _LOGGER.debug("Battery fetch skipped (handled by door events).")
+                        _LOGGER.debug("Battery fetch skipped (handled by door events or not yet time for full refresh).")
 
                     # 2. Get Code Counts (Always fetch as it doesn't require config key)
                     _LOGGER.debug("Fetching code counts...")
@@ -341,19 +355,9 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     except asyncio.TimeoutError:
                         _LOGGER.warning("Timeout while fetching code counts")
 
-                    # 4. Get Device Information
-                    should_fetch_device_info = True
-                    if "device_info_service" in data:
-                         last_fetch = data.get("last_device_info_fetch")
-                         if last_fetch:
-                             last_fetch_dt = datetime.fromisoformat(last_fetch)
-                             device_info_interval_hours = self.full_refresh_interval_hours * 2
-                             if (now - last_fetch_dt) < timedelta(hours=device_info_interval_hours):
-                                 should_fetch_device_info = False
-                                 _LOGGER.debug("Skipping device info update (last update < %dh ago)", device_info_interval_hours)
-
-                    if should_fetch_device_info:
-                        _LOGGER.debug("Fetching device information...")
+                    # 4. Get Device Information (On Full Refresh)
+                    if should_full_refresh:
+                        _LOGGER.debug("Fetching device information (Full Refresh)...")
                         try:
                             device_info = await self.ble_device.get_device_information()
                             data["device_info_service"] = device_info
