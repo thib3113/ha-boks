@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class PowerOnPacket(BoksHistoryLogPacket):
     """Log entry for power on event."""
 
-    OPCODE = BoksHistoryEvent.POWER_ON
+    OPCODES = BoksHistoryEvent.POWER_ON
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.POWER_ON, raw_data)

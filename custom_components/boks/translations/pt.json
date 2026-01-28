@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "Digitalização NFC Terminada",
     "nfc_scan_timeout_msg": "O tempo de espera de 6 segundos expirou. Nenhuma tag detetada.",
     "nfc_register_error_title": "Erro de Registo",
-    "nfc_register_error_msg": "Falha ao registar a tag {uid}. O dispositivo não respondeu."
+    "nfc_register_error_msg": "Falha ao registar a tag {uid}. O dispositivo não respondeu.",
+    "maintenance_progress_msg": "Limpando índice {current}/{total} (Sucesso : {cleaned})",
+    "maintenance_idle_msg": "Inativo",
+    "maintenance_finished_msg": "Limpeza terminada (Sucesso : {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Entidade de bloqueio não encontrada para este dispositivo." },
     "maintenance_already_running": { "message": "Já existe uma tarefa de manutenção em curso. Por favor, aguarde que termine." },
     "maintenance_error_msg": { "message": "Limpeza de códigos mestres falhou no índice {current_idx}.\nErro: {error}" },
+    "maintenance_failed_msg": { "message": "Manutenção falhou : {error}" },
     "maintenance_error_title": { "message": "Erro de manutenção Boks" },
     "nfc_tag_already_exists": { "message": "Esta tag NFC já está registada na Boks." }
   },

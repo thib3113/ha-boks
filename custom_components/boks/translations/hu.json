@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "NFC beolvasás befejeződött",
     "nfc_scan_timeout_msg": "A 6 másodperces várakozási idő lejárt. Nem észleltem kártyát.",
     "nfc_register_error_title": "Regisztrációs hiba",
-    "nfc_register_error_msg": "Nem sikerült a(z) {uid} kártya regisztrálása. Az eszköz nem válaszolt."
+    "nfc_register_error_msg": "Nem sikerült a(z) {uid} kártya regisztrálása. Az eszköz nem válaszolt.",
+    "maintenance_progress_msg": "Indextisztítás: {current}/{total} (Sikeres: {cleaned})",
+    "maintenance_idle_msg": "Készenlét",
+    "maintenance_finished_msg": "Tisztítás befejeződött (Sikeres: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Zár entitás nem található ehhez az eszközhöz." },
     "maintenance_already_running": { "message": "Egy karbantartási feladat már folyamatban van. Kérjük, várja meg, amíg befejeződik." },
     "maintenance_error_msg": { "message": "A mesterkódok tisztítása sikertelen a(z) {current_idx} indexnél.\nHiba: {error}" },
+    "maintenance_failed_msg": { "message": "A karbantartás sikertelen: {error}" },
     "maintenance_error_title": { "message": "Boks karbantartási hiba" },
     "nfc_tag_already_exists": { "message": "Ez az NFC kártya már regisztrálva van a Bokszban." }
   },

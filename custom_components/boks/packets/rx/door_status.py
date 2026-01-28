@@ -5,7 +5,7 @@ from ...ble.const import BoksNotificationOpcode
 class DoorStatusPacket(BoksRXPacket):
     """Notification for current door status (Open/Closed)."""
 
-    OPCODE = [BoksNotificationOpcode.NOTIFY_DOOR_STATUS, BoksNotificationOpcode.ANSWER_DOOR_STATUS]
+    OPCODES = [BoksNotificationOpcode.NOTIFY_DOOR_STATUS, BoksNotificationOpcode.ANSWER_DOOR_STATUS]
 
     def __init__(self, opcode: int, raw_data: bytearray):
         """Initialize and parse status."""

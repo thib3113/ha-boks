@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "Scanare NFC finalizată",
     "nfc_scan_timeout_msg": "Timpul de așteptare de 6 secunde a expirat. Nu a fost detectat niciun tag.",
     "nfc_register_error_title": "Eroare de înregistrare",
-    "nfc_register_error_msg": "Nu s-a putut înregistra tagul {uid}. Dispozitivul nu a răspuns."
+    "nfc_register_error_msg": "Nu s-a putut înregistra tagul {uid}. Dispozitivul nu a răspuns.",
+    "maintenance_progress_msg": "Curățare index {current}/{total} (Succes: {cleaned})",
+    "maintenance_idle_msg": "Inactiv",
+    "maintenance_finished_msg": "Curățare finalizată (Succes: {cleaned})"
   },
   "config": {
     "step": {
@@ -183,9 +186,9 @@
     "laposte_firmware_version_required": {"message": "Versiunea firmware trebuie să fie mai mare de {required_version} pentru a activa funcția La Poste. Versiunea curentă: {current_version}"}, 
     "lock_entity_not_found": {"message": "Entitatea de blocare nu a fost găsită pentru acest dispozitiv."}, 
     "maintenance_already_running": {"message": "O sarcină de întreținere este deja în desfășurare. Vă rugăm să așteptați finalizarea acesteia."}, 
-    "maintenance_error_msg": {"message": "Curățarea codurilor master a eșuat la indexul {current_idx}.\nEroare: {error}"}, 
-    "maintenance_error_title": {"message": "Eroare de întreținere Boks"}, 
-    "nfc_tag_already_exists": {"message": "Acest tag NFC este deja înregistrat în Boks."} 
+        "maintenance_error_msg": {"message": "Curățarea codurilor master a eșuat la indexul {current_idx}.\nEroare: {error}"},
+        "maintenance_failed_msg": {"message": "Întreținere eșuată: {error}"},
+        "maintenance_error_title": {"message": "Eroare de întreținere Boks"},    "nfc_tag_already_exists": {"message": "Acest tag NFC este deja înregistrat în Boks."} 
   },
   "options": {
     "step": {

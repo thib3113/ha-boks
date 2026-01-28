@@ -14,6 +14,8 @@ from .coordinator import BoksDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+# This function must be async to satisfy Home Assistant's platform setup contract,
+# even if it doesn't currently await anything.
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,

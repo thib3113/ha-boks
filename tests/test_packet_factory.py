@@ -96,12 +96,11 @@ def test_factory_invalid_opcode():
     """Test factory returns generic packet for unknown opcode."""
     payload = bytes.fromhex("000000")
     data = build_rx_packet(0xFF, payload)
-    
-    packet = PacketFactory.from_rx_data(data)
-    
-    assert type(packet) == BoksRXPacket
-    assert packet.opcode == 0xFF
 
+    packet = PacketFactory.from_rx_data(data)
+
+    assert type(packet) is BoksRXPacket
+    assert packet.opcode == 0xFF
 def test_factory_nfc_opening(mock_time):
     """Test factory creates NfcOpeningPacket (0xA1)."""
     # 0xA1 = NFC_OPENING

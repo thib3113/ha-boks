@@ -6,7 +6,7 @@ from ...logic.anonymizer import BoksAnonymizer
 class CodeBleValidPacket(BoksHistoryLogPacket):
     """Log entry for a valid BLE code opening."""
 
-    OPCODE = BoksHistoryEvent.CODE_BLE_VALID
+    OPCODES = BoksHistoryEvent.CODE_BLE_VALID
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.CODE_BLE_VALID, raw_data)

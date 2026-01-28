@@ -5,7 +5,7 @@ from ...ble.const import BoksNotificationOpcode
 class ErrorResponsePacket(BoksRXPacket):
     """Generic representation of an error notification (CRC, Auth, etc.)."""
 
-    OPCODE = [
+    OPCODES = [
         BoksNotificationOpcode.ERROR_CRC,
         BoksNotificationOpcode.ERROR_UNAUTHORIZED,
         BoksNotificationOpcode.ERROR_BAD_REQUEST

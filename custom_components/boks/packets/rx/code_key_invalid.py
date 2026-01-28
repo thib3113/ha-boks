@@ -6,7 +6,7 @@ from ...logic.anonymizer import BoksAnonymizer
 class CodeKeyInvalidPacket(BoksHistoryLogPacket):
     """Log entry for an invalid keypad code attempt."""
 
-    OPCODE = BoksHistoryEvent.CODE_KEY_INVALID
+    OPCODES = BoksHistoryEvent.CODE_KEY_INVALID
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.CODE_KEY_INVALID, raw_data)

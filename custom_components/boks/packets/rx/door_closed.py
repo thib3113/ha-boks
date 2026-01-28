@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class DoorClosedPacket(BoksHistoryLogPacket):
     """Log entry for door closed event."""
 
-    OPCODE = BoksHistoryEvent.DOOR_CLOSED
+    OPCODES = BoksHistoryEvent.DOOR_CLOSED
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.DOOR_CLOSED, raw_data)

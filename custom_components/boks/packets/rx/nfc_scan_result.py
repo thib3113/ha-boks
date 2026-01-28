@@ -9,7 +9,7 @@ from ...logic.anonymizer import BoksAnonymizer
 class NfcScanResultPacket(BoksRXPacket):
     """Real-time notification when a tag is found or an error occurs during scan."""
 
-    OPCODE = [
+    OPCODES = [
         BoksNotificationOpcode.NOTIFY_NFC_TAG_FOUND,
         BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_SCAN,
         BoksNotificationOpcode.ERROR_NFC_SCAN_TIMEOUT

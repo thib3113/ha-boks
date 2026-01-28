@@ -7,6 +7,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.boks.coordinator import BoksDataUpdateCoordinator
+from custom_components.boks.errors import BoksError
 
 
 async def test_coordinator_update_success(
@@ -38,8 +39,11 @@ async def test_coordinator_update_device_not_found(
     # Mock bluetooth device NOT found
     mock_bluetooth["scan"].return_value = []
     mock_bluetooth["addr"].return_value = None
+    
+    # Mock connect failure
+    mock_boks_ble_device.connect.side_effect = BoksError("no_connectable_adapter")
 
-    with pytest.raises(UpdateFailed, match="device_not_in_cache"):
+    with pytest.raises(UpdateFailed, match="Error communicating with Boks: no_connectable_adapter"):
         await coordinator._async_update_data()
 
 async def test_coordinator_sync_logs(

@@ -69,7 +69,7 @@ class BoksRXPacket(BoksPacket):
     """Base class for incoming notification/log packets."""
 
     # Can be a single int or a list of opcodes
-    OPCODE: Union[int, List[int], None] = None
+    OPCODES: Union[int, List[int], None] = None
 
     def __init__(self, opcode: int, raw_data: bytearray):
         """Initialize with raw data."""

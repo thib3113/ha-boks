@@ -6,7 +6,7 @@ from ...logic.anonymizer import BoksAnonymizer
 class NfcTagRegisteringScanPacket(BoksHistoryLogPacket):
     """Log entry for an NFC tag registration scan."""
 
-    OPCODE = BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN
+    OPCODES = BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.NFC_TAG_REGISTERING_SCAN, raw_data)

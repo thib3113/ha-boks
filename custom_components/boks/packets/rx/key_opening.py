@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class KeyOpeningPacket(BoksHistoryLogPacket):
     """Log entry for key opening event."""
 
-    OPCODE = BoksHistoryEvent.KEY_OPENING
+    OPCODES = BoksHistoryEvent.KEY_OPENING
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.KEY_OPENING, raw_data)

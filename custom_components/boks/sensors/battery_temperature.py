@@ -37,14 +37,12 @@ class BoksBatteryTemperatureSensor(BoksEntity, SensorEntity):
     @property
     def native_value(self) -> int | None: # Changed return type to allow None initially
         """Return the state of the sensor."""
-        current_temp = self.coordinator.data.get("battery_temperature") # Get value without default
+        current_temp = self.coordinator.data.get("battery_temperature")
         
-        # Check for invalid temperature (255 or None)
+        # 255 or None indicates data is currently unavailable (Normal behavior)
         if current_temp is None or current_temp == 255:
-            _LOGGER.debug("Invalid temperature reading (255 or None) for %s. Returning last valid: %s", self.entity_id, self._last_valid_temperature)
             return self._last_valid_temperature
 
-        
         # Update and return valid temperature
         self._last_valid_temperature = current_temp
         return current_temp

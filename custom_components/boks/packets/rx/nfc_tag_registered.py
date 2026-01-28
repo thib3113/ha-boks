@@ -5,7 +5,7 @@ from ...ble.const import BoksNotificationOpcode
 class NfcTagRegisteredPacket(BoksRXPacket):
     """Notification confirming an NFC tag registration."""
 
-    OPCODE = BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED
+    OPCODES = BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED
 
     def __init__(self, raw_data: bytearray):
         """Initialize."""

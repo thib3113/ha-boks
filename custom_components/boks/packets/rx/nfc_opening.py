@@ -6,7 +6,7 @@ from ...logic.anonymizer import BoksAnonymizer
 class NfcOpeningPacket(BoksHistoryLogPacket):
     """Notification for an NFC opening."""
 
-    OPCODE = BoksHistoryEvent.NFC_OPENING
+    OPCODES = BoksHistoryEvent.NFC_OPENING
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.NFC_OPENING, raw_data)

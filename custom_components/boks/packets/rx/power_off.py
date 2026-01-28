@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class PowerOffPacket(BoksHistoryLogPacket):
     """Notification for a device power off/reset."""
 
-    OPCODE = BoksHistoryEvent.POWER_OFF
+    OPCODES = BoksHistoryEvent.POWER_OFF
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.POWER_OFF, raw_data)

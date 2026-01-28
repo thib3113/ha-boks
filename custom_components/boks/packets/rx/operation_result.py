@@ -5,12 +5,12 @@ from ...ble.const import BoksNotificationOpcode
 class OperationResultPacket(BoksRXPacket):
     """Notification for the success or failure of an operation."""
 
-    OPCODE = [BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR]
+    OPCODES = [BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR]
 
     def __init__(self, opcode: int, raw_data: bytearray):
         """Initialize."""
         super().__init__(opcode, raw_data)
-        self.success = (opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS)
+        self.success = (self.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS)
 
     def to_log_dict(self, anonymize: bool = True) -> dict[str, str]:
         """Log info for operation result."""

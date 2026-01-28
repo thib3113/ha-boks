@@ -51,7 +51,7 @@ class PacketFactory:
         ]
 
         for cls_item in classes:
-            opcodes = cls_item.OPCODE
+            opcodes = cls_item.OPCODES
             if isinstance(opcodes, list):
                 for op in opcodes:
                     cls._RX_MAP[op] = cls_item

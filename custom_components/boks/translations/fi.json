@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "NFC-skannaus päättynyt",
     "nfc_scan_timeout_msg": "6 sekunnin viive on kulunut umpeen. Tunnistetta ei havaittu.",
     "nfc_register_error_title": "Rekisteröintivirhe",
-    "nfc_register_error_msg": "Tunnisteen {uid} rekisteröinti epäonnistui. Laite ei vastannut."
+    "nfc_register_error_msg": "Tunnisteen {uid} rekisteröinti epäonnistui. Laite ei vastannut.",
+    "maintenance_progress_msg": "Puhdistetaan indeksiä {current}/{total} (Onnistui: {cleaned})",
+    "maintenance_idle_msg": "Valmiustila",
+    "maintenance_finished_msg": "Puhdistus valmis (Onnistui: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Lukko-entiteettiä ei löytynyt tälle laitteelle." },
     "maintenance_already_running": { "message": "Huoltotehtävä on jo käynnissä. Odota, kunnes se on valmis." },
     "maintenance_error_msg": { "message": "Pääkoodien puhdistus epäonnistui indeksissä {current_idx}.\nVirhe: {error}" },
+    "maintenance_failed_msg": { "message": "Huolto epäonnistui: {error}" },
     "maintenance_error_title": { "message": "Boks Huoltovirhe" },
     "nfc_tag_already_exists": { "message": "Tämä NFC-tunniste on jo rekisteröity Boks-laitteeseen." }
   },

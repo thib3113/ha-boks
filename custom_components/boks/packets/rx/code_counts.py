@@ -5,7 +5,7 @@ from ...ble.const import BoksNotificationOpcode
 class CodeCountsPacket(BoksRXPacket):
     """Notification containing current code counts."""
 
-    OPCODE = BoksNotificationOpcode.NOTIFY_CODES_COUNT
+    OPCODES = BoksNotificationOpcode.NOTIFY_CODES_COUNT
 
     def __init__(self, raw_data: bytearray):
         """Initialize and parse counts."""

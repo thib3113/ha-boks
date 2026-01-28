@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class BlockResetPacket(BoksHistoryLogPacket):
     """Log entry for block reset event."""
 
-    OPCODE = BoksHistoryEvent.BLOCK_RESET
+    OPCODES = BoksHistoryEvent.BLOCK_RESET
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.BLOCK_RESET, raw_data)

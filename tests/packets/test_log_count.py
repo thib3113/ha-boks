@@ -5,7 +5,6 @@ from custom_components.boks.ble.const import BoksNotificationOpcode
 def test_parse_log_count():
     """Test parsing of LogCountPacket."""
     opcode = BoksNotificationOpcode.NOTIFY_LOGS_COUNT
-    count_val = 1234 # 0x04D2
     payload = bytes([0x04, 0xD2])
     
     raw_data = bytearray()

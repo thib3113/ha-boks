@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "Scan NFC Terminé",
     "nfc_scan_timeout_msg": "Le délai de 6 secondes est écoulé. Aucun badge n'a été détecté.",
     "nfc_register_error_title": "Erreur d'Enregistrement",
-    "nfc_register_error_msg": "Échec de l'enregistrement du badge {uid}. L'appareil n'a pas répondu."
+    "nfc_register_error_msg": "Échec de l'enregistrement du badge {uid}. L'appareil n'a pas répondu.",
+    "maintenance_progress_msg": "Nettoyage index {current}/{total} (Succès : {cleaned})",
+    "maintenance_idle_msg": "Inactif",
+    "maintenance_finished_msg": "Nettoyage Terminé (Succès : {cleaned})"
   },
   "config": {
     "step": {
@@ -159,6 +162,7 @@
     "invalid_uid_format": { "message": "Format d'UID NFC invalide." },
     "invalid_master_code_index": { "message": "Index de code permanent invalide (doit être entre 0 et 255)." },
     "nfc_tag_already_exists": { "message": "Ce badge NFC est déjà enregistré dans la Boks." },
+    "maintenance_failed_msg": { "message": "Échec de la maintenance : {error}" },
     "maintenance_error_title": { "message": "Erreur de Maintenance Boks" },
     "maintenance_error_msg": { "message": "L'opération de nettoyage des codes permanents a échoué à l'index {current_idx}.\nErreur : {error}" }
   },

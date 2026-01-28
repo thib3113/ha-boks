@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "NFC-scan Beëindigd",
     "nfc_scan_timeout_msg": "De 6 seconden wachttijd is verstreken. Geen tag gedetecteerd.",
     "nfc_register_error_title": "Registratiefout",
-    "nfc_register_error_msg": "Registreren van tag {uid} mislukt. Het apparaat reageerde niet."
+    "nfc_register_error_msg": "Registreren van tag {uid} mislukt. Het apparaat reageerde niet.",
+    "maintenance_progress_msg": "Index {current}/{total} opschonen (Succes: {cleaned})",
+    "maintenance_idle_msg": "Inactief",
+    "maintenance_finished_msg": "Opschonen voltooid (Succès: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Slotentiteit niet gevonden voor dit apparaat." },
     "maintenance_already_running": { "message": "Er is al een onderhoudstaak bezig. Wacht tot deze klaar is." },
     "maintenance_error_msg": { "message": "Schoonmaken van mastercodes mislukt op index {current_idx}.\nFout: {error}" },
+    "maintenance_failed_msg": { "message": "Onderhoud mislukt: {error}" },
     "maintenance_error_title": { "message": "Boks Onderhoudsfout" },
     "nfc_tag_already_exists": { "message": "Deze NFC-tag is al geregistreerd in de Boks." }
   },

@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "انتهى مسح NFC",
     "nfc_scan_timeout_msg": "انتهت مهلة 6 ثوانٍ. لم يتم اكتشاف أي علامة.",
     "nfc_register_error_title": "خطأ في التسجيل",
-    "nfc_register_error_msg": "فشل في تسجيل العلامة {uid}. لم يستجب الجهاز."
+    "nfc_register_error_msg": "فشل تسجيل علامة {uid}. الجهاز لم يستجب.",
+    "maintenance_progress_msg": "تنظيف الفهرس {current}/{total} (النجاح: {cleaned})",
+    "maintenance_idle_msg": "خامل",
+    "maintenance_finished_msg": "انتهى التنظيف (النجاح: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "كيان القفل غير موجود لهذا الجهاز." },
     "maintenance_already_running": { "message": "مهمة صيانة قيد التقدم بالفعل. يرجى الانتظار حتى تنتهي." },
     "maintenance_error_msg": { "message": "فشل تنظيف الرمز الرئيسي في الفهرس {current_idx}.\nالخطأ: {error}" },
+    "maintenance_failed_msg": { "message": "فشلت الصيانة: {error}" },
     "maintenance_error_title": { "message": "خطأ في صيانة Boks" },
     "nfc_tag_already_exists": { "message": "علامة NFC هذه مسجلة بالفعل في Boks." }
   },

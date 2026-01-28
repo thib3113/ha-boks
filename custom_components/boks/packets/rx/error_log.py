@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class ErrorLogPacket(BoksHistoryLogPacket):
     """Log entry for a technical/diagnostic error."""
 
-    OPCODE = BoksHistoryEvent.ERROR
+    OPCODES = BoksHistoryEvent.ERROR
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.ERROR, raw_data)

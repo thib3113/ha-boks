@@ -14,8 +14,11 @@
     "nfc_scan_started_msg": "La Boks est en mode écoute. Présentez votre badge NFC immédiatement (timeout 6s).",
     "nfc_scan_timeout_title": "Balayage NFC Terminé",
     "nfc_scan_timeout_msg": "Le délai de 6 secondes est écoulé. Aucun badge n'a été détecté.",
-    "nfc_register_error_title": "Erreur d'Enregistrement",
-    "nfc_register_error_msg": "Échec de l'enregistrement du badge {uid}. L'appareil n'a pas répondu."
+    "nfc_register_error_title": "Erreur d'enregistrement",
+    "nfc_register_error_msg": "Échec de l'enregistrement du tag {uid}. L'appareil n'a pas répondu.",
+    "maintenance_progress_msg": "Nettoyage index {current}/{total} (Succès : {cleaned})",
+    "maintenance_idle_msg": "Inactif",
+    "maintenance_finished_msg": "Nettoyage terminé (Succès : {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Entité de verrouillage introuvable pour cet appareil." },
     "maintenance_already_running": { "message": "Une tâche de maintenance est déjà en cours. Veuillez attendre qu'elle se termine." },
     "maintenance_error_msg": { "message": "Échec du nettoyage des codes permanents à l'index {current_idx}.\nErreur : {error}" },
+    "maintenance_failed_msg": { "message": "Échec de la maintenance : {error}" },
     "maintenance_error_title": { "message": "Erreur de maintenance Boks" },
     "nfc_tag_already_exists": { "message": "Ce badge NFC est déjà enregistré dans la Boks." }
   },

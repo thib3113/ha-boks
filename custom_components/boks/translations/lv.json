@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "NFC skenēšana pabeigta",
     "nfc_scan_timeout_msg": "6 sekunžu kavēšanās ir beigusies. Neviens tags netika konstatēts.",
     "nfc_register_error_title": "Reģistrācijas kļūda",
-    "nfc_register_error_msg": "Neizdevās reģistrēt tagu {uid}. Ierīce neatbildēja."
+    "nfc_register_error_msg": "Neizdevās reģistrēt tagu {uid}. Ierīce neatbildēja.",
+    "maintenance_progress_msg": "Tīrīšanas indekss {current}/{total} (Veiksme: {cleaned})",
+    "maintenance_idle_msg": "Dīkstāvē",
+    "maintenance_finished_msg": "Tīrīšana pabeigta (Veiksme: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Šai ierīcei netika atrasta slēdzenes entitāte." },
     "maintenance_already_running": { "message": "Apkopes uzdevums jau tiek izpildīts. Lūdzu, uzgaidiet, līdz tas tiek pabeigts." },
     "maintenance_error_msg": { "message": "Galveno kodu tīrīšana neizdevās indeksā {current_idx}.\nKļūda: {error}" },
+    "maintenance_failed_msg": { "message": "Apkope neizdevās: {error}" },
     "maintenance_error_title": { "message": "Boks apkopes kļūda" },
     "nfc_tag_already_exists": { "message": "Šis NFC tags jau ir reģistrēts Boks." }
   },

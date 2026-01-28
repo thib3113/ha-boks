@@ -1,7 +1,7 @@
 {
   "domain": "boks",
   "name": "Boks",
-  "after_dependencies": ["tag"],
+  "after_dependencies": ["tag", "esphome"],
   "bluetooth": [
     {
       "service_uuid": "a7630001-f491-4f21-95ea-846ba586e361",

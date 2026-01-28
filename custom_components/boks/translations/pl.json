@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "Skanowanie NFC zakończone",
     "nfc_scan_timeout_msg": "Limit czasu 6 sekund upłynął. Nie wykryto żadnego tagu.",
     "nfc_register_error_title": "Błąd rejestracji",
-    "nfc_register_error_msg": "Nie udało się zarejestrować tagu {uid}. Urządzenie nie odpowiedziało."
+    "nfc_register_error_msg": "Nie udało się zarejestrować tagu {uid}. Urządzenie nie odpowiedziało.",
+    "maintenance_progress_msg": "Czyszczenie indeksu {current}/{total} (Sukces: {cleaned})",
+    "maintenance_idle_msg": "Bezczynność",
+    "maintenance_finished_msg": "Czyszczenie zakończone (Sukces: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Nie znaleziono encji blokady dla tego urządzenia." },
     "maintenance_already_running": { "message": "Zadanie konserwacji jest już w toku. Proszę poczekać na jego zakończenie." },
     "maintenance_error_msg": { "message": "Czyszczenie kodów nadrzędnych nie powiodło się na indeksie {current_idx}.\nBłąd: {error}" },
+    "maintenance_failed_msg": { "message": "Konserwacja nie powiodła się: {error}" },
     "maintenance_error_title": { "message": "Błąd konserwacji Boks" },
     "nfc_tag_already_exists": { "message": "Ten tag NFC jest już zarejestrowany w urządzeniu Boks." }
   },

@@ -5,7 +5,7 @@ from ...ble.const import BoksNotificationOpcode
 class NfcErrorPacket(BoksRXPacket):
     """Notification for NFC specific errors during registration."""
 
-    OPCODE = [
+    OPCODES = [
         BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER
     ]
 

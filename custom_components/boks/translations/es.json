@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "Escaneo NFC finalizado",
     "nfc_scan_timeout_msg": "El tiempo de espera de 6 segundos ha expirado. No se detectó ninguna etiqueta.",
     "nfc_register_error_title": "Error de registro",
-    "nfc_register_error_msg": "Error al registrar la etiqueta {uid}. El dispositivo no respondió."
+    "nfc_register_error_msg": "Error al registrar la etiqueta {uid}. El dispositivo no respondió.",
+    "maintenance_progress_msg": "Limpiando índice {current}/{total} (Éxito: {cleaned})",
+    "maintenance_idle_msg": "Inactivo",
+    "maintenance_finished_msg": "Limpieza finalizada (Éxito: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Entidad de bloqueo no encontrada para este dispositivo." },
     "maintenance_already_running": { "message": "Ya hay una tarea de mantenimiento en curso. Por favor, espere a que termine." },
     "maintenance_error_msg": { "message": "Limpieza de códigos maestros fallida en el índice {current_idx}.\nError: {error}" },
+    "maintenance_failed_msg": { "message": "Mantenimiento fallido: {error}" },
     "maintenance_error_title": { "message": "Error de mantenimiento de Boks" },
     "nfc_tag_already_exists": { "message": "Esta etiqueta NFC ya está registrada en el Boks." }
   },

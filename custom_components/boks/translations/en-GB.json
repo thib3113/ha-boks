@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "NFC Scan Finished",
     "nfc_scan_timeout_msg": "The 6-second delay has expired. No tag was detected.",
     "nfc_register_error_title": "Registration Error",
-    "nfc_register_error_msg": "Failed to register tag {uid}. Device did not respond."
+    "nfc_register_error_msg": "Failed to register tag {uid}. Device did not respond.",
+    "maintenance_progress_msg": "Cleaning index {current}/{total} (Success: {cleaned})",
+    "maintenance_idle_msg": "Idle",
+    "maintenance_finished_msg": "Cleaning Finished (Success: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,8 +187,9 @@
     "lock_entity_not_found": { "message": "Lock entity not found for this device." },
     "maintenance_already_running": { "message": "A maintenance task is already in progress. Please wait for it to finish." },
     "maintenance_error_msg": { "message": "Master Code Cleaning Failed at index {current_idx}.\nError: {error}" },
-    "maintenance_error_title": { "message": "Boks Maintenance Error" },
-    "nfc_tag_already_exists": { "message": "This NFC tag is already registered in the Boks." }
+    "nfc_tag_already_exists": { "message": "This NFC tag is already registered in the Boks." },
+    "maintenance_failed_msg": { "message": "Maintenance Failed: {error}" },
+    "maintenance_error_title": { "message": "Boks Maintenance Error" }
   },
   "options": {
     "step": {

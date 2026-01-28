@@ -56,6 +56,7 @@ def mock_boks_ble_device():
         mock_ble.connect = AsyncMock()
         mock_ble.disconnect = AsyncMock()
         mock_ble.get_battery_level = AsyncMock(return_value=85)
+        mock_ble.get_battery_stats = AsyncMock(return_value={"level_single": 85, "format": "measure-single", "temperature": 25})
         mock_ble.get_code_counts = AsyncMock(return_value={"master": 1, "single_use": 2})
         mock_ble.get_device_information = AsyncMock(return_value={
             "manufacturer_name": "Boks",

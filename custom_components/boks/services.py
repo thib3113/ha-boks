@@ -80,60 +80,64 @@ SERVICE_NFC_UNREGISTER_TAG_SCHEMA = vol.Schema({
 def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDataUpdateCoordinator:
     """Retrieve the Boks coordinator from a service call target."""
     # 1. Try Device ID
-    device_ids = call.data.get("device_id")
-    if device_ids:
-        # Normalize to list
-        if isinstance(device_ids, str):
-            device_ids = [device_ids]
-
-        device_registry = dr.async_get(hass)
-        for device_id in device_ids:
-            device = device_registry.async_get(device_id)
-            if device:
-                # Iterate over config entries of the device
-                for entry_id in device.config_entries:
-                    if entry_id in hass.data[DOMAIN]:
-                        return hass.data[DOMAIN][entry_id]
-
-        # If device_ids were provided but we didn't return above, it means none were Boks devices
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="target_devices_not_boks",
-            translation_placeholders={"device_ids": str(device_ids)}
-        )
+    if "device_id" in call.data:
+        coord = _get_coordinator_by_device_id(hass, call.data["device_id"])
+        if coord:
+            return coord
 
     # 2. Try Entity ID
-    entity_ids = call.data.get("entity_id")
-    if entity_ids:
-        if isinstance(entity_ids, str):
-            entity_ids = [entity_ids]
-
-        # Retrieve registry to map entity -> config_entry
-        registry = er.async_get(hass)
-
-        for entity_id in entity_ids:
-            entry = registry.async_get(entity_id)
-            if entry and entry.config_entry_id in hass.data[DOMAIN]:
-                return hass.data[DOMAIN][entry.config_entry_id]
-
-        # If entity_ids were provided but we didn't return above, none were Boks entities
-        raise HomeAssistantError(
-            translation_domain=DOMAIN,
-            translation_key="target_entities_not_boks",
-            translation_placeholders={"entity_ids": str(entity_ids)}
-        )
+    if "entity_id" in call.data:
+        coord = _get_coordinator_by_entity_id(hass, call.data["entity_id"])
+        if coord:
+            return coord
 
     # 3. Fallback: Single Instance (Only if NO target was provided)
-    if len(hass.data[DOMAIN]) == 1:
-        # Only check actual coordinator instances (skip 'translations' key if present)
-        coords = [v for k, v in hass.data[DOMAIN].items() if isinstance(v, BoksDataUpdateCoordinator)]
-        if len(coords) == 1:
-            return coords[0]
+    coords = [v for v in hass.data.get(DOMAIN, {}).values() if isinstance(v, BoksDataUpdateCoordinator)]
+    if len(coords) == 1:
+        return coords[0]
 
     # 4. Fail
     raise HomeAssistantError(
         translation_domain=DOMAIN,
         translation_key="target_device_missing"
+    )
+
+
+def _get_coordinator_by_device_id(hass: HomeAssistant, device_ids: str | list[str]) -> BoksDataUpdateCoordinator | None:
+    """Resolve coordinator from device IDs."""
+    if isinstance(device_ids, str):
+        device_ids = [device_ids]
+
+    device_registry = dr.async_get(hass)
+    for device_id in device_ids:
+        device = device_registry.async_get(device_id)
+        if device:
+            for entry_id in device.config_entries:
+                if entry_id in hass.data.get(DOMAIN, {}):
+                    return hass.data[DOMAIN][entry_id]
+
+    raise HomeAssistantError(
+        translation_domain=DOMAIN,
+        translation_key="target_devices_not_boks",
+        translation_placeholders={"device_ids": str(device_ids)}
+    )
+
+
+def _get_coordinator_by_entity_id(hass: HomeAssistant, entity_ids: str | list[str]) -> BoksDataUpdateCoordinator | None:
+    """Resolve coordinator from entity IDs."""
+    if isinstance(entity_ids, str):
+        entity_ids = [entity_ids]
+
+    registry = er.async_get(hass)
+    for entity_id in entity_ids:
+        entry = registry.async_get(entity_id)
+        if entry and entry.config_entry_id in hass.data.get(DOMAIN, {}):
+            return hass.data[DOMAIN][entry.config_entry_id]
+
+    raise HomeAssistantError(
+        translation_domain=DOMAIN,
+        translation_key="target_entities_not_boks",
+        translation_placeholders={"entity_ids": str(entity_ids)}
     )
 
 
@@ -274,7 +278,7 @@ async def async_setup_services(hass: HomeAssistant):
 
         # 5. Generate/Parse Code and Create Parcel
         has_config_key = getattr(todo_entity, "_has_config_key", False)
-        code_in_desc, parsed_description = parse_parcel_string(description)
+        code_in_desc, _ = parse_parcel_string(description)
         generated_code = None
         force_sync = False
 
@@ -478,9 +482,9 @@ async def async_setup_services(hass: HomeAssistant):
             coordinator.set_maintenance_status(
                 running=True,
                 current_index=current_idx,
-                total_to_clean=total_to_clean,
-                message="Starting..."
+                total_to_clean=total_to_clean
             )
+
             cleaned_count = 0
 
             try:
@@ -489,12 +493,11 @@ async def async_setup_services(hass: HomeAssistant):
 
                 for i in range(range_val):
                     target_index = start_index + i
-                    current_progress_msg = f"Cleaning index {target_index}..."
                     coordinator.set_maintenance_status(
                         running=True,
                         current_index=i + 1,
                         total_to_clean=total_to_clean,
-                        message=current_progress_msg
+                        cleaned_count=cleaned_count
                     )
 
                     retry_count = 0
@@ -519,13 +522,13 @@ async def async_setup_services(hass: HomeAssistant):
 
                     if not success:
                         _LOGGER.error("Failed to clean index %d after %d attempts. Aborting.", target_index, max_retries)
-                        raise Exception("Connection lost or device unresponsive")
+                        raise BoksError("connection_failed")
 
                 coordinator.set_maintenance_status(
                     running=False,
                     current_index=total_to_clean,
                     total_to_clean=total_to_clean,
-                    message="Finished"
+                    cleaned_count=cleaned_count
                 )
 
                 await hass.services.async_call(
@@ -540,7 +543,7 @@ async def async_setup_services(hass: HomeAssistant):
 
             except Exception as e:
                 _LOGGER.error("Maintenance task failed: %s", e)
-                coordinator.set_maintenance_status(running=False, message=f"Failed: {e}")
+                coordinator.set_maintenance_status(running=False, error=str(e))
 
                 await hass.services.async_call(
                     "persistent_notification",
@@ -555,7 +558,7 @@ async def async_setup_services(hass: HomeAssistant):
             finally:
                  await asyncio.shield(coordinator.ble_device.disconnect())
                  await asyncio.sleep(60)
-                 coordinator.set_maintenance_status(running=False, message="")
+                 coordinator.set_maintenance_status(running=False)
 
         hass.async_create_task(_background_clean())
 

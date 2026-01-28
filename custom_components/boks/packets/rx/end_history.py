@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class EndHistoryPacket(BoksHistoryLogPacket):
     """Log entry for end of history event."""
 
-    OPCODE = BoksHistoryEvent.LOG_END_HISTORY
+    OPCODES = BoksHistoryEvent.LOG_END_HISTORY
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.LOG_END_HISTORY, raw_data)

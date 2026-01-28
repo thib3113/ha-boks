@@ -485,7 +485,7 @@ async def test_handle_log_event_matching_code(hass: HomeAssistant, todo_list):
         # Mock async_fire directly on the bus object if possible, or just ignore it if we don't need to assert it
         # But the error is about read-only attribute.
         # Let's try to mock the bus attribute of hass instead.
-        with patch.object(todo_list.hass, "bus", MagicMock()) as mock_bus:
+        with patch.object(todo_list.hass, "bus", MagicMock()):
             todo_list._handle_log_event(event)
         
         # Verify the item was marked as completed

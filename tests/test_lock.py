@@ -235,8 +235,8 @@ async def test_lock_open_rate_limiting() -> None:
     lock.hass.async_create_task = MagicMock()
     
     # Mock bluetooth device
-    with patch("homeassistant.components.bluetooth.async_scanner_devices_by_address", return_value=[MagicMock()]) as mock_scan, \
-         patch("homeassistant.components.bluetooth.async_ble_device_from_address", return_value=MagicMock()) as mock_bt, \
+    with patch("homeassistant.components.bluetooth.async_scanner_devices_by_address", return_value=[MagicMock()]), \
+         patch("homeassistant.components.bluetooth.async_ble_device_from_address", return_value=MagicMock()), \
          patch("homeassistant.components.bluetooth.async_last_service_info", return_value=None):
 
         # Mock ble_device methods

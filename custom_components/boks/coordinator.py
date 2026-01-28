@@ -5,7 +5,6 @@ import logging
 from datetime import timedelta, datetime
 from typing import Callable, List
 
-from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant
@@ -112,12 +111,31 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             self._device_info = process_device_info(self.entry.data, device_info_service)
         return self._device_info
 
-    def set_maintenance_status(self, running: bool, current_index: int = 0, total_to_clean: int = 0, message: str = ""):
+    def set_maintenance_status(self, running: bool, current_index: int = 0, total_to_clean: int = 0, cleaned_count: int = 0, error: str = None):
         """Update the maintenance status and notify listeners."""
+        
+        message = ""
+        if error:
+             # Errors are passed raw or should be pre-translated, but for safety we treat as raw string if passed here
+             # Ideally the caller passes a translation key but 'error' is dynamic.
+             message = self.get_text("exceptions", "maintenance_failed_msg", error=error)
+        elif running:
+             message = self.get_text("common", "maintenance_progress_msg", 
+                                     current=current_index, 
+                                     total=total_to_clean, 
+                                     cleaned=cleaned_count)
+        else:
+             # Finished or Idle
+             if total_to_clean > 0 and current_index >= total_to_clean:
+                 message = self.get_text("common", "maintenance_finished_msg", cleaned=cleaned_count)
+             else:
+                 message = self.get_text("common", "maintenance_idle_msg")
+
         self._maintenance_status = {
             "running": running,
             "current_index": current_index,
             "total_to_clean": total_to_clean,
+            "cleaned_count": cleaned_count,
             "progress": int((current_index / total_to_clean * 100)) if total_to_clean > 0 else 0,
             "last_cleaned": current_index - 1 if current_index > 0 else 0,
             "message": message
@@ -190,245 +208,200 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         """
         result = {}
         try:
-            # Try to get the BLEDevice from HA's cache to avoid warning
-            scanners = bluetooth.async_scanner_devices_by_address(self.hass, self.entry.data[CONF_ADDRESS], connectable=True)
-            ble_device_struct = scanners[0] if scanners else None
+            await self.ble_device.connect()
 
-            if not ble_device_struct:
-                ble_device_struct = bluetooth.async_ble_device_from_address(
-                    self.hass, self.entry.data[CONF_ADDRESS], connectable=False
-                )
-
-            # Connect to increment reference counter, passing the device if found
-            if ble_device_struct:
-                if _LOGGER.isEnabledFor(logging.DEBUG):
-                    rssi_now = None
-                    service_info = bluetooth.async_last_service_info(self.hass, self.entry.data[CONF_ADDRESS], connectable=True)
-                    if service_info:
-                        rssi_now = service_info.rssi
-                    _LOGGER.debug("Syncing logs via %s", BoksAnonymizer.format_scanner_info(ble_device_struct, self.ble_device.anonymize_logs, fallback_rssi=rssi_now))
-
-                # Ensure we pass the underlying BLEDevice if it's a wrapper
-                connection_target = getattr(ble_device_struct, "ble_device", ble_device_struct)
-                await self.ble_device.connect(device=connection_target)
-            else:
-                _LOGGER.warning("Could not find BLE device for log sync, attempting connection by address only for %s",
-                                BoksAnonymizer.anonymize_mac(self.entry.data[CONF_ADDRESS], self.ble_device.anonymize_logs))
-                await self.ble_device.connect()
-
+            # Retrieve log count (this method handles caching internally to avoid redundant BLE calls)
             log_count = await self.ble_device.get_logs_count()
+            
             if log_count > 0:
                 _LOGGER.info("Found %d logs. Downloading...", log_count)
-                logs_from_device: List[dict] = await self.ble_device.get_logs(log_count)
-                _LOGGER.debug("Raw logs response from device: %s", logs_from_device)
-
-                if logs_from_device:
-                    _LOGGER.info("Retrieved %d logs.", len(logs_from_device))
-                    # Filter out None log entries
-                    valid_logs = [log for log in logs_from_device if log is not None]
-                    if len(valid_logs) != len(logs_from_device):
-                        _LOGGER.warning("Filtered out %d None log entries", len(logs_from_device) - len(valid_logs))
-
-                    # Load translations once
-                    # Use the helper function, not a method on hass
-                    try:
-                        # Fetch translations for the 'entity' category to get sensor state translations
-                        translations = await translation.async_get_translations(self.hass, self.hass.config.language, "entity", {DOMAIN})
-                    except Exception as e:
-                        _LOGGER.warning("Failed to load translations: %s", e)
-                        translations = {}
-
-                    event_data = {
-                        "device_id": self.entry.entry_id,
-                        "address": self.entry.data[CONF_ADDRESS],
-                        "logs": []
-                    }
-
-                    # Process logs with debug logging
-                    has_power_on = False
-                    for i, log in enumerate(valid_logs):
-                        _LOGGER.debug("Processing log %d: %s (type: %s)", i, log, type(log))
-                        if log is not None:
-                            try:
-                                log_entry = await self.async_enrich_log_entry(log, translations)
-                                event_data["logs"].append(log_entry)
-
-                                if log_entry.get("event_type") == "power_on":
-                                    has_power_on = True
-
-                                _LOGGER.debug("Added enriched log entry: %s", log_entry)
-                            except Exception as e:
-                                _LOGGER.warning("Error processing log at index %d: %s", i, e)
-                        else:
-                            _LOGGER.warning("Skipping None log at index %d", i)
-
-                    # If power_on was detected, or just as a final check if logs were received,
-                    # we can poll the door status to be 100% sure of the live state.
-                    if has_power_on:
-                        _LOGGER.info("Power ON detected in logs, polling live door status...")
-                        door_open = await self.ble_device.get_door_status()
-                        self.data["door_open"] = door_open
-
-                    self.hass.bus.async_fire(EVENT_LOGS_RETRIEVED, event_data)
-
-                    result["latest_logs"] = event_data["logs"]
-                    result["last_log_fetch_ts"] = datetime.now().isoformat()
-
-                    if update_state:
-                        if self.data is None:
-                            self.data = {}
-                        self.data.update(result)
-                        self.async_set_updated_data(self.data)
+                logs_raw = await self.ble_device.get_logs(log_count)
+                
+                if logs_raw:
+                    result = await self._process_logs_data(logs_raw, update_state)
             else:
                 _LOGGER.debug("No logs to retrieve.")
 
         except Exception as e:
             _LOGGER.warning("Failed to sync logs: %s", e)
         finally:
-            # Always disconnect to decrement reference counter
             await asyncio.shield(self.ble_device.disconnect())
 
         return result
 
+    async def _process_logs_data(self, logs_raw: List[dict], update_state: bool) -> dict:
+        """Process, enrich and fire events for retrieved logs."""
+        # Filter and log
+        valid_logs = [log for log in logs_raw if log is not None]
+        if len(valid_logs) != len(logs_raw):
+            _LOGGER.warning("Filtered out %d None log entries", len(logs_raw) - len(valid_logs))
+
+        # Enrich logs
+        enriched_logs, has_power_on = await self._enrich_logs(valid_logs)
+
+        # Fire event
+        event_data = {
+            "device_id": self.entry.entry_id,
+            "address": self.entry.data[CONF_ADDRESS],
+            "logs": enriched_logs
+        }
+        self.hass.bus.async_fire(EVENT_LOGS_RETRIEVED, event_data)
+
+        # Final checks
+        if has_power_on:
+            _LOGGER.info("Power ON detected in logs, polling live door status...")
+            self.data["door_open"] = await self.ble_device.get_door_status()
+
+        # Update results
+        result = {
+            "latest_logs": enriched_logs,
+            "last_log_fetch_ts": datetime.now().isoformat()
+        }
+
+        if update_state:
+            self.data.update(result)
+            self.async_set_updated_data(self.data)
+            
+        return result
+
+    async def _enrich_logs(self, logs: List[dict]) -> tuple[List[dict], bool]:
+        """Enrich raw logs with translations and metadata."""
+        try:
+            translations = await translation.async_get_translations(self.hass, self.hass.config.language, "entity", {DOMAIN})
+        except Exception as e:
+            _LOGGER.warning("Failed to load translations: %s", e)
+            translations = {}
+
+        enriched = []
+        has_power_on = False
+        
+        for i, log in enumerate(logs):
+            try:
+                entry = await self.async_enrich_log_entry(log, translations)
+                enriched.append(entry)
+                if entry.get("event_type") == "power_on":
+                    has_power_on = True
+            except Exception as e:
+                _LOGGER.warning("Error processing log at index %d: %s", i, e)
+                
+        return enriched, has_power_on
+
     async def _async_update_data(self) -> dict:
         """Fetch data from the Boks."""
-        data = self.data if self.data else {} # Initialize data here
+        data = self.data if self.data else {}
         try:
-            # We do a quick connect-poll-disconnect cycle
-            # Note: If the device is already connected via an active command,
-            # the BoksBle class handles the lock.
-
             async with asyncio.timeout(TIMEOUT_BLE_CONNECTION):
-                # Try to get the BLEDevice wrapper from HA's cache (Best Practice for logs)
-                scanners = bluetooth.async_scanner_devices_by_address(self.hass, self.entry.data[CONF_ADDRESS], connectable=True)
-                ble_device_struct = scanners[0] if scanners else None
-
-                if not ble_device_struct:
-                    ble_device_struct = bluetooth.async_ble_device_from_address(
-                        self.hass, self.entry.data[CONF_ADDRESS], connectable=False
-                    )
-
-                if not ble_device_struct:
-                    raise UpdateFailed("device_not_in_cache")
-
                 try:
-                    # Always connect to increment reference counter
-                    # Pass the underlying BLEDevice if it's a wrapper
-                    connection_target = getattr(ble_device_struct, "ble_device", ble_device_struct)
-                    await self.ble_device.connect(device=connection_target)
-
+                    await self.ble_device.connect()
                     now = datetime.now()
 
-                    # Only fetch battery if we don't have it yet (first run)
-                    # Afterwards, battery is updated only via door events (see device.py)
-                    should_fetch_battery = "battery_level" not in data
-
-                    if should_fetch_battery:
-                        _LOGGER.debug("Fetching battery level and stats (Initial)...")
-                        try:
-                            battery_level = await self.ble_device.get_battery_level()
-                            data["battery_level"] = battery_level
-                            self._last_battery_update = now
-                            _LOGGER.debug("Battery level fetched: %s", battery_level)
-                        except Exception as e:
-                            _LOGGER.warning("Failed to fetch battery level: %s", e)
-
-                        try:
-                            battery_stats = await self.ble_device.get_battery_stats()
-                            if battery_stats:
-                                data["battery_stats"] = battery_stats
-                                if "temperature" in battery_stats and battery_stats["temperature"] is not None:
-                                    data["battery_temperature"] = battery_stats["temperature"]
-                                _LOGGER.debug("Battery stats fetched: %s", battery_stats)
-                        except Exception as e:
-                            _LOGGER.warning("Failed to fetch battery stats: %s", e)
+                    # 1. Battery (Initial only)
+                    if "battery_level" not in data:
+                        await self._fetch_initial_battery_data(data, now)
                     else:
                         _LOGGER.debug("Battery fetch skipped (handled by door events).")
 
-                    # 2. Get Code Counts (Always fetch as it doesn't require config key)
-                    _LOGGER.debug("Fetching code counts...")
-                    try:
-                        counts = await self.ble_device.get_code_counts()
-                        data.update(counts)
-                        _LOGGER.debug("Code counts fetched: %s", counts)
-                    except BoksError as e:
-                        _LOGGER.warning("Could not fetch code counts: %s", e)
-                    except asyncio.TimeoutError:
-                        _LOGGER.warning("Timeout while fetching code counts")
+                    # 2. Code Counts
+                    await self._fetch_code_counts(data)
 
-                    # 4. Get Device Information
-                    should_fetch_device_info = True
-                    if "device_info_service" in data:
-                         last_fetch = data.get("last_device_info_fetch")
-                         if last_fetch:
-                             last_fetch_dt = datetime.fromisoformat(last_fetch)
-                             device_info_interval_hours = self.full_refresh_interval_hours * 2
-                             if (now - last_fetch_dt) < timedelta(hours=device_info_interval_hours):
-                                 should_fetch_device_info = False
-                                 _LOGGER.debug("Skipping device info update (last update < %dh ago)", device_info_interval_hours)
+                    # 3. Device Information
+                    await self._fetch_device_info(data, now)
 
-                    if should_fetch_device_info:
-                        _LOGGER.debug("Fetching device information...")
-                        try:
-                            device_info = await self.ble_device.get_device_information()
-                            data["device_info_service"] = device_info
-                            data["last_device_info_fetch"] = now.isoformat()
+                    # 4. Logs
+                    await self._fetch_logs_and_sync(data)
 
-                            # Update device registry
-                            device_registry = dr.async_get(self.hass)
-                            device_entry = device_registry.async_get_device(
-                                identifiers={(DOMAIN, self.entry.data[CONF_ADDRESS])},
-                            )
-
-                            if device_entry:
-                                processed_info = process_device_info(self.entry.data, device_info)
-                                update_kwargs = {}
-                                if "sw_version" in processed_info:
-                                    update_kwargs["sw_version"] = processed_info["sw_version"]
-                                if "hw_version" in processed_info:
-                                    update_kwargs["hw_version"] = processed_info["hw_version"]
-                                if "manufacturer" in processed_info:
-                                    update_kwargs["manufacturer"] = processed_info["manufacturer"]
-                                if "model" in processed_info:
-                                    update_kwargs["model"] = processed_info["model"]
-
-                                if update_kwargs:
-                                    device_registry.async_update_device(
-                                        device_entry.id, **update_kwargs
-                                    )
-                                    _LOGGER.info("Device registry updated with new info: %s", update_kwargs)
-
-                        except Exception as e:
-                            _LOGGER.warning("Failed to fetch device information: %s", e)
-
-                    # 5. Auto-download logs
-                    logs_data = await self.async_sync_logs(update_state=False)
-                    if logs_data:
-                        data.update(logs_data)
-
-                    # Update last connection time on successful update cycle
                     data["last_connection"] = dt_util.now().isoformat()
 
                 finally:
-                    # Disconnect after update to save battery and avoid blue LED
-                    # This will decrement the reference counter
                     await asyncio.shield(self.ble_device.disconnect())
 
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during Boks BLE data update")
             raise UpdateFailed("Timeout during Boks BLE data update")
-
         except UpdateFailed:
-            # Re-raise pre-handled failures (like Device not found) without extra logging
             raise
         except Exception as err:
-            # If we fail completely (cannot connect), we keep old data if available
             if self.data:
                 _LOGGER.warning("Update failed, keeping old data: %s", err)
                 return self.data
             raise UpdateFailed(f"Error communicating with Boks: {err}") from err
 
         return data
+
+    async def _fetch_initial_battery_data(self, data: dict, now: datetime):
+        """Fetch initial battery level and stats."""
+        _LOGGER.debug("Fetching battery level and stats (Initial)...")
+        try:
+            data["battery_level"] = await self.ble_device.get_battery_level()
+            self._last_battery_update = now
+        except Exception as e:
+            _LOGGER.warning("Failed to fetch battery level: %s", e)
+
+        try:
+            battery_stats = await self.ble_device.get_battery_stats()
+            if battery_stats:
+                data["battery_stats"] = battery_stats
+                if battery_stats.get("temperature") is not None:
+                    data["battery_temperature"] = battery_stats["temperature"]
+        except Exception as e:
+            _LOGGER.warning("Failed to fetch battery stats: %s", e)
+
+    async def _fetch_code_counts(self, data: dict):
+        """Fetch current code counts from device."""
+        _LOGGER.debug("Fetching code counts...")
+        try:
+            counts = await self.ble_device.get_code_counts()
+            data.update(counts)
+        except (BoksError, asyncio.TimeoutError) as e:
+            _LOGGER.warning("Could not fetch code counts: %s", e)
+
+    async def _fetch_device_info(self, data: dict, now: datetime):
+        """Fetch device information with throttling."""
+        should_fetch = True
+        if "device_info_service" in data:
+             last_fetch = data.get("last_device_info_fetch")
+             if last_fetch:
+                 last_fetch_dt = datetime.fromisoformat(last_fetch)
+                 interval = self.full_refresh_interval_hours * 2
+                 if (now - last_fetch_dt) < timedelta(hours=interval):
+                     should_fetch = False
+                     _LOGGER.debug("Skipping device info update (last update < %dh ago)", interval)
+
+        if not should_fetch:
+            return
+
+        _LOGGER.debug("Fetching device information...")
+        try:
+            device_info = await self.ble_device.get_device_information()
+            data["device_info_service"] = device_info
+            data["last_device_info_fetch"] = now.isoformat()
+            self._update_device_registry(device_info)
+        except Exception as e:
+            _LOGGER.warning("Failed to fetch device information: %s", e)
+
+    def _update_device_registry(self, device_info: dict):
+        """Update Home Assistant device registry with hardware/software info."""
+        device_registry = dr.async_get(self.hass)
+        device_entry = device_registry.async_get_device(
+            identifiers={(DOMAIN, self.entry.data[CONF_ADDRESS])},
+        )
+
+        if device_entry:
+            processed_info = process_device_info(self.entry.data, device_info)
+            update_kwargs = {
+                k: processed_info[k] 
+                for k in ["sw_version", "hw_version", "manufacturer", "model"] 
+                if k in processed_info
+            }
+            if update_kwargs:
+                device_registry.async_update_device(device_entry.id, **update_kwargs)
+                _LOGGER.info("Device registry updated with new info: %s", update_kwargs)
+
+    async def _fetch_logs_and_sync(self, data: dict):
+        """Auto-download logs and update coordinator data."""
+        logs_data = await self.async_sync_logs(update_state=False)
+        if logs_data:
+            data.update(logs_data)
 
     def register_opcode_callback(self, opcode: int, callback: Callable[[bytearray], None]) -> None:
         """Register a callback for a specific opcode."""

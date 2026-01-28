@@ -5,7 +5,7 @@ from ...ble.const import BoksHistoryEvent
 class BleRebootPacket(BoksHistoryLogPacket):
     """Log entry for BLE reboot event."""
 
-    OPCODE = BoksHistoryEvent.BLE_REBOOT
+    OPCODES = BoksHistoryEvent.BLE_REBOOT
 
     def __init__(self, raw_data: bytearray):
         super().__init__(BoksHistoryEvent.BLE_REBOOT, raw_data)

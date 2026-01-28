@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "Skenovanie NFC ukončené",
     "nfc_scan_timeout_msg": "Časový limit 6 sekúnd vypršal. Nebol detegovaný žiadny tag.",
     "nfc_register_error_title": "Chyba registrácie",
-    "nfc_register_error_msg": "Nepodarilo sa zaregistrovať tag {uid}. Zariadenie neodpovedá."
+    "nfc_register_error_msg": "Nepodarilo sa zaregistrovať tag {uid}. Zariadenie neodpovedá.",
+    "maintenance_progress_msg": "Čistenie indexu {current}/{total} (Úspech: {cleaned})",
+    "maintenance_idle_msg": "Nečinný",
+    "maintenance_finished_msg": "Čistenie dokončené (Úspech: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Entita zámku nebola pre toto zariadenie nájdená." },
     "maintenance_already_running": { "message": "Úloha údržby už prebieha. Počkajte prosím na jej dokončenie." },
     "maintenance_error_msg": { "message": "Čistenie hlavných kódov zlyhalo na indexe {current_idx}.\nChyba: {error}" },
+    "maintenance_failed_msg": { "message": "Údržba zlyhala: {error}" },
     "maintenance_error_title": { "message": "Chyba údržby Boks" },
     "nfc_tag_already_exists": { "message": "Tento NFC tag je už na Boks zaregistrovaný." }
   },

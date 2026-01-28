@@ -15,7 +15,10 @@
     "nfc_scan_timeout_title": "NFC-Scan beendet",
     "nfc_scan_timeout_msg": "Die 6-Sekunden-Verzögerung ist abgelaufen. Es wurde kein Tag erkannt.",
     "nfc_register_error_title": "Registrierungsfehler",
-    "nfc_register_error_msg": "Fehler beim Registrieren des Tags {uid}. Das Gerät hat nicht geantwortet."
+    "nfc_register_error_msg": "Fehler beim Registrieren des Tags {uid}. Gerät hat nicht geantwortet.",
+    "maintenance_progress_msg": "Bereinigung Index {current}/{total} (Erfolg: {cleaned})",
+    "maintenance_idle_msg": "Inaktiv",
+    "maintenance_finished_msg": "Bereinigung abgeschlossen (Erfolg: {cleaned})"
   },
   "config": {
     "step": {
@@ -184,6 +187,7 @@
     "lock_entity_not_found": { "message": "Schloss-Entität für dieses Gerät nicht gefunden." },
     "maintenance_already_running": { "message": "Ein Wartungsvorgang wird bereits ausgeführt. Bitte warten Sie, bis er abgeschlossen ist." },
     "maintenance_error_msg": { "message": "Die Reinigung der Master-Codes an Index {current_idx} ist fehlgeschlagen.\nFehler: {error}" },
+    "maintenance_failed_msg": { "message": "Wartung fehlgeschlagen: {error}" },
     "maintenance_error_title": { "message": "Boks-Wartungsfehler" },
     "nfc_tag_already_exists": { "message": "Dieser NFC-Tag ist bereits im Boks registriert." }
   },

@@ -5,7 +5,7 @@ from ...ble.const import BoksNotificationOpcode
 class LogCountPacket(BoksRXPacket):
     """Notification containing the number of available logs."""
 
-    OPCODE = BoksNotificationOpcode.NOTIFY_LOGS_COUNT
+    OPCODES = BoksNotificationOpcode.NOTIFY_LOGS_COUNT
 
     def __init__(self, raw_data: bytearray):
         """Initialize and parse count."""
