@@ -80,20 +80,28 @@ Technical end-of-sync event.
 
 ## 🚀 Blueprints (Ready-to-use Automations)
 
-To make things easier, we provide several Blueprints tailored to different needs.
+To make things easier, we provide several Blueprints tailored to different needs. Click the buttons to import them directly into your Home Assistant.
 
-### 📥 1. [Parcel Delivered Notification](../../blueprints/automation/boks_parcel_delivered.yaml)
+### 1. Parcel Delivered Notification
 Sends you a notification when a code from the parcel list is used.
 
-### 📥 2. [Security Alert (Invalid Code)](../../blueprints/automation/boks_security_alert.yaml)
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_parcel_delivered.yaml)
+
+### 2. Security Alert (Invalid Code)
 Immediate critical notification if an incorrect PIN code is entered on the Boks.
 
-### 📥 3. [Low Battery Alert](../../blueprints/automation/boks_battery_alert.yaml)
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_security_alert.yaml)
+
+### 3. Low Battery Alert
 Robust battery monitoring (handles HA restarts and delays to avoid false alerts).
 
-### 📥 4. [Door Left Open Alert](../../blueprints/automation/boks_door_left_open.yaml)
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_battery_alert.yaml)
+
+### 4. Door Left Open Alert
 Smartly checks if the door has been left open.
 *   *Feature*: Performs an active check (Bluetooth sync) before sending the alert to ensure the door is truly open.
+
+[![Import Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_door_left_open.yaml)
 
 ---
 

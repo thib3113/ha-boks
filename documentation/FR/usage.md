@@ -80,20 +80,28 @@ C'est l'événement "brut", émis pour **chaque** ligne de log récupérée depu
 
 ## 🚀 Blueprints (Automatisations Prêtes à l'Emploi)
 
-Pour vous simplifier la vie, nous fournissons plusieurs Blueprints adaptés à différents besoins.
+Pour vous simplifier la vie, nous fournissons plusieurs Blueprints adaptés à différents besoins. Cliquez sur les boutons pour les importer directement dans votre Home Assistant.
 
-### 📥 1. [Notification de Colis Livré](../../blueprints/automation/boks_parcel_delivered.yaml)
+### 1. Notification de Colis Livré
 Vous envoie une notification quand un code de la liste de colis est utilisé.
 
-### 📥 2. [Alerte Sécurité (Code Invalide)](../../blueprints/automation/boks_security_alert.yaml)
+[![Importer le Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_parcel_delivered.yaml)
+
+### 2. Alerte Sécurité (Code Invalide)
 Notification critique immédiate si un code PIN erroné est saisi sur la Boks.
 
-### 📥 3. [Alerte Batterie Faible](../../blueprints/automation/boks_battery_alert.yaml)
+[![Importer le Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_security_alert.yaml)
+
+### 3. Alerte Batterie Faible
 Surveillance robuste de la batterie (avec gestion des redémarrages HA et temporisation pour éviter les fausses alertes).
 
-### 📥 4. [Alerte Porte Restée Ouverte](../../blueprints/automation/boks_door_left_open.yaml)
+[![Importer le Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_battery_alert.yaml)
+
+### 4. Alerte Porte Restée Ouverte
 Vérifie intelligemment si la porte est restée ouverte.
 *   *Particularité* : Effectue une vérification active (synchronisation Bluetooth) avant d'envoyer l'alerte pour s'assurer que la porte est réellement ouverte.
+
+[![Importer le Blueprint](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2Fthib3113%2Fha-boks%2Fblob%2Fmain%2Fblueprints%2Fautomation%2Fboks_door_left_open.yaml)
 
 ---
 
