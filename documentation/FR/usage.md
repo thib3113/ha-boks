@@ -44,44 +44,37 @@ Modifie les paramètres internes (ex: activer/désactiver la reconnaissance des 
 
 ## 📡 Détail des Événements
 
-L'intégration Boks émet des événements riches que vous pouvez utiliser pour des automatisations avancées.
+L'intégration Boks émet des événements riches sur le bus Home Assistant, mais stocke également l'historique récent dans ses capteurs.
 
-### Entité et Bus d'Événements
+### 1. Entité : Dernier Événement (`sensor.xxx_last_event`)
 
-Vous pouvez écouter les événements de deux manières :
-1.  **Entité** : `event.votre_boks_logs` (Le dernier événement est stocké dans l'attribut `event_type`).
-2.  **Bus d'Événements** : `boks_log_entry` (Contient la charge utile complète à chaque nouvel événement).
+L'entité `sensor.<nom>_last_event` est le moyen le plus simple de visualiser l'état.
+*   **État** : Contient le type du tout dernier événement (ex: `door_opened`, `code_ble_valid`).
+*   **Attribut `last_10_events`** : Contient une liste des 10 derniers événements (du plus récent au plus ancien), avec tous leurs détails (timestamp, code utilisé, etc.). Utile pour afficher un historique dans une carte Lovelace.
 
-### Structure des Données
+### 2. Événements du Bus
 
-Voici les données disponibles dans la charge utile de l'événement (`trigger.event.data`) :
+Pour les automatisations réactives, privilégiez les événements du bus.
 
-| Champ | Description | Exemple |
-| :--- | :--- | :--- |
-| `type` | Le type d'événement (voir liste ci-dessous) | `code_ble_valid` |
-| `device_id` | L'ID de l'appareil Home Assistant | `abcdef123456...` |
-| `timestamp` | Date et heure de l'événement | `2023-10-27T10:00:00+00:00` |
-| `code` | Le code PIN utilisé (si applicable) | `1234AB` |
-| `user` | L'index utilisateur ou nom (si connu) | `0` (Master Code Index) |
-| `extra_data` | Données brutes supplémentaires | `{...}` |
+#### `boks_log_entry`
+C'est l'événement "brut", émis pour **chaque** ligne de log récupérée depuis la Boks.
+*   **Quand** : À chaque nouvelle action (ouverture, erreur, etc.) synchronisée.
+*   **Données** : Contient `type`, `timestamp`, `device_id`, `code`, `user`, etc.
+*   **Usage** : Automatisations génériques (alerte intrusion, porte ouverte).
 
-### Types d'Événements (`event_type`)
+#### `boks_parcel_completed`
+Événement de haut niveau, spécifique à la livraison de colis.
+*   **Quand** : Un code PIN correspondant à une tâche de la liste `todo` a été utilisé.
+*   **Données** :
+    *   `code` : Le code PIN utilisé.
+    *   `description` : Le nom du colis (ex: "Amazon").
+*   **Usage** : Notification personnalisée "Votre colis Amazon est arrivé !".
 
-| Type | Description |
-| :--- | :--- |
-| `door_opened` | La porte a été ouverte. |
-| `door_closed` | La porte a été fermée. |
-| `code_ble_valid` | Ouverture réussie via Bluetooth (App ou HA). |
-| `code_key_valid` | Ouverture réussie via le clavier physique. |
-| `code_ble_invalid` | Code erroné saisi via Bluetooth. |
-| `code_key_invalid` | Code erroné saisi sur le clavier. |
-| `nfc_opening` | Ouverture via un badge NFC. |
-| `key_opening` | Ouverture via la clé mécanique de secours. |
-| `error` | Erreur système générique. |
-| `power_on` | L'appareil a démarré (mise sous tension). |
-| `power_off` | L'appareil s'est éteint (ex: piles retirées). |
-| `ble_reboot` | Le module Bluetooth a redémarré. |
-| `history_erase` | L'historique des logs a été effacé. |
+#### `boks_logs_retrieved`
+Événement technique de fin de synchronisation.
+*   **Quand** : Une session de synchronisation Bluetooth est terminée et des nouveaux logs ont été traités.
+*   **Données** : Contient une liste complète des logs récupérés durant cette session.
+*   **Usage** : Débogage ou traitement par lot (batch processing) si vous ne voulez pas déclencher une automatisation 50 fois si 50 logs arrivent d'un coup.
 
 ---
 
@@ -109,7 +102,7 @@ Vérifie intelligemment si la porte est restée ouverte.
 Si vous préférez créer vos propres automatisations sur mesure, voici des exemples concrets.
 
 ### 1. Notification de Livraison (Colis Déposé)
-Soyez notifié quand un livreur utilise le code associé à un colis attendu.
+Utilise l'événement dédié `boks_parcel_completed`.
 
 ```yaml
 alias: "Boks: Colis Livré"

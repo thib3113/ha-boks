@@ -44,44 +44,37 @@ Modifies internal settings (e.g., enable/disable La Poste badge recognition).
 
 ## 📡 Event Details
 
-The Boks integration emits rich events that you can use for advanced automations.
+The Boks integration emits rich events on the Home Assistant bus but also stores recent history in its sensors.
 
-### Entity and Event Bus
+### 1. Entity: Last Event (`sensor.xxx_last_event`)
 
-You can listen to events in two ways:
-1.  **Entity**: `event.your_boks_logs` (The latest event is stored in the `event_type` attribute).
-2.  **Event Bus**: `boks_log_entry` (Contains the full payload for each new event).
+The `sensor.<name>_last_event` entity is the easiest way to view the state.
+*   **State**: Contains the type of the very last event (e.g., `door_opened`, `code_ble_valid`).
+*   **Attribute `last_10_events`**: Contains a list of the 10 most recent events (newest to oldest), with all their details (timestamp, code used, etc.). Useful for displaying a history in a Lovelace card.
 
-### Data Structure
+### 2. Bus Events
 
-Here is the data available in the event payload (`trigger.event.data`):
+For reactive automations, prefer bus events.
 
-| Field | Description | Example |
-| :--- | :--- | :--- |
-| `type` | The event type (see list below) | `code_ble_valid` |
-| `device_id` | The Home Assistant device ID | `abcdef123456...` |
-| `timestamp` | Date and time of the event | `2023-10-27T10:00:00+00:00` |
-| `code` | The PIN code used (if applicable) | `1234AB` |
-| `user` | User index or name (if known) | `0` (Master Code Index) |
-| `extra_data` | Additional raw data | `{...}` |
+#### `boks_log_entry`
+This is the "raw" event, emitted for **each** log line retrieved from the Boks.
+*   **When**: At each new action (opening, error, etc.) synchronized.
+*   **Data**: Contains `type`, `timestamp`, `device_id`, `code`, `user`, etc.
+*   **Usage**: Generic automations (intrusion alert, door open).
 
-### Event Types (`event_type`)
+#### `boks_parcel_completed`
+High-level event, specific to parcel delivery.
+*   **When**: A PIN code matching a `todo` list task was used.
+*   **Data**:
+    *   `code`: The PIN code used.
+    *   `description`: The name of the parcel (e.g., "Amazon").
+*   **Usage**: Custom notification "Your Amazon parcel has arrived!".
 
-| Type | Description |
-| :--- | :--- |
-| `door_opened` | The door was opened. |
-| `door_closed` | The door was closed. |
-| `code_ble_valid` | Successful opening via Bluetooth (App or HA). |
-| `code_key_valid` | Successful opening via the physical keypad. |
-| `code_ble_invalid` | Incorrect code entered via Bluetooth. |
-| `code_key_invalid` | Incorrect code entered on the keypad. |
-| `nfc_opening` | Opening via an NFC badge. |
-| `key_opening` | Opening via the mechanical backup key. |
-| `error` | Generic system error. |
-| `power_on` | The device powered on. |
-| `power_off` | The device powered off (e.g., batteries removed). |
-| `ble_reboot` | The Bluetooth module rebooted. |
-| `history_erase` | The log history was erased. |
+#### `boks_logs_retrieved`
+Technical end-of-sync event.
+*   **When**: A Bluetooth sync session is finished and new logs have been processed.
+*   **Data**: Contains a complete list of logs retrieved during this session.
+*   **Usage**: Debugging or batch processing if you don't want to trigger an automation 50 times if 50 logs arrive at once.
 
 ---
 
@@ -109,7 +102,7 @@ Smartly checks if the door has been left open.
 If you prefer to create your own custom automations, here are concrete examples.
 
 ### 1. Delivery Notification (Parcel Deposited)
-Get notified when a delivery person uses the code associated with an expected parcel.
+Uses the dedicated `boks_parcel_completed` event.
 
 ```yaml
 alias: "Boks: Parcel Delivered"
