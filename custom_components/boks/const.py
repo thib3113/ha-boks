@@ -14,8 +14,9 @@ BOKS_CHAR_MAP = "0123456789AB"
 DEFAULT_SCAN_INTERVAL = 10
 DEFAULT_FULL_REFRESH_INTERVAL = 12
 
-EVENT_LOG = "boks_log_entry"
-EVENT_PARCEL_COMPLETED = "boks_parcel_completed"
+EVENT_LOG = f"{DOMAIN}_log_entry"
+EVENT_PARCEL_COMPLETED = f"{DOMAIN}_parcel_completed"
+EVENT_LOGS_RETRIEVED = f"{DOMAIN}_logs_retrieved"
 
 # Hardware Revisions Map (Internal Firmware Revision -> Hardware Version)
 PCB_VERSIONS = {
