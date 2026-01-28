@@ -36,6 +36,26 @@ L'intégration Boks propose une approche à plusieurs niveaux pour la fonctionna
 
 6.  **Soumettre** : Cliquez sur "Soumettre" pour finaliser la configuration et activer l'intégration avec les fonctionnalités sélectionnées.
 
+## Options du Système
+
+Une fois l'intégration installée, vous pouvez modifier ses options en cliquant sur **Configurer** sur la carte de l'intégration Boks (via Appareils et Services).
+
+### Paramètres Disponibles
+
+*   **Intervalle de mise à jour (minutes)** (`scan_interval`) :
+    *   Définit la fréquence à laquelle Home Assistant tente de se connecter à la Boks pour vérifier son état (ex: batterie).
+    *   *Note* : Une fréquence trop élevée peut réduire la durée de vie de la batterie.
+
+*   **Intervalle de rafraîchissement complet (heures)** (`full_refresh_interval`) :
+    *   Définit la fréquence d'une synchronisation complète des données (logs, configuration profonde).
+
+*   **Code permanent pour l'ouverture (optionnel)** (`master_code`) :
+    *   Permet de modifier le code utilisé par défaut par l'action "Ouvrir" (`lock.open`). Utile si vous avez changé le code sur le boîtier manuellement.
+
+*   **Anonymiser les logs** (`anonymize_logs`) :
+    *   **Très Important pour le Support** : Si cette option est activée, tous les codes PIN et identifiants sensibles seront remplacés par des valeurs factices (ex: `1234AB`) dans les journaux de débogage Home Assistant.
+    *   Activez cette option **avant** de partager vos logs pour une demande d'aide ou un rapport de bug.
+
 ## Configuration Avancée
 
 ### Persistance du Format de Batterie
@@ -47,8 +67,6 @@ L'appareil Boks prend en charge différents formats de mesure de batterie, qui s
 *   **measures-first-min-mean-max-last** : Mesures détaillées incluant les valeurs min, moyenne et max
 
 L'intégration détecte automatiquement le format de batterie lors de la première ouverture de la porte et le stocke dans la configuration. Cela garantit que les capteurs de diagnostic de batterie appropriés sont créés et disponibles même lorsque l'appareil est hors ligne. Si le format de batterie change (par exemple, en raison d'une mise à jour du firmware), l'intégration le détectera et mettra à jour le format stocké lors de la prochaine ouverture de la porte.
-
-[Ajouter des détails sur toutes les options de configuration avancées, si applicables. Par exemple, plusieurs appareils Boks, paramètres spécifiques.]
 
 ## Reconfiguration d'une Intégration Existante
 

@@ -1,0 +1,72 @@
+blueprint:
+  name: Boks - Low Battery Alert
+  description: >
+    Sends a notification when the Boks battery level drops below a configured threshold.
+    Includes logic to handle transient drops (wait duration) and Home Assistant restarts
+    (checks status on startup).
+  domain: automation
+  input:
+    battery_entity:
+      name: Boks Battery Sensor
+      description: Select the battery sensor (e.g., sensor.my_boks_battery)
+      selector:
+        entity:
+          domain: sensor
+          device_class: battery
+          integration: boks
+    threshold:
+      name: Battery Threshold (%)
+      description: Alert when battery is below this percentage.
+      default: 15
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+    duration:
+      name: Confirmation Duration
+      description: >
+        How long the battery must remain low before alerting (to avoid transient voltage drops).
+        Note: This timer resets on HA restart, hence the startup check.
+      default: 24
+      selector:
+        number:
+          min: 0
+          max: 48
+          unit_of_measurement: "h"
+    notify_device:
+      name: Mobile Device to Notify
+      description: The device that will receive the notifications.
+      selector:
+        device:
+          integration: mobile_app
+
+trigger:
+  # Trigger 1: Standard threshold monitoring with duration
+  - platform: numeric_state
+    entity_id: !input battery_entity
+    below: !input threshold
+    for:
+      hours: !input duration
+    id: low_battery_detected
+
+  # Trigger 2: Check on Home Assistant startup
+  - platform: homeassistant
+    event: start
+    id: ha_startup
+
+condition:
+  # Ensure battery is actually low (needed for the HA startup trigger)
+  - condition: numeric_state
+    entity_id: !input battery_entity
+    below: !input threshold
+
+variables:
+  battery_entity: !input battery_entity
+
+action:
+  - domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    title: "🪫 Boks Battery Low"
+    message: "Your Boks battery is critical ({{ states(battery_entity) }}%). Please replace it."
