@@ -3,8 +3,7 @@ import pytest
 import sys
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
-from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
-from homeassistant.const import CONF_ADDRESS, CONF_NAME
+from homeassistant.const import CONF_ADDRESS
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.boks.const import (
@@ -76,8 +75,30 @@ def mock_bluetooth(mock_config_entry_data):
     mock_ble_device_obj = MagicMock()
     mock_ble_device_obj.address = mock_config_entry_data[CONF_ADDRESS]
     mock_ble_device_obj.name = "Boks"
-    with patch("homeassistant.components.bluetooth.async_ble_device_from_address", return_value=mock_ble_device_obj) as mock_bt:
-        yield mock_bt
+    
+    # Mock scanner wrapper
+    mock_scanner = MagicMock()
+    mock_scanner.name = "Test Scanner"
+    mock_scanner.source = "00:11:22:33:44:55"
+    
+    mock_wrapper = MagicMock()
+    mock_wrapper.scanner = mock_scanner
+    mock_wrapper.ble_device = mock_ble_device_obj
+    mock_wrapper.advertisement = MagicMock(rssi=-60)
+    mock_wrapper.name = "Boks"
+    mock_wrapper.address = mock_config_entry_data[CONF_ADDRESS]
+
+    with patch("homeassistant.components.bluetooth.async_ble_device_from_address", return_value=mock_ble_device_obj) as mock_ble_addr, \
+         patch("homeassistant.components.bluetooth.async_scanner_devices_by_address", return_value=[mock_wrapper]) as mock_scan, \
+         patch("homeassistant.components.bluetooth.async_last_service_info", return_value=None):
+        
+        # We yield a dict of mocks so tests can adjust them
+        yield {
+            "addr": mock_ble_addr,
+            "scan": mock_scan,
+            "wrapper": mock_wrapper,
+            "device": mock_ble_device_obj
+        }
 
 @pytest.fixture
 def mock_config_entry_data():

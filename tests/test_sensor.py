@@ -1,9 +1,6 @@
 """Test Boks sensors."""
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_ADDRESS, CONF_NAME
-from custom_components.boks.const import DOMAIN, CONF_MASTER_CODE, CONF_CONFIG_KEY
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 async def test_sensors(hass: HomeAssistant, mock_boks_ble_device, mock_bluetooth, mock_config_entry) -> None:
     """Test that sensors are created and updated."""

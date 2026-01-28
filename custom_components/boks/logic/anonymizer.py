@@ -1,5 +1,5 @@
 """Anonymization utilities for Boks."""
-from typing import Optional
+from typing import Optional, Any
 
 from ..ble.const import BoksCommandOpcode, BoksHistoryEvent, BoksNotificationOpcode
 from ..ble.protocol import BoksProtocol
@@ -182,6 +182,72 @@ class BoksAnonymizer:
                     faked[i] = FAKE_UID_BYTE
             return True
         return False
+
+    @staticmethod
+    def format_scanner_info(device: Any, anonymize: bool = True, fallback_rssi: int = None) -> str:
+        """
+        Format comprehensive bluetooth diagnostic info.
+        Format: [Scanner: Name (MAC)] -> [Target: Name (MAC)] (RSSI: value)
+        """
+        if device is None:
+            return "None"
+        
+        scanner_name = "Unknown"
+        scanner_source = "unknown"
+        target_name = getattr(device, "name", "Unknown")
+        target_address = getattr(device, "address", "unknown")
+        
+        # 1. Extract Target Info
+        if hasattr(device, "ble_device"):
+            target_name = getattr(device.ble_device, "name", target_name)
+            target_address = getattr(device.ble_device, "address", target_address)
+            
+        # 2. Determine RSSI
+        rssi_val = fallback_rssi
+        if rssi_val is None:
+            if hasattr(device, "advertisement"):
+                rssi_val = device.advertisement.rssi
+            else:
+                rssi_val = getattr(device, "rssi", None)
+        
+        if rssi_val in (None, -100, -127, 0):
+            rssi_str = "unknown"
+        else:
+            rssi_str = f"{rssi_val}dBm"
+        
+        # 3. Extract Scanner Info
+        if hasattr(device, "scanner"):
+            scanner_source = getattr(device.scanner, "source", "unknown")
+            # Try to get a friendly name for the scanner
+            scanner_name = getattr(device.scanner, "name", None)
+            if not scanner_name or scanner_name == "Unknown":
+                # Fallback to connector name (common for ESP proxies)
+                connector = getattr(device.scanner, "connector", None)
+                if connector:
+                    scanner_name = getattr(connector, "name", None)
+            
+            if not scanner_name:
+                scanner_name = "Unknown"
+        else:
+            # Fallback for raw BLEDevice: look into details or metadata
+            details = getattr(device, "details", {})
+            if isinstance(details, dict):
+                scanner_source = details.get("source", "unknown")
+                # Try multiple common keys for proxy/scanner name
+                scanner_name = details.get("scanner_name") or \
+                               details.get("proxy_name") or \
+                               details.get("adapter_name") or \
+                               details.get("source_name") or \
+                               "Unknown"
+        
+        # 4. Format Display
+        anon_source = BoksAnonymizer.anonymize_mac(scanner_source, anonymize)
+        scanner_display = f"{scanner_name} ({anon_source})"
+
+        # 5. Format Target Display
+        anon_target = BoksAnonymizer.anonymize_mac(target_address, anonymize)
+        
+        return f"[Scanner: {scanner_display}] -> [Target: {target_name} ({anon_target})] (RSSI: {rssi_str})"
 
     @staticmethod
     def get_packet_log_info(data: Optional[bytearray], anonymize: bool = True) -> dict[str, str]:

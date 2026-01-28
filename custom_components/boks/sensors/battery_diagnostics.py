@@ -8,9 +8,15 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.helpers.typing import StateType
 
 from ..coordinator import BoksDataUpdateCoordinator
 from ..entity import BoksEntity
+from .diagnostics import (
+    BoksBatteryDiagnosticSensor,
+    BoksBatteryFormatSensor,
+    BoksBatteryTypeSensor,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,6 +27,7 @@ class BoksRetainingSensor(BoksEntity, SensorEntity, RestoreEntity):
         """Initialize the sensor."""
         super().__init__(coordinator, entry)
         self._last_valid_value: Any = None
+        self._data_key: str | None = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
@@ -42,6 +49,9 @@ class BoksRetainingSensor(BoksEntity, SensorEntity, RestoreEntity):
     @property
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
+        if not self._data_key:
+            return self._last_valid_value
+
         current_val = self.coordinator.data.get(self._data_key)
 
         # If we have a new live value, update last_valid and return it
@@ -49,15 +59,12 @@ class BoksRetainingSensor(BoksEntity, SensorEntity, RestoreEntity):
             _LOGGER.debug("Updating %s with new live value: %s", self.entity_id, current_val)
             self._last_valid_value = current_val
             return current_val
+        
+        return self._last_valid_value
 
     def _get_current_value(self) -> Any | None:
         """Get the current value from coordinator data. To be implemented by subclasses."""
         raise NotImplementedError
-from .diagnostics import (
-    BoksBatteryDiagnosticSensor,
-    BoksBatteryFormatSensor,
-    BoksBatteryTypeSensor,
-)
 
 __all__ = [
     "BoksBatteryDiagnosticSensor",

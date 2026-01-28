@@ -1,7 +1,6 @@
 """Tests for the Boks battery diagnostics sensors."""
 import pytest
 from unittest.mock import MagicMock, patch
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from custom_components.boks.sensors.diagnostics.battery_diagnostic_sensor import BoksBatteryDiagnosticSensor
 from custom_components.boks.sensors.diagnostics.battery_format_sensor import BoksBatteryFormatSensor

@@ -1,6 +1,5 @@
 """Test Boks lock functionality."""
 import asyncio
-from datetime import datetime, timedelta
 from unittest.mock import patch, AsyncMock, MagicMock
 from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_ADDRESS
@@ -8,7 +7,6 @@ from homeassistant.components.lock import LockEntityFeature
 from custom_components.boks.const import DOMAIN
 from custom_components.boks.lock import BoksLock
 from custom_components.boks.coordinator import BoksDataUpdateCoordinator
-from custom_components.boks.errors.boks_command_error import BoksCommandError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 
@@ -237,21 +235,22 @@ async def test_lock_open_rate_limiting() -> None:
     lock.hass.async_create_task = MagicMock()
     
     # Mock bluetooth device
-    with patch("homeassistant.components.bluetooth.async_ble_device_from_address") as mock_bt:
-        mock_bt.return_value = MagicMock()
-        
+    with patch("homeassistant.components.bluetooth.async_scanner_devices_by_address", return_value=[MagicMock()]) as mock_scan, \
+         patch("homeassistant.components.bluetooth.async_ble_device_from_address", return_value=MagicMock()) as mock_bt, \
+         patch("homeassistant.components.bluetooth.async_last_service_info", return_value=None):
+
         # Mock ble_device methods
         coordinator.ble_device.connect = AsyncMock()
         coordinator.ble_device.disconnect = AsyncMock()
         coordinator.ble_device.open_door = AsyncMock()
         coordinator.ble_device.wait_for_door_closed = AsyncMock(return_value=True)
-        
+
         # Mock async_write_ha_state to avoid hass dependency
         lock.async_write_ha_state = MagicMock()
-        
+
         # Acquire the lock to simulate an operation in progress
         await lock._unlock_lock.acquire()
-        
+
         # Second open should fail due to rate limiting (lock held)
         try:
             from homeassistant.exceptions import HomeAssistantError
@@ -260,10 +259,10 @@ async def test_lock_open_rate_limiting() -> None:
         except HomeAssistantError as e:
             # Check the translation key
             assert e.translation_key == "door_opened_recently"
-        
+
         # Release the lock
         lock._unlock_lock.release()
-        
+
         # Third open should succeed
         await lock.async_open(code="12345A")
         

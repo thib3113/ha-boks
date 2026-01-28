@@ -1,9 +1,7 @@
 """Test Boks diagnostics."""
 from unittest.mock import MagicMock, patch
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from homeassistant.const import CONF_ADDRESS
 from custom_components.boks.diagnostics import async_get_config_entry_diagnostics
 from custom_components.boks.const import DOMAIN, CONF_CONFIG_KEY
 

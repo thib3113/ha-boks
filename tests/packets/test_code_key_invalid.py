@@ -1,7 +1,6 @@
 """Test for CodeKeyInvalidPacket."""
-import pytest
 from custom_components.boks.packets.rx.code_key_invalid import CodeKeyInvalidPacket
-from custom_components.boks.ble.const import BoksHistoryEvent, BoksNotificationOpcode
+from custom_components.boks.ble.const import BoksHistoryEvent
 
 def test_parse_code_key_invalid(mock_time, packet_builder):
     """Test parsing CodeKeyInvalidPacket."""

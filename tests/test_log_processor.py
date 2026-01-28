@@ -1,11 +1,9 @@
 """Tests for the Boks log processor."""
-import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime
 from types import SimpleNamespace
 import pytest
 
-from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 
 from custom_components.boks.const import DOMAIN

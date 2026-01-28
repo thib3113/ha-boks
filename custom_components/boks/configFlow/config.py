@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import voluptuous as vol
 
@@ -8,6 +8,9 @@ from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.core import callback
 from homeassistant.components import bluetooth
+
+if TYPE_CHECKING:
+    from homeassistant.components.bluetooth import BluetoothServiceInfoBleak
 
 from ..const import (
     DOMAIN, 

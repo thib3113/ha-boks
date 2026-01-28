@@ -1,6 +1,5 @@
 """Tests for the PacketFactory logic."""
-import time
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import pytest
 from custom_components.boks.packets.factory import PacketFactory
 from custom_components.boks.packets.base import BoksRXPacket

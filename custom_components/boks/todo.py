@@ -20,7 +20,7 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, CONF_CONFIG_KEY, EVENT_PARCEL_COMPLETED
+from .const import DOMAIN, CONF_CONFIG_KEY, EVENT_PARCEL_COMPLETED, EVENT_LOGS_RETRIEVED
 from .coordinator import BoksDataUpdateCoordinator
 from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
 
@@ -137,9 +137,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         await super().async_added_to_hass()
 
         # Subscribe to log events to process them only when they are retrieved (once)
-        self.async_on_remove(
-            self.hass.bus.async_listen(f"{DOMAIN}_logs_retrieved", self._handle_log_event)
-        )
+        self.async_on_remove(self.hass.bus.async_listen(EVENT_LOGS_RETRIEVED, self._handle_log_event))
 
         # Start periodic task to check for pending codes
         if self._has_config_key:

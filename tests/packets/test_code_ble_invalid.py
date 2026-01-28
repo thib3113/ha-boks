@@ -1,5 +1,4 @@
 """Test for CodeBleInvalidPacket."""
-import pytest
 from custom_components.boks.packets.rx.code_ble_invalid import CodeBleInvalidPacket
 from custom_components.boks.ble.const import BoksHistoryEvent
 

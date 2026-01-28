@@ -10,6 +10,7 @@ from homeassistant.const import CONF_ADDRESS
 from homeassistant.components import bluetooth
 
 from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, CONF_MASTER_KEY
+from .logic.anonymizer import BoksAnonymizer
 
 TO_REDACT = {
     CONF_CONFIG_KEY,
@@ -43,15 +44,21 @@ async def async_get_config_entry_diagnostics(
 
     ble_info = {}
     if ble_device:
-        details = getattr(ble_device, "details", {})
-        if not isinstance(details, dict):
-            details = {"raw_details": str(details)}
+        # Use our robust formatter for main scanner info
+        scanner_summary = BoksAnonymizer.format_scanner_info(ble_device, anonymize=False)
+        
+        # Fallback details only for very low-level debugging in JSON
+        raw_details = getattr(ble_device, "details", {})
+        if not isinstance(raw_details, dict):
+            raw_details = {"raw_value": str(raw_details)}
 
         ble_info = {
             "name": getattr(ble_device, "name", None),
             "address": getattr(ble_device, "address", None),
             "rssi": getattr(ble_device, "rssi", None),
-            "details": str(details),
+            "scanner_summary": scanner_summary,
+            "details": raw_details,
+            "type": str(type(ble_device)),
         }
 
         # Try to extract manufacturer data if available

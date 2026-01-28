@@ -3,7 +3,6 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from custom_components.boks.services import (
     get_coordinator_from_call,
@@ -12,13 +11,12 @@ from custom_components.boks.services import (
     SERVICE_ADD_SINGLE_CODE_SCHEMA,
     SERVICE_DELETE_SINGLE_CODE_SCHEMA,
     SERVICE_ADD_MASTER_CODE_SCHEMA,
-    SERVICE_DELETE_MASTER_CODE_SCHEMA,
     SERVICE_SYNC_LOGS_SCHEMA,
     SERVICE_CLEAN_MASTER_CODES_SCHEMA,
     SERVICE_SET_CONFIGURATION_SCHEMA
 )
 from custom_components.boks.ble.const import BoksConfigType
-from custom_components.boks.const import DOMAIN, CONF_CONFIG_KEY
+from custom_components.boks.const import DOMAIN
 from custom_components.boks.coordinator import BoksDataUpdateCoordinator
 from custom_components.boks.errors import BoksError
 from custom_components.boks.todo import BoksParcelTodoList

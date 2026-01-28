@@ -1,18 +1,13 @@
 """Test the Boks data update coordinator."""
-import asyncio
-from unittest.mock import MagicMock, AsyncMock, patch
-from datetime import timedelta, datetime
+from unittest.mock import MagicMock
+from datetime import timedelta
 import pytest
 
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_ADDRESS
 from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.util import dt as dt_util
 
-from custom_components.boks.const import DOMAIN
 from custom_components.boks.coordinator import BoksDataUpdateCoordinator
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 async def test_coordinator_update_success(
     hass: HomeAssistant, 
@@ -41,7 +36,8 @@ async def test_coordinator_update_device_not_found(
     coordinator = BoksDataUpdateCoordinator(hass, mock_config_entry)
 
     # Mock bluetooth device NOT found
-    mock_bluetooth.return_value = None
+    mock_bluetooth["scan"].return_value = []
+    mock_bluetooth["addr"].return_value = None
 
     with pytest.raises(UpdateFailed, match="device_not_in_cache"):
         await coordinator._async_update_data()
@@ -54,6 +50,9 @@ async def test_coordinator_sync_logs(
 ) -> None:
     """Test log synchronization."""
     coordinator = BoksDataUpdateCoordinator(hass, mock_config_entry)
+    
+    # Ensure scanner is found for logs
+    mock_bluetooth["scan"].return_value = [mock_bluetooth["wrapper"]]
     
     # Mock logs
     mock_log = MagicMock()
@@ -82,7 +81,7 @@ async def test_coordinator_device_info_throttling(
 ) -> None:
     """Test that device info is throttled."""
     coordinator = BoksDataUpdateCoordinator(hass, mock_config_entry)
-    mock_bluetooth.return_value = MagicMock()
+    mock_bluetooth["addr"].return_value = MagicMock()
 
     # First update: should fetch device info
     await coordinator.async_refresh()

@@ -1,5 +1,4 @@
 """Tests for the Boks logbook integration."""
-import pytest
 from unittest.mock import MagicMock
 from homeassistant.core import HomeAssistant
 from homeassistant.components.logbook import LOGBOOK_ENTRY_MESSAGE, LOGBOOK_ENTRY_NAME

@@ -15,7 +15,6 @@ from .sensors.diagnostics import (
     BoksBatteryFormatSensor,
     BoksBatteryTypeSensor,
 )
-from .sensors.diagnostics.battery_measure_format_sensor import BoksBatteryMeasureFormatSensor
 from .sensors.maintenance import BoksMaintenanceSensor
 
 

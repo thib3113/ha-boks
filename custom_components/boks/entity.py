@@ -1,9 +1,8 @@
 """Base entity for Boks."""
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import CONF_ADDRESS, CONF_NAME
+from homeassistant.const import CONF_ADDRESS
 
-from .const import DOMAIN
 from .coordinator import BoksDataUpdateCoordinator
 from homeassistant.config_entries import ConfigEntry
 

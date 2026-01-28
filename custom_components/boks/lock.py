@@ -108,14 +108,31 @@ class BoksLock(BoksEntity, LockEntity):
             ble_device: BoksBluetoothDevice = self.coordinator.ble_device
 
             # Always connect to increment reference counter
-            _LOGGER.debug("async_open: getting BLE device from address %s", 
-                      BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self.coordinator.ble_device.anonymize_logs))
-            device = bluetooth.async_ble_device_from_address(
-                self.hass, self._entry.data[CONF_ADDRESS], connectable=True
-            )
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                _LOGGER.debug("async_open: getting BLE device from address %s", 
+                          BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self.coordinator.ble_device.anonymize_logs))
+            
+            # Prefer wrapper for logs (contains scanner name)
+            scanners = bluetooth.async_scanner_devices_by_address(self.hass, self._entry.data[CONF_ADDRESS], connectable=True)
+            device = scanners[0] if scanners else None
+            
             if not device:
-                _LOGGER.error("async_open: Device not found in cache")
+                device = bluetooth.async_ble_device_from_address(
+                    self.hass, self._entry.data[CONF_ADDRESS], connectable=True
+                )
+            
+            if not device:
+                _LOGGER.error("async_open: Device not found in cache for %s", 
+                              BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self.coordinator.ble_device.anonymize_logs))
                 raise BoksCommandError("device_not_in_cache")
+
+            if _LOGGER.isEnabledFor(logging.DEBUG):
+                rssi_now = None
+                service_info = bluetooth.async_last_service_info(self.hass, self._entry.data[CONF_ADDRESS], connectable=True)
+                if service_info:
+                    rssi_now = service_info.rssi
+                _LOGGER.debug("async_open: Target scanner identified: %s", 
+                              BoksAnonymizer.format_scanner_info(device, self.coordinator.ble_device.anonymize_logs, fallback_rssi=rssi_now))
 
             success = False
             timeout_open = 40
@@ -123,7 +140,9 @@ class BoksLock(BoksEntity, LockEntity):
                 # 1. Operation: Connect and Open
                 async with asyncio.timeout(timeout_open):
                     _LOGGER.debug("async_open: Connecting to device... (elapsed: %.3fs)", (datetime.now() - start_time).total_seconds())
-                    await ble_device.connect(device)
+                    # Ensure we pass the underlying BLEDevice if it's a wrapper
+                    connection_target = getattr(device, "ble_device", device)
+                    await ble_device.connect(connection_target)
                     _LOGGER.debug("async_open: Connected. (elapsed: %.3fs)", (datetime.now() - start_time).total_seconds())
 
                     # Priority: Stored Master Code
@@ -141,7 +160,8 @@ class BoksLock(BoksEntity, LockEntity):
                                 break
                             except Exception as e:
                                 _LOGGER.warning("Failed to generate single-use code (Attempt %d): %s", attempt + 1, e)
-                                if attempt == 0: await asyncio.sleep(2)
+                                if attempt == 0:
+                                    await asyncio.sleep(2)
 
                     if not code:
                         if not ble_device.config_key_str:

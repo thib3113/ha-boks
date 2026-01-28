@@ -1,7 +1,6 @@
 """Test for CodeCountsPacket."""
-import pytest
 from custom_components.boks.packets.rx.code_counts import CodeCountsPacket
-from custom_components.boks.ble.const import BoksHistoryEvent, BoksNotificationOpcode
+from custom_components.boks.ble.const import BoksNotificationOpcode
 
 def test_parse_code_counts(mock_time, packet_builder):
     """Test parsing CodeCountsPacket."""

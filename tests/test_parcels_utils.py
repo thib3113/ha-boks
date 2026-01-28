@@ -1,6 +1,4 @@
 """Tests for the Boks parcels utils."""
-import pytest
-import re
 from custom_components.boks.parcels.utils import (
     parse_parcel_string,
     generate_random_code,

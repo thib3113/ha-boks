@@ -1,14 +1,12 @@
 "Tests for the Boks BLE device."
 import pytest
-import asyncio
-from unittest.mock import MagicMock, patch, AsyncMock, ANY
+from unittest.mock import MagicMock, patch, AsyncMock
 from bleak.exc import BleakError
 from homeassistant.core import HomeAssistant
 from custom_components.boks.ble.device import BoksBluetoothDevice
-from custom_components.boks.errors import BoksError, BoksAuthError, BoksCommandError
-from custom_components.boks.ble.const import BoksServiceUUID, BoksNotificationOpcode, BoksCommandOpcode
+from custom_components.boks.errors import BoksError, BoksAuthError
+from custom_components.boks.ble.const import BoksNotificationOpcode
 from custom_components.boks.packets.base import BoksTXPacket
-from custom_components.boks.packets.rx.door_status import DoorStatusPacket
 
 class MockTXPacket(BoksTXPacket):
     """Mock TX Packet for testing."""
@@ -34,13 +32,15 @@ async def test_device_connect_success(hass: HomeAssistant):
 
     with patch("custom_components.boks.ble.device.establish_connection") as mock_establish, \
          patch("custom_components.boks.ble.device.BleakClient") as mock_client_cls, \
+         patch("custom_components.boks.ble.device.bluetooth.async_last_service_info") as mock_last_info, \
          patch("custom_components.boks.ble.device.bluetooth.async_scanner_devices_by_address") as mock_get_devices:
 
+        mock_last_info.return_value = None
         mock_device = MagicMock()
         mock_device.name = "Boks"
         mock_device.rssi = -50
         mock_get_devices.return_value = [mock_device]
-        
+
         mock_client = mock_client_cls.return_value
         mock_client.start_notify = AsyncMock()
         mock_client.disconnect = AsyncMock()

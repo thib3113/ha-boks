@@ -1,5 +1,5 @@
-import logging
 """Battery temperature sensor for Boks."""
+import logging
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,

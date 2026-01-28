@@ -21,7 +21,7 @@ from packaging import version
 
 from .ble import BoksBluetoothDevice
 from .const import DOMAIN, CONF_CONFIG_KEY, DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL, \
-    TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS  # Import DOMAIN and defaults
+    TIMEOUT_BLE_CONNECTION, CONF_ANONYMIZE_LOGS, EVENT_LOGS_RETRIEVED  # Import DOMAIN and defaults
 from .errors import BoksError
 from .logic.anonymizer import BoksAnonymizer
 from .logic.log_processor import BoksLogProcessor
@@ -48,9 +48,10 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         self.ble_device.register_status_callback(self._handle_status_update)
 
         self.entry = entry
-        _LOGGER.debug("BoksDataUpdateCoordinator initialized with Address: %s, Config Key Present: %s",
-                       BoksAnonymizer.anonymize_mac(entry.data[CONF_ADDRESS], self.ble_device.anonymize_logs), 
-                       bool(entry.data.get(CONF_CONFIG_KEY)))
+        if _LOGGER.isEnabledFor(logging.DEBUG):
+            _LOGGER.debug("BoksDataUpdateCoordinator initialized with Address: %s, Config Key Present: %s",
+                           BoksAnonymizer.anonymize_mac(entry.data[CONF_ADDRESS], self.ble_device.anonymize_logs),
+                           bool(entry.data.get(CONF_CONFIG_KEY)))
         self._last_battery_update = None
         self.full_refresh_interval_hours = entry.options.get("full_refresh_interval", DEFAULT_FULL_REFRESH_INTERVAL)
         # Set the full refresh interval on the BLE device
@@ -175,7 +176,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                 _LOGGER.warning("Error processing pushed log: %s", e)
 
         if event_data["logs"]:
-            self.hass.bus.async_fire(f"{DOMAIN}_logs_retrieved", event_data)
+            self.hass.bus.async_fire(EVENT_LOGS_RETRIEVED, event_data)
             self.data["latest_logs"] = event_data["logs"]
             self.data["last_log_fetch_ts"] = datetime.now().isoformat()
             self.async_set_updated_data(self.data)
@@ -190,9 +191,9 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         result = {}
         try:
             # Try to get the BLEDevice from HA's cache to avoid warning
-            ble_device_struct = bluetooth.async_ble_device_from_address(
-                self.hass, self.entry.data[CONF_ADDRESS], connectable=True
-            )
+            scanners = bluetooth.async_scanner_devices_by_address(self.hass, self.entry.data[CONF_ADDRESS], connectable=True)
+            ble_device_struct = scanners[0] if scanners else None
+
             if not ble_device_struct:
                 ble_device_struct = bluetooth.async_ble_device_from_address(
                     self.hass, self.entry.data[CONF_ADDRESS], connectable=False
@@ -200,9 +201,18 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
             # Connect to increment reference counter, passing the device if found
             if ble_device_struct:
-                await self.ble_device.connect(device=ble_device_struct)
+                if _LOGGER.isEnabledFor(logging.DEBUG):
+                    rssi_now = None
+                    service_info = bluetooth.async_last_service_info(self.hass, self.entry.data[CONF_ADDRESS], connectable=True)
+                    if service_info:
+                        rssi_now = service_info.rssi
+                    _LOGGER.debug("Syncing logs via %s", BoksAnonymizer.format_scanner_info(ble_device_struct, self.ble_device.anonymize_logs, fallback_rssi=rssi_now))
+
+                # Ensure we pass the underlying BLEDevice if it's a wrapper
+                connection_target = getattr(ble_device_struct, "ble_device", ble_device_struct)
+                await self.ble_device.connect(device=connection_target)
             else:
-                _LOGGER.warning("Could not find BLE device for log sync, attempting connection by address only for %s", 
+                _LOGGER.warning("Could not find BLE device for log sync, attempting connection by address only for %s",
                                 BoksAnonymizer.anonymize_mac(self.entry.data[CONF_ADDRESS], self.ble_device.anonymize_logs))
                 await self.ble_device.connect()
 
@@ -259,7 +269,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                         door_open = await self.ble_device.get_door_status()
                         self.data["door_open"] = door_open
 
-                    self.hass.bus.async_fire(f"{DOMAIN}_logs_retrieved", event_data)
+                    self.hass.bus.async_fire(EVENT_LOGS_RETRIEVED, event_data)
 
                     result["latest_logs"] = event_data["logs"]
                     result["last_log_fetch_ts"] = datetime.now().isoformat()
@@ -289,10 +299,10 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             # the BoksBle class handles the lock.
 
             async with asyncio.timeout(TIMEOUT_BLE_CONNECTION):
-                # Try to get the BLEDevice from HA's cache (Best Practice)
-                ble_device_struct = bluetooth.async_ble_device_from_address(
-                    self.hass, self.entry.data[CONF_ADDRESS], connectable=True
-                )
+                # Try to get the BLEDevice wrapper from HA's cache (Best Practice for logs)
+                scanners = bluetooth.async_scanner_devices_by_address(self.hass, self.entry.data[CONF_ADDRESS], connectable=True)
+                ble_device_struct = scanners[0] if scanners else None
+
                 if not ble_device_struct:
                     ble_device_struct = bluetooth.async_ble_device_from_address(
                         self.hass, self.entry.data[CONF_ADDRESS], connectable=False
@@ -303,7 +313,9 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
 
                 try:
                     # Always connect to increment reference counter
-                    await self.ble_device.connect(device=ble_device_struct)
+                    # Pass the underlying BLEDevice if it's a wrapper
+                    connection_target = getattr(ble_device_struct, "ble_device", ble_device_struct)
+                    await self.ble_device.connect(device=connection_target)
 
                     now = datetime.now()
 

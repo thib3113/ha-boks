@@ -1,14 +1,13 @@
 """Tests for the Boks BLE device additional functionality."""
 
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.core import HomeAssistant
 from custom_components.boks.ble.const import BoksNotificationOpcode
 from custom_components.boks.ble.device import BoksBluetoothDevice
-from custom_components.boks.errors import BoksCommandError, BoksError
+from custom_components.boks.errors import BoksError
 from custom_components.boks.packets.rx.code_counts import CodeCountsPacket
 from custom_components.boks.packets.rx.operation_result import OperationResultPacket
-from custom_components.boks.packets.rx.log_count import LogCountPacket
 
 async def test_get_code_counts_success(hass: HomeAssistant):
     """Test get code counts success."""
