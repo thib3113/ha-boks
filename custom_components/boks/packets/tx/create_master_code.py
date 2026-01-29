@@ -14,10 +14,10 @@ class CreateMasterCodePacket(BoksTXPacket):
         self.index = index
 
     def to_bytes(self) -> bytearray:
-        # Payload: ConfigKey (8) + Index (1) + PIN (6)
+        # Payload: ConfigKey (8) + PIN (6) + Index (1)
         payload = bytearray(self.config_key.encode('ascii'))
-        payload.append(self.index)
         payload.extend(self.pin.encode('ascii'))
+        payload.append(self.index)
         return self._build_framed_packet(payload)
 
     def to_log_dict(self, anonymize: bool = True) -> dict[str, str]:

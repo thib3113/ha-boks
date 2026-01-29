@@ -12,9 +12,9 @@ def test_CreateMasterCodePacket_init():
     assert packet.opcode == BoksCommandOpcode.CREATE_MASTER_CODE
     
     full_packet = packet.to_bytes()
-    # Structure: [Opcode][Len][Key(8)][Index(1)][PIN(6)][CRC]
+    # Structure: [Opcode][Len][Key(8)][PIN(6)][Index(1)][CRC]
     assert full_packet[0] == BoksCommandOpcode.CREATE_MASTER_CODE
-    assert full_packet[1] == 15 # 8+1+6
+    assert full_packet[1] == 15 # 8+6+1
     assert full_packet[2:10] == key.encode('ascii')
-    assert full_packet[10] == index
-    assert full_packet[11:17] == pin.encode('ascii')
+    assert full_packet[10:16] == pin.encode('ascii')
+    assert full_packet[16] == index
