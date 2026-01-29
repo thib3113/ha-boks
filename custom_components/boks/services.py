@@ -774,11 +774,11 @@ async def async_setup_services(hass: HomeAssistant):
         coordinator = get_coordinator_from_call(hass, call)
         _LOGGER.info("Door status poll requested via service for %s",
                      BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
-        
+
         try:
             await coordinator.ble_device.connect()
             is_open = await coordinator.ble_device.get_door_status()
-            
+
             _LOGGER.info("Door status poll completed. Open: %s", is_open)
             return {"is_open": is_open}
         finally:

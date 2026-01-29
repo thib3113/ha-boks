@@ -237,10 +237,3 @@ ask_door_status:
     entity:
       integration: boks
       domain: lock
-  response:
-    optional: true
-    description: Returns the current door status
-    fields:
-      is_open:
-        description: True if the door is open, False if closed
-        example: true

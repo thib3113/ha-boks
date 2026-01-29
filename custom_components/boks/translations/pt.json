@@ -606,6 +606,10 @@
           "description": "O ID único da tag a remover."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Verificar estado da porta",
+      "description": "Consulta manualmente o Boks para verificar se a porta está aberta ou fechada."
     }
   }
 }

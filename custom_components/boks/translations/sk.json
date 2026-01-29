@@ -607,6 +607,10 @@
           "description": "Unikátne ID tagu, ktorý sa má odstrániť."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Skontrolovať stav dverí",
+      "description": "Ručne sa opýtať Boks, či sú dvere otvorené alebo zatvorené."
     }
   }
 }

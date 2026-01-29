@@ -68,5 +68,4 @@ async def async_setup_entry(
 
     # If "measure-single" or unknown, we don't add extra diagnostic sensors,
     # as the main BoksBatterySensor covers the single level.
-
     async_add_entities(entities)

@@ -604,9 +604,13 @@
       "fields": {
         "uid": {
           "name": "Kártya UID",
-          "description": "A törölni kívánt kártya egyedi azonosítója."
+          "description": "Az eltávolítandó kártya egyedi azonosítója."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Ajtó állapotának ellenőrzése",
+      "description": "Manuálisan lekérdezi a Boks-ot, hogy ellenőrizze, az ajtó nyitva van-e vagy csukva."
     }
   }
 }

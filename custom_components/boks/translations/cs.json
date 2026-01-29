@@ -607,6 +607,10 @@
           "description": "Unikátní ID tagu, který se má odstranit."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Zkontrolovat stav dveří",
+      "description": "Ručně se dotázat Boks, zda jsou dveře otevřené nebo zavřené."
     }
   }
 }

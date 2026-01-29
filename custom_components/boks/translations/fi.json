@@ -599,13 +599,17 @@
     },
     "nfc_unregister_tag": {
       "name": "Poista NFC-tunnisteen rekisteröinti",
-      "description": "Poistaa NFC-tunnisteen Boks-laitteen sallittujen luettelosta.",
+      "description": "Poistaa NFC-tunnisteen Boksin sallittujen luettelosta.",
       "fields": {
         "uid": {
           "name": "Tunnisteen UID",
-          "description": "Poistettavan tunnisteen yksilöllinen tunniste."
+          "description": "Poistettavan tunnisteen yksilöllinen tunnus."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Tarkista oven tila",
+      "description": "Kysy Boksista manuaalisesti, onko ovi auki vai kiinni."
     }
   }
 }

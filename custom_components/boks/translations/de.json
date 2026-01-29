@@ -606,6 +606,10 @@
           "description": "Die eindeutige ID des zu entfernenden Tags."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Türstatus prüfen",
+      "description": "Fragt das Boks manuell ab, ob die Tür offen oder geschlossen ist."
     }
   }
 }

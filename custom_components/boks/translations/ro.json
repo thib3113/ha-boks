@@ -598,14 +598,18 @@
       }
     },
     "nfc_unregister_tag": {
-      "name": "Eliminare înregistrare tag NFC",
+      "name": "Anulare înregistrare tag NFC",
       "description": "Elimină un tag NFC din lista albă Boks.",
       "fields": {
         "uid": {
           "name": "UID tag",
-          "description": "ID-ul unic al tagului de eliminat."
+          "description": "ID-ul unic al tagului care urmează să fie eliminat."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Verifică starea ușii",
+      "description": "Interoghează manual Boks pentru a verifica dacă ușa este deschisă sau închisă."
     }
   }
 }

@@ -600,13 +600,17 @@
     },
     "nfc_unregister_tag": {
       "name": "Atcelt NFC taga reģistrāciju",
-      "description": "Izņem NFC tagu no Boks baltā saraksta.",
+      "description": "Noņem NFC tagu no Boks baltā saraksta.",
       "fields": {
         "uid": {
           "name": "Taga UID",
-          "description": "Dzēšamā taga unikālais ID."
+          "description": "Noņemamā taga unikālais ID."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Pārbaudīt durvju statusu",
+      "description": "Manuāli aptaujāt Boks, lai pārbaudītu, vai durvis ir atvērtas vai aizvērtas."
     }
   }
 }

@@ -607,6 +607,10 @@
           "description": "Unikalny identyfikator tagu do usunięcia."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Sprawdź status drzwi",
+      "description": "Ręcznie odpytaj Boks, aby sprawdzić, czy drzwi są otwarte czy zamknięte."
     }
   }
 }

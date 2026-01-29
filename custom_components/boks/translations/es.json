@@ -600,13 +600,17 @@
     },
     "nfc_unregister_tag": {
       "name": "Eliminar etiqueta NFC",
-      "description": "Elimina una etiqueta NFC de la lista blanca de Boks.",
+      "description": "Elimina una etiqueta NFC de la lista blanca del Boks.",
       "fields": {
         "uid": {
-          "name": "UID de etiqueta",
+          "name": "UID de la etiqueta",
           "description": "El ID único de la etiqueta a eliminar."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Verificar estado de la puerta",
+      "description": "Consulta manualmente el Boks para comprobar si la puerta está abierta o cerrada."
     }
   }
 }

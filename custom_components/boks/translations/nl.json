@@ -606,6 +606,10 @@
           "description": "De unieke ID van de te verwijderen tag."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Deurstatus controleren",
+      "description": "Handmatig de Boks polsen om te controleren of de deur open of gesloten is."
     }
   }
 }

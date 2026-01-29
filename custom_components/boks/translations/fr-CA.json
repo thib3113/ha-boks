@@ -607,6 +607,10 @@
           "description": "L'identifiant unique du badge à supprimer."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Vérifier l'état de la porte",
+      "description": "Interroge manuellement la Boks pour savoir si la porte est ouverte ou fermée."
     }
   }
 }
