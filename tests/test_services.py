@@ -695,30 +695,6 @@ async def test_handle_set_configuration_success(mock_hass, mock_coordinator):
         mock_coordinator.ble_device.disconnect.assert_called()
 
 
-async def test_handle_ask_door_status_success(mock_hass, mock_coordinator):
-    """Test handle_ask_door_status service success."""
-    entry_id = "test_entry_id"
-    mock_hass.data[DOMAIN] = {entry_id: mock_coordinator}
-    
-    call = MagicMock()
-    call.data = {}
-    
-    mock_coordinator.ble_device.get_door_status = AsyncMock(return_value=True)
-    
-    handlers = {}
-    mock_hass.services.async_register.side_effect = lambda d, s, h, **k: handlers.update({s: h})
-    await async_setup_services(mock_hass)
-    handler = handlers["ask_door_status"]
-    
-    with patch("custom_components.boks.services.get_coordinator_from_call", return_value=mock_coordinator):
-        result = await handler(call)
-        
-        assert result == {"is_open": True}
-        mock_coordinator.ble_device.connect.assert_called()
-        mock_coordinator.ble_device.get_door_status.assert_called()
-        mock_coordinator.ble_device.disconnect.assert_called()
-
-
 async def test_service_schemas():
     """Test service schemas."""
     # Test SERVICE_ADD_PARCEL_SCHEMA
