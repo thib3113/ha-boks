@@ -13,6 +13,12 @@ Ouvre la porte de la Boks.
 *   **Entité** : `lock.votre_boks_porte`
 *   **Code (Optionnel)** : Si omis, l'intégration utilise le "Code Permanent" configuré. Si vous spécifiez un code, c'est celui-ci qui sera utilisé (utile pour tester des codes à usage unique).
 
+#### `boks.ask_door_status`
+Interroge manuellement la Boks pour connaître l'état actuel de la porte (ouvert/fermé).
+*   **Entité** : `lock.votre_boks_porte`
+*   **Réponse** : Retourne un objet JSON avec `is_open: true/false`.
+*   **Effet** : Met à jour immédiatement l'état de l'entité `lock` associée.
+
 ### Gestion des Colis
 
 #### `todo.add_item` (ou `boks.add_parcel`)

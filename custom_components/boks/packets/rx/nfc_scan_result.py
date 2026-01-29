@@ -1,9 +1,8 @@
 """RX Packet: NFC Scan Result."""
-from typing import Optional
 
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksRXPacket
 
 
 class NfcScanResultPacket(BoksRXPacket):
@@ -19,7 +18,7 @@ class NfcScanResultPacket(BoksRXPacket):
         super().__init__(opcode, raw_data)
         # Payload for 0xC5/0xC6: [UID_Len(1)] [UID(NB)]
         # Payload for 0xC7: empty
-        self.uid: Optional[str] = None
+        self.uid: str | None = None
         if self.opcode in (BoksNotificationOpcode.NOTIFY_NFC_TAG_FOUND, BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_SCAN):
             uid_len = self.payload[0] if len(self.payload) >= 1 else 0
             if uid_len > 0 and len(self.payload) >= 1 + uid_len:

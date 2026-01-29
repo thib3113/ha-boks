@@ -1,7 +1,8 @@
 """RX Packet: Valid Keypad Code."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksHistoryLogPacket
+
 
 class CodeKeyValidPacket(BoksHistoryLogPacket):
     """Log entry for a valid keypad code opening."""

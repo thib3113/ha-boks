@@ -53,7 +53,7 @@ async def test_async_enrich_log_entry_full_flow(hass, log_processor, mock_transl
 
     assert enriched["event_type"] == "nfc_opening"
     assert enriched["extra_data"]["tag_name"] == tag_name
-    assert enriched["description"] == f"Opening by {tag_name}"
+    assert enriched["description"] == "NFC Opening"
     assert mock_tags_helper.async_update_item.called
 
 def test_translate_base_description(log_processor, mock_translations):
@@ -123,21 +123,6 @@ async def test_resolve_tag_name(hass, log_processor):
     # Case 3: Tag not in registry
     resolved = await log_processor._resolve_tag_name({"tag_uid": "UNKNOWN"})
     assert resolved == "UNKNOWN"
-def test_format_nfc_description(log_processor, mock_translations):
-    """Test _format_nfc_description static method."""
-    # Case 1: Named tag
-    extra_data = {"tag_uid": "UID", "tag_name": "My Name"}
-    desc = log_processor._format_nfc_description("nfc_opening", extra_data, mock_translations, "Base")
-    assert desc == "Opening by My Name"
-    
-    # Case 2: Unnamed tag with type description
-    extra_data = {"tag_uid": "UID", "tag_type_description": "User Badge"}
-    desc = log_processor._format_nfc_description("nfc_opening", extra_data, mock_translations, "Base")
-    assert desc == "Opening by User Badge (UID)"
-    
-    # Case 3: Not an NFC opening
-    desc = log_processor._format_nfc_description("door_opened", {}, mock_translations, "Base")
-    assert desc == "Base"
 
 def test_should_update_last_scanned(log_processor):
     """Test _should_update_last_scanned static method."""

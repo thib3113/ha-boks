@@ -1,7 +1,8 @@
 """TX Packet: Register NFC Tag."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class RegisterNfcTagPacket(BoksTXPacket):
     """Command to register an NFC tag in the Boks whitelist."""
@@ -28,7 +29,7 @@ class RegisterNfcTagPacket(BoksTXPacket):
         """Log info with masked key and UID."""
         log_key = BoksAnonymizer.anonymize_key(self.config_key, anonymize)
         log_uid = BoksAnonymizer.anonymize_uid(self.uid, anonymize)
-        
+
         return {
             "payload": f"Key={log_key}, UID={log_uid}",
             "raw": self.to_bytes().hex(),

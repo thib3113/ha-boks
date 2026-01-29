@@ -3,13 +3,13 @@ from __future__ import annotations
 
 from typing import Any
 
+from homeassistant.components import bluetooth
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.const import CONF_ADDRESS
-from homeassistant.components import bluetooth
+from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN, CONF_CONFIG_KEY, CONF_MASTER_CODE, CONF_MASTER_KEY
+from .const import CONF_CONFIG_KEY, CONF_MASTER_CODE, CONF_MASTER_KEY, DOMAIN
 from .logic.anonymizer import BoksAnonymizer
 
 TO_REDACT = {
@@ -46,7 +46,7 @@ async def async_get_config_entry_diagnostics(
     if ble_device:
         # Use our robust formatter for main scanner info
         scanner_summary = BoksAnonymizer.format_scanner_info(ble_device, anonymize=False)
-        
+
         # Fallback details only for very low-level debugging in JSON
         raw_details = getattr(ble_device, "details", {})
         if not isinstance(raw_details, dict):

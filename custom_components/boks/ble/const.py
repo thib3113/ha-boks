@@ -1,6 +1,7 @@
 """Constants for Boks BLE communication."""
 from enum import IntEnum, StrEnum
 
+
 class BoksServiceUUID(StrEnum):
     """UUIDs for Boks services and characteristics."""
     SERVICE = "a7630001-f491-4f21-95ea-846ba586e361"

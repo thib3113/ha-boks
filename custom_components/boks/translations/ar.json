@@ -108,88 +108,177 @@
     }
   },
   "exceptions": {
-    "cannot_connect": { "message": "غير قادر على الاتصال بـ Boks API." },
-    "invalid_auth": { "message": "بريد إلكتروني أو كلمة مرور غير صالحة." },
-    "boks_not_found": { "message": "لم يتم العثور على Boks في هذا الحساب يطابق عنوان MAC." },
-    "cannot_retrieve_key": { "message": "تعذر استرداد مفتاح التكوين من السحابة." },
-    "device_not_found": { "message": "الجهاز غير موجود في القائمة." },
-    "device_not_in_cache": { "message": "الجهاز غير موجود في ذاكرة التخزين المؤقت للبلوتوث. لا يوجد مسار قابل للاتصال." },
-    "no_devices_found": { "message": "لم يتم العثور على أجهزة Boks في هذا الحساب." },
-    "connection_error": { "message": "خطأ في الاتصال أثناء جلب الأجهزة." },
-    "invalid_credential_format": { "message": "تنسيق بيانات الاعتماد غير صالح. يجب أن يكون 8/64 حرفًا سداسيًا عشريًا" },
-    "invalid_master_code_format": { "message": "تنسيق الرمز الرئيسي غير صالح. يجب أن يكون رمزًا مكونًا من 6 أرقام (0-9 ، أ ، ب)." },
-    "unknown": { "message": "حدث خطأ غير معروف." },
-    "pin_code_invalid_length": { "message": "يجب أن يتكون رمز PIN من 6 أحرف" },
-    "pin_code_invalid": { "message": "رمز PIN غير صالح" },
-    "unauthorized": { "message": "غير مصرح به" },
-    "config_key_required": { "message": "مفتاح التكوين مطلوب لهذه العملية" },
-    "invalid_code_format": { "message": "تنسيق الرمز غير صالح (يجب أن يكون 6 أحرف من 0-9 ، أ ، ب)" },
-    "create_code_failed": { "message": "فشل في إنشاء الرمز (أرجع الجهاز خطأ)" },
-    "change_master_code_failed": { "message": "فشل في تغيير الرمز الرئيسي (أرجع الجهاز خطأ)" },
-    "unknown_code_type": { "message": "نوع رمز غير معروف" },
-    "unknown_device": { "message": "الجهاز غير مرئي بواسطة محول البلوتوث." },
-    "not_connectable": { "message": "الجهاز المكتشف غير قابل للاتصال (ربما عبر وكيل سلبي)." },
-    "todo_entity_not_found_for_device": { "message": "لم يتم العثور على كيان Todo للجهاز {target_device_id}" },
-    "target_devices_not_boks": { "message": "الجهاز (الأجهزة) المستهدفة {device_ids} ليست أجهزة Boks." },
-    "target_entities_not_boks": { "message": "الكيان (الكيانات) المستهدفة {entity_ids} تنتمي إلى أجهزة غير Boks." },
-    "target_device_missing": { "message": "جهاز Boks المستهدف غير موجود أو غير محدد. يرجى تحديد device_id أو entity_id." },
-    "multiple_devices_found": { "message": "Plusieurs appareils Boks trouvés. Veuillez spécifier une entité ou un appareil cible." },
-    "no_devices_configured": { "message": "لا توجد أجهزة Boks مهيأة." },
-    "no_devices_found": { "message": "لم يتم العثور على أجهزة Boks في هذا الحساب." },
-    "not_connectable": { "message": "الجهاز المكتشف غير قابل للاتصال (ربما عبر وكيل سلبي)." },
-    "opening_failed_no_code": { "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد." },
-    "opening_failed_no_code_no_key": { "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد (لا يوجد مفتاح تكوين متوفر)." },
-    "operation_timed_out": { "message": "انتهت مهلة العملية بعد {seconds} ثانية" },
-    "pin_code_invalid": { "message": "رمز PIN غير صالح" },
-    "pin_code_invalid_length": { "message": "يجب أن يتكون رمز PIN من 6 أحرف" },
-    "set_configuration_failed": { "message": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)" },
-    "target_device_missing": { "message": "جهاز Boks المستهدف غير موجود أو غير محدد. يرجى تحديد device_id أو entity_id." },
-    "target_devices_not_boks": { "message": "الجهاز (الأجهزة) المستهدفة {device_ids} ليست أجهزة Boks." },
-    "target_entities_not_boks": { "message": "الكيان (الكيانات) المستهدفة {entity_ids} تنتمي إلى أجهزة غير Boks." },
-    "timeout_waiting_response": { "message": "انتهت مهلة انتظار الاستجابة لـ opcode {opcode}" },
-    "todo_entity_not_found": { "message": "لم يتم العثور على كيان Todo {target_entity_id} أو لم يتم تحميله." },
-    "todo_entity_not_found_for_device": { "message": "لم يتم العثور على كيان Todo للجهاز {target_device_id}" },
-    "todo_integration_not_loaded": { "message": "لم يتم تحميل تكامل Todo." },
-    "unauthorized": { "message": "غير مصرح به" },
-    "unknown": { "message": "حدث خطأ غير معروف." },
-    "unknown_code_type": { "message": "نوع رمز غير معروف" },
-    "unknown_device": { "message": "الجهاز غير مرئي بواسطة محول البلوتوث." },
-    "ble_client_none": { "message": "عميل BLE هو None ، لا يمكن إرسال الأمر" },
-    "ble_error": { "message": "خطأ BLE: {error}" },
-    "ble_internal_error": { "message": "خطأ BLE داخلي: {error}" },
-    "boks_not_found": { "message": "لم يتم العثور على Boks في هذا الحساب يطابق عنوان MAC." },
-    "busy": { "message": "الجهاز مشغول: هناك عملية أخرى تستمع بالفعل للإشعارات." },
-    "cannot_connect": { "message": "غير قادر على الاتصال بـ Boks API." },
-    "cannot_resolve_todo": { "message": "تعذر حل قائمة Boks Todo المستهدفة." },
-    "cannot_retrieve_key": { "message": "تعذر استرداد مفتاح التكوين من السحابة." },
-    "change_master_code_failed": { "message": "فشل في تغيير الرمز الرئيسي (أرجع الجهاز خطأ)" },
-    "config_key_invalid_length": { "message": "يجب أن يكون طول مفتاح التكوين 8 أحرف بالضبط." },
-    "config_key_required": { "message": "مفتاح التكوين مطلوب لهذه العملية" },
-    "connection_error": { "message": "خطأ في الاتصال أثناء جلب الأجهزة." },
-    "create_code_failed": { "message": "فشل في إنشاء الرمز (أرجع الجهاز خطأ)" },
-    "delete_code_failed": { "message": "فشل في حذف الرمز (أرجع الجهاز خطأ)" },
-    "device_not_found": { "message": "الجهاز غير موجود في القائمة." },
-    "device_not_in_cache": { "message": "الجهاز غير موجود في ذاكرة التخزين المؤقت للبلوتوث. لا يوجد مسار قابل للاتصال." },
-    "door_opened_recently": { "message": "تم فتح الباب مؤخرًا. يرجى الانتظار {seconds} ثانية قبل الفتح مرة أخرى." },
-    "entity_not_parcel_list": { "message": "الكيان {target_entity_id} ليس قائمة طرود Boks." },
-    "firmware_update_failed": { "message": "فشل في تشغيل تحديث البرنامج الثابت للإصدار {version}" },
-    "firmware_update_required": { "message": "تتطلب ميزة {feature} إصدار البرنامج الثابت {required_sw}. إصدارك الحالي هو {current_sw}." },
-    "firmware_version_required": { "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لاستخدام هذه الميزة. النسخة الحالية: {current_version}" },
-    "hardware_unsupported": { "message": "La fonction {feature} nécessite une Boks v{required_hw} ou supérieure. Votre version actuelle est v{current_hw}." },
-    "invalid_auth": { "message": "بريد إلكتروني أو كلمة مرور غير صالحة." },
-    "invalid_code_format": { "message": "تنسيق الرمز غير صالح (يجب أن يكون 6 أحرف من 0-9 ، أ ، ب)" },
-    "invalid_credential_format": { "message": "تنسيق بيانات الاعتماد غير صالح. يجب أن يكون 8/64 حرفًا سداسيًا عشريًا" },
-    "invalid_master_code_format": { "message": "تنسيق الرمز الرئيسي غير صالح. يجب أن يكون رمزًا مكونًا من 6 أرقام (0-9 ، أ ، ب)." },
-    "invalid_master_code_index": { "message": "فهرس رمز رئيسي غير صالح (يجب أن يكون بين 0 و 255)." },
-    "invalid_uid_format": { "message": "تنسيق UID NFC غير صالح." },
-    "item_not_found": { "message": "العنصر غير موجود" },
-    "laposte_firmware_version_required": { "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لتمكين ميزة La Poste. النسخة الحالية: {current_version}" },
-    "lock_entity_not_found": { "message": "كيان القفل غير موجود لهذا الجهاز." },
-    "maintenance_already_running": { "message": "مهمة صيانة قيد التقدم بالفعل. يرجى الانتظار حتى تنتهي." },
-    "maintenance_error_msg": { "message": "فشل تنظيف الرمز الرئيسي في الفهرس {current_idx}.\nالخطأ: {error}" },
-    "maintenance_failed_msg": { "message": "فشلت الصيانة: {error}" },
-    "maintenance_error_title": { "message": "خطأ في صيانة Boks" },
-    "nfc_tag_already_exists": { "message": "علامة NFC هذه مسجلة بالفعل في Boks." }
+    "cannot_connect": {
+      "message": "غير قادر على الاتصال بـ Boks API."
+    },
+    "invalid_auth": {
+      "message": "بريد إلكتروني أو كلمة مرور غير صالحة."
+    },
+    "boks_not_found": {
+      "message": "لم يتم العثور على Boks في هذا الحساب يطابق عنوان MAC."
+    },
+    "cannot_retrieve_key": {
+      "message": "تعذر استرداد مفتاح التكوين من السحابة."
+    },
+    "device_not_found": {
+      "message": "الجهاز غير موجود في القائمة."
+    },
+    "device_not_in_cache": {
+      "message": "الجهاز غير موجود في ذاكرة التخزين المؤقت للبلوتوث. لا يوجد مسار قابل للاتصال."
+    },
+    "no_devices_found": {
+      "message": "لم يتم العثور على أجهزة Boks في هذا الحساب."
+    },
+    "connection_error": {
+      "message": "خطأ في الاتصال أثناء جلب الأجهزة."
+    },
+    "invalid_credential_format": {
+      "message": "تنسيق بيانات الاعتماد غير صالح. يجب أن يكون 8/64 حرفًا سداسيًا عشريًا"
+    },
+    "invalid_master_code_format": {
+      "message": "تنسيق الرمز الرئيسي غير صالح. يجب أن يكون رمزًا مكونًا من 6 أرقام (0-9 ، أ ، ب)."
+    },
+    "unknown": {
+      "message": "حدث خطأ غير معروف."
+    },
+    "pin_code_invalid_length": {
+      "message": "يجب أن يتكون رمز PIN من 6 أحرف"
+    },
+    "pin_code_invalid": {
+      "message": "رمز PIN غير صالح"
+    },
+    "unauthorized": {
+      "message": "غير مصرح به"
+    },
+    "config_key_required": {
+      "message": "مفتاح التكوين مطلوب لهذه العملية"
+    },
+    "invalid_code_format": {
+      "message": "تنسيق الرمز غير صالح (يجب أن يكون 6 أحرف من 0-9 ، أ ، ب)"
+    },
+    "create_code_failed": {
+      "message": "فشل في إنشاء الرمز (أرجع الجهاز خطأ)"
+    },
+    "change_master_code_failed": {
+      "message": "فشل في تغيير الرمز الرئيسي (أرجع الجهاز خطأ)"
+    },
+    "unknown_code_type": {
+      "message": "نوع رمز غير معروف"
+    },
+    "unknown_device": {
+      "message": "الجهاز غير مرئي بواسطة محول البلوتوث."
+    },
+    "not_connectable": {
+      "message": "الجهاز المكتشف غير قابل للاتصال (ربما عبر وكيل سلبي)."
+    },
+    "todo_entity_not_found_for_device": {
+      "message": "لم يتم العثور على كيان Todo للجهاز {target_device_id}"
+    },
+    "target_devices_not_boks": {
+      "message": "الجهاز (الأجهزة) المستهدفة {device_ids} ليست أجهزة Boks."
+    },
+    "target_entities_not_boks": {
+      "message": "الكيان (الكيانات) المستهدفة {entity_ids} تنتمي إلى أجهزة غير Boks."
+    },
+    "target_device_missing": {
+      "message": "جهاز Boks المستهدف غير موجود أو غير محدد. يرجى تحديد device_id أو entity_id."
+    },
+    "multiple_devices_found": {
+      "message": "Plusieurs appareils Boks trouvés. Veuillez spécifier une entité ou un appareil cible."
+    },
+    "no_devices_configured": {
+      "message": "لا توجد أجهزة Boks مهيأة."
+    },
+    "opening_failed_no_code": {
+      "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد (لا يوجد مفتاح تكوين متوفر)."
+    },
+    "operation_timed_out": {
+      "message": "انتهت مهلة العملية بعد {seconds} ثانية"
+    },
+    "set_configuration_failed": {
+      "message": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)"
+    },
+    "timeout_waiting_response": {
+      "message": "انتهت مهلة انتظار الاستجابة لـ opcode {opcode}"
+    },
+    "todo_entity_not_found": {
+      "message": "لم يتم العثور على كيان Todo {target_entity_id} أو لم يتم تحميله."
+    },
+    "todo_integration_not_loaded": {
+      "message": "لم يتم تحميل تكامل Todo."
+    },
+    "ble_client_none": {
+      "message": "عميل BLE هو None ، لا يمكن إرسال الأمر"
+    },
+    "ble_error": {
+      "message": "خطأ BLE: {error}"
+    },
+    "ble_internal_error": {
+      "message": "خطأ BLE داخلي: {error}"
+    },
+    "busy": {
+      "message": "الجهاز مشغول: هناك عملية أخرى تستمع بالفعل للإشعارات."
+    },
+    "cannot_resolve_todo": {
+      "message": "تعذر حل قائمة Boks Todo المستهدفة."
+    },
+    "config_key_invalid_length": {
+      "message": "يجب أن يكون طول مفتاح التكوين 8 أحرف بالضبط."
+    },
+    "delete_code_failed": {
+      "message": "فشل في حذف الرمز (أرجع الجهاز خطأ)"
+    },
+    "door_opened_recently": {
+      "message": "تم فتح الباب مؤخرًا. يرجى الانتظار {seconds} ثانية قبل الفتح مرة أخرى."
+    },
+    "entity_not_parcel_list": {
+      "message": "الكيان {target_entity_id} ليس قائمة طرود Boks."
+    },
+    "firmware_update_failed": {
+      "message": "فشل في تشغيل تحديث البرنامج الثابت للإصدار {version}"
+    },
+    "firmware_update_required": {
+      "message": "تتطلب ميزة {feature} إصدار البرنامج الثابت {required_sw}. إصدارك الحالي هو {current_sw}."
+    },
+    "firmware_version_required": {
+      "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لاستخدام هذه الميزة. النسخة الحالية: {current_version}"
+    },
+    "hardware_unsupported": {
+      "message": "La fonction {feature} nécessite une Boks v{required_hw} ou supérieure. Votre version actuelle est v{current_hw}."
+    },
+    "invalid_master_code_index": {
+      "message": "فهرس رمز رئيسي غير صالح (يجب أن يكون بين 0 و 255)."
+    },
+    "invalid_uid_format": {
+      "message": "تنسيق UID NFC غير صالح."
+    },
+    "item_not_found": {
+      "message": "العنصر غير موجود"
+    },
+    "laposte_firmware_version_required": {
+      "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لتمكين ميزة La Poste. النسخة الحالية: {current_version}"
+    },
+    "lock_entity_not_found": {
+      "message": "كيان القفل غير موجود لهذا الجهاز."
+    },
+    "maintenance_already_running": {
+      "message": "مهمة صيانة قيد التقدم بالفعل. يرجى الانتظار حتى تنتهي."
+    },
+    "maintenance_error_msg": {
+      "message": "فشل تنظيف الرمز الرئيسي في الفهرس {current_idx}.\nالخطأ: {error}"
+    },
+    "maintenance_failed_msg": {
+      "message": "فشلت الصيانة: {error}"
+    },
+    "maintenance_error_title": {
+      "message": "خطأ في صيانة Boks"
+    },
+    "nfc_tag_already_exists": {
+      "message": "علامة NFC هذه مسجلة بالفعل في Boks."
+    }
   },
   "options": {
     "step": {
@@ -214,14 +303,22 @@
   },
   "entity": {
     "button": {
-      "sync_logs": { "name": "مزامنة السجلات" }
+      "sync_logs": {
+        "name": "مزامنة السجلات"
+      }
     },
     "lock": {
-      "door": { "name": "الباب" }
+      "door": {
+        "name": "الباب"
+      }
     },
     "sensor": {
-      "battery": { "name": "البطارية" },
-      "last_connection": { "name": "آخر اتصال" },
+      "battery": {
+        "name": "البطارية"
+      },
+      "last_connection": {
+        "name": "آخر اتصال"
+      },
       "last_event": {
         "name": "آخر حدث",
         "state": {
@@ -242,12 +339,10 @@
           "error": "خطأ (تشخيصي)",
           "nfc_opening": "فتح NFC",
           "nfc_tag_registering_scan": "مسح علامة NFC",
-          "nfc_tag_registering_scan_desc": "مسح العلامة {name}",
           "nfc_tag_type_1": "بريد فرنسا (La Poste)",
           "nfc_tag_type_2": "Vigik (ثانوي)",
           "nfc_tag_type_3": "بطاقة",
           "unknown": "حدث غير معروف",
-          "opening_by": "الفتح بواسطة {name}",
           "diagnostic_error_bc": "خطأ MFRC630 الداخلي (0xBC)",
           "diagnostic_error_integrity": "خطأ في النزاهة (CRC/Parity)",
           "diagnostic_error_no_tag": "لم يتم اكتشاف أي علامة / مهلة",
@@ -264,8 +359,12 @@
           "power_off_reason_8": "استيقاظ LPCOMP"
         }
       },
-      "master_codes_count": { "name": "الرموز الرئيسية" },
-      "single_use_codes_count": { "name": "رموز الاستخدام الفردي" },
+      "master_codes_count": {
+        "name": "الرموز الرئيسية"
+      },
+      "single_use_codes_count": {
+        "name": "رموز الاستخدام الفردي"
+      },
       "battery_format": {
         "name": "تنسيق البطارية",
         "state": {
@@ -285,14 +384,30 @@
           "other": "آخر"
         }
       },
-      "battery_level_first": { "name": "جهد البطارية (الأول)" },
-      "battery_level_min": { "name": "جهد البطارية (أدنى)" },
-      "battery_level_mean": { "name": "جهد البطارية (متوسط)" },
-      "battery_level_max": { "name": "جهد البطارية (أقصى)" },
-      "battery_level_last": { "name": "جهد البطارية (الأخير)" },
-      "battery_level_t1": { "name": "جهد البطارية (T1)" },
-      "battery_level_t5": { "name": "جهد البطارية (T5)" },
-      "battery_level_t10": { "name": "جهد البطارية (T10)" },
+      "battery_level_first": {
+        "name": "جهد البطارية (الأول)"
+      },
+      "battery_level_min": {
+        "name": "جهد البطارية (أدنى)"
+      },
+      "battery_level_mean": {
+        "name": "جهد البطارية (متوسط)"
+      },
+      "battery_level_max": {
+        "name": "جهد البطارية (أقصى)"
+      },
+      "battery_level_last": {
+        "name": "جهد البطارية (الأخير)"
+      },
+      "battery_level_t1": {
+        "name": "جهد البطارية (T1)"
+      },
+      "battery_level_t5": {
+        "name": "جهد البطارية (T5)"
+      },
+      "battery_level_t10": {
+        "name": "جهد البطارية (T10)"
+      },
       "maintenance_status": {
         "name": "حالة الصيانة",
         "state": {
@@ -300,10 +415,14 @@
           "cleaning": "تنظيف الرموز الرئيسية"
         }
       },
-      "log_count": { "name": "عدد السجلات" }
+      "log_count": {
+        "name": "عدد السجلات"
+      }
     },
     "todo": {
-      "parcels": { "name": "الطرود" }
+      "parcels": {
+        "name": "الطرود"
+      }
     },
     "event": {
       "logs": {
@@ -325,30 +444,16 @@
           "error": "خطأ (تشخيصي)",
           "nfc_opening": "فتح NFC",
           "nfc_tag_registering_scan": "مسح علامة NFC",
-          "nfc_tag_registering_scan_desc": "مسح العلامة {name}",
           "nfc_tag_type_1": "بريد فرنسا (La Poste)",
           "nfc_tag_type_2": "Vigik (ثانوي)",
           "nfc_tag_type_3": "بطاقة",
-          "unknown": "حدث غير معروف",
-          "opening_by": "الفتح بواسطة {name}"
+          "unknown": "حدث غير معروف"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "تحديث البرنامج الثابت",
-        "state": {
-          "no_firmware_downloaded": "لم يتم تنزيل البرنامج الثابت للتثبيت",
-          "notification_title": "تحديث البرنامج الثابت Boks",
-          "firmware_ready_message": "تم تنزيل تحديث البرنامج الثابت {version}.\nموقع الملف: {path}\nعنوان URL للتنزيل: {url}\n\nمهم: يرجى الاتصال بالمطور للحصول على إرشادات إضافية حول كيفية تطبيق هذا التحديث يدويًا.\nلا تحاول تفليش هذا الملف بدون إرشادات محددة.",
-          "manual_action_required_title": "تحديث البرنامج الثابت Boks - مطلوب إجراء يدوي",
-          "download_failed_message": "فشل تنزيل البرنامج الثابت الإصدار {version}. حالة HTTP: {status}\nيرجى التحقق من عنوان URL للبرنامج الثابت أو المحاولة لاحقًا.",
-          "download_failed_title": "تحديث البرنامج الثابت Boks - فشل التنزيل",
-          "network_error_message": "خطأ في الشبكة أثناء تنزيل البرنامج الثابت الإصدار {version}.\nخطأ: {error}\nيرجى التحقق من اتصال الشبكة والمحاولة مرة أخرى.",
-          "network_error_title": "تحديث البرنامج الثابت Boks - خطأ في الشبكة",
-          "generic_error_message": "خطأ أثناء تنزيل البرنامج الثابت الإصدار {version}.\nخطأ: {error}\nيرجى المحاولة مرة أخرى أو الاتصال بالدعم.",
-          "generic_error_title": "تحديث البرنامج الثابت Boks - خطأ"
-        }
+        "name": "تحديث البرنامج الثابت"
       }
     }
   },

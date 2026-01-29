@@ -1,8 +1,8 @@
-import sys
-
 import getpass
 import logging
 import random
+import sys
+
 import requests
 
 # Configure logging
@@ -43,7 +43,7 @@ class BoksClient:
     def __init__(self):
         self.session = requests.Session()
         self.user_agent = random.choice(USER_AGENTS)
-        _LOGGER.info(f"Using User-Agent: {self.user_agent}")
+        _LOGGER.info("Using User-Agent: %s", self.user_agent)
 
         self.session.headers.update({
             "Connection": "keep-alive",
@@ -65,7 +65,7 @@ class BoksClient:
 
     def authenticate(self, email, password) -> str:
         """Authenticate with Firebase and return ID Token."""
-        _LOGGER.info(f"Authenticating user: {email}")
+        _LOGGER.info("Authenticating user: %s", email)
         payload = {
             "email": email,
             "password": password,
@@ -87,24 +87,24 @@ class BoksClient:
             return id_token
 
         except requests.exceptions.RequestException as e:
-            _LOGGER.error(f"Authentication failed: {e}")
+            _LOGGER.error("Authentication failed: %s", e)
             if hasattr(e, 'response') and e.response is not None:
-                _LOGGER.error(f"Response: {e.response.text}")
+                _LOGGER.error("Response: %s", e.response.text)
             sys.exit(1)
 
     def get_parcels_and_bokses(self) -> dict:
         """Call the parcelsAndBokses endpoint."""
         url = f"{BOKS_API_BASE_URL}/api/mobile/parcelsAndBokses"
-        _LOGGER.info(f"Calling {url}")
+        _LOGGER.info("Calling %s", url)
 
         try:
             response = self.session.get(url, timeout=15)
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            _LOGGER.error(f"Failed to fetch parcels and bokses: {e}")
+            _LOGGER.error("Failed to fetch parcels and bokses: %s", e)
             if hasattr(e, 'response') and e.response is not None:
-                _LOGGER.error(f"Response: {e.response.text}")
+                _LOGGER.error("Response: %s", e.response.text)
             return {}
 
 def main():

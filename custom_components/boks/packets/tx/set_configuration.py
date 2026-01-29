@@ -1,7 +1,8 @@
 """TX Packet: Set Configuration."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode, BoksConfigType
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class SetConfigurationPacket(BoksTXPacket):
     """Command to modify device configuration."""
@@ -23,7 +24,7 @@ class SetConfigurationPacket(BoksTXPacket):
     def to_log_dict(self, anonymize: bool = True) -> dict[str, str]:
         """Log info with masked key."""
         log_key = BoksAnonymizer.anonymize_key(self.config_key, anonymize)
-        
+
         return {
             "payload": f"Key={log_key}, Type={self.config_type.name}, Value={self.value}",
             "raw": self.to_bytes().hex(),

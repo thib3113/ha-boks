@@ -108,88 +108,177 @@
     }
   },
   "exceptions": {
-    "cannot_connect": { "message": "Nemožno sa pripojiť k Boks API." },
-    "invalid_auth": { "message": "Neplatný e-mail alebo heslo." },
-    "boks_not_found": { "message": "Na tomto účte nebol nájdený žiadny Boks zodpovedajúci MAC adrese." },
-    "cannot_retrieve_key": { "message": "Nepodarilo sa získať konfiguračný kľúč z cloudu." },
-    "device_not_found": { "message": "Zariadenie nebolo nájdené v zozname." },
-    "device_not_in_cache": { "message": "Zariadenie nebolo nájdené v pamäti cache Bluetooth. Nie je k dispozícii žiadna cesta na pripojenie." },
-    "no_devices_found": { "message": "Na tomto účte neboli nájdené žiadne zariadenia Boks." },
-    "connection_error": { "message": "Chyba pripojenia pri načítaní zariadení." },
-    "invalid_credential_format": { "message": "Neplatný formát prihlasovacích údajov. Musí to byť 8/64 hex znakov." },
-    "invalid_master_code_format": { "message": "Neplatný formát hlavného kódu. Musí to byť šesťmiestny kód (0-9, A, B)." },
-    "unknown": { "message": "Došlo k neznámej chybe." },
-    "pin_code_invalid_length": { "message": "PIN kód musí mať 6 znakov." },
-    "pin_code_invalid": { "message": "Neplatný PIN kód." },
-    "unauthorized": { "message": "Neoprávnený prístup." },
-    "config_key_required": { "message": "Pre túto operáciu je vyžadovaný konfiguračný kľúč." },
-    "invalid_code_format": { "message": "Formát kódu je neplatný (musí mať 6 znakov z rozmedzia 0-9, A, B)." },
-    "create_code_failed": { "message": "Vytvorenie kódu zlyhalo (zariadenie vrátilo chybu)." },
-    "change_master_code_failed": { "message": "Zmena hlavného kódu zlyhala (zariadenie vrátilo chybu)." },
-    "unknown_code_type": { "message": "Neznámy typ kódu." },
-    "unknown_device": { "message": "Zariadenie nie je viditeľné pre Bluetooth adaptér." },
-    "not_connectable": { "message": "Detegované zariadenie nie je pripojiteľné (pravdepodobne cez pasívne proxy)." },
-    "todo_entity_not_found_for_device": { "message": "Pre zariadenie {target_device_id} nebola nájdená žiadna entita Todo." },
-    "target_devices_not_boks": { "message": "Cieľové zariadenia nie sú zariadenia Boks." },
-    "target_entities_not_boks": { "message": "Cieľové entity nepatria k zariadeniam Boks." },
-    "target_device_missing": { "message": "Cieľové zariadenie Boks nebolo nájdené alebo nebolo špecifikované. Uveďte device_id alebo entity_id." },
-    "multiple_devices_found": { "message": "Bolo nájdených viac zariadení Boks. Špecifikujte prosím cieľovú entitu alebo zariadenie." },
-    "no_devices_configured": { "message": "Nie sú konfigurované žiadne zariadenia Boks." },
-    "no_devices_found": { "message": "Na tomto účte neboli nájdené žiadne zariadenia Boks." },
-    "not_connectable": { "message": "Detegované zariadenie nie je pripojiteľné (pravdepodobne cez pasívne proxy)." },
-    "opening_failed_no_code": { "message": "Otvorenie zlyhalo: nebol zadaný žiadny PIN kód, nie je uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN." },
-    "opening_failed_no_code_no_key": { "message": "Otvorenie zlyhalo: nebol zadaný žiadny PIN kód, nie je uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN (nie je k dispozícii konfiguračný kľúč)." },
-    "operation_timed_out": { "message": "Operácia vypršala po {seconds} sekundách." },
-    "pin_code_invalid": { "message": "Neplatný PIN kód." },
-    "pin_code_invalid_length": { "message": "PIN kód musí mať 6 znakov." },
-    "set_configuration_failed": { "message": "Nastavenie konfigurácie {config_type} zlyhalo (zariadenie vrátilo chybu)." },
-    "target_device_missing": { "message": "Cieľové zariadenie Boks nebolo nájdené alebo nebolo špecifikované. Uveďte device_id alebo entity_id." },
-    "target_devices_not_boks": { "message": "Cieľové zariadenia nie sú zariadenia Boks." },
-    "target_entities_not_boks": { "message": "Cieľové entity nepatria k zariadeniam Boks." },
-    "timeout_waiting_response": { "message": "Vypršal časový limit čakania na odpoveď pre opcode {opcode}." },
-    "todo_entity_not_found": { "message": "Entita Todo {target_entity_id} nebola nájdená alebo nie je načítaná." },
-    "todo_entity_not_found_for_device": { "message": "Pre zariadenie {target_device_id} nebola nájdená žiadna entita Todo." },
-    "todo_integration_not_loaded": { "message": "Integrácia Todo nie je načítaná." },
-    "unauthorized": { "message": "Neoprávnený prístup." },
-    "unknown": { "message": "Došlo k neznámej chybe." },
-    "unknown_code_type": { "message": "Neznámy typ kódu." },
-    "unknown_device": { "message": "Zariadenie nie je viditeľné pre Bluetooth adaptér." },
-    "ble_client_none": { "message": "BLE klient je None, nemožno odoslať príkaz." },
-    "ble_error": { "message": "Chyba BLE: {error}" },
-    "ble_internal_error": { "message": "Interná chyba BLE: {error}" },
-    "boks_not_found": { "message": "Na tomto účte nebol nájdený žiadny Boks zodpovedajúci MAC adrese." },
-    "busy": { "message": "Zariadenie zaneprázdnené: iná operácia už počúva oznámenia." },
-    "cannot_connect": { "message": "Nemožno sa pripojiť k Boks API." },
-    "cannot_resolve_todo": { "message": "Nepodarilo sa vyriešiť cieľový zoznam úloh Boks." },
-    "cannot_retrieve_key": { "message": "Nepodarilo sa získať konfiguračný kľúč z cloudu." },
-    "change_master_code_failed": { "message": "Zmena hlavného kódu zlyhala (zariadenie vrátilo chybu)." },
-    "config_key_invalid_length": { "message": "Konfiguračný kľúč musí mať presne 8 znakov." },
-    "config_key_required": { "message": "Pre túto operáciu je vyžadovaný konfiguračný kľúč." },
-    "connection_error": { "message": "Chyba pripojenia pri načítaní zariadení." },
-    "create_code_failed": { "message": "Vytvorenie kódu zlyhalo (zariadenie vrátilo chybu)." },
-    "delete_code_failed": { "message": "Zmazanie kódu zlyhalo (zariadenie vrátilo chybu)." },
-    "device_not_found": { "message": "Zariadenie nebolo nájdené v zozname." },
-    "device_not_in_cache": { "message": "Zariadenie nebolo nájdené v pamäti cache Bluetooth. Nie je k dispozícii žiadna cesta na pripojenie." },
-    "door_opened_recently": { "message": "Dvere boli nedávno otvorené. Počkajte prosím {seconds} sekúnd pred ďalším otvorením." },
-    "entity_not_parcel_list": { "message": "Entita {target_entity_id} nie je zoznam balíkov Boks." },
-    "firmware_update_failed": { "message": "Nepodarilo sa spustiť aktualizáciu firmvéru pre verziu {version}" },
-    "firmware_update_required": { "message": "Funkcia {feature} vyžaduje verziu firmvéru {required_sw}. Vaša aktuálna verzia je {current_sw}." },
-    "firmware_version_required": { "message": "Verzia firmvéru musí byť vyššia ako {required_version} na použitie tejto funkcie. Aktuálna verzia: {current_version}" },
-    "hardware_unsupported": { "message": "Funkcia {feature} vyžaduje Boks v{required_hw} alebo vyššiu. Vaša aktuálna verzia je v{current_hw}." },
-    "invalid_auth": { "message": "Neplatný e-mail alebo heslo." },
-    "invalid_code_format": { "message": "Formát kódu je neplatný (musí mať 6 znakov z rozmedzia 0-9, A, B)." },
-    "invalid_credential_format": { "message": "Neplatný formát prihlasovacích údajov. Musí to byť 8/64 hex znakov." },
-    "invalid_master_code_format": { "message": "Neplatný formát hlavného kódu. Musí to byť šesťmiestny kód (0-9, A, B)." },
-    "invalid_master_code_index": { "message": "Neplatný index hlavného kódu (musí byť v rozmedzí 0 až 255)." },
-    "invalid_uid_format": { "message": "Neplatný formát UID NFC." },
-    "item_not_found": { "message": "Položka nebola nájdená" },
-    "laposte_firmware_version_required": { "message": "Verzia firmvéru musí byť vyššia ako {required_version} pre povolenie funkcie La Poste. Aktuálna verzia: {current_version}" },
-    "lock_entity_not_found": { "message": "Entita zámku nebola pre toto zariadenie nájdená." },
-    "maintenance_already_running": { "message": "Úloha údržby už prebieha. Počkajte prosím na jej dokončenie." },
-    "maintenance_error_msg": { "message": "Čistenie hlavných kódov zlyhalo na indexe {current_idx}.\nChyba: {error}" },
-    "maintenance_failed_msg": { "message": "Údržba zlyhala: {error}" },
-    "maintenance_error_title": { "message": "Chyba údržby Boks" },
-    "nfc_tag_already_exists": { "message": "Tento NFC tag je už na Boks zaregistrovaný." }
+    "cannot_connect": {
+      "message": "Nemožno sa pripojiť k Boks API."
+    },
+    "invalid_auth": {
+      "message": "Neplatný e-mail alebo heslo."
+    },
+    "boks_not_found": {
+      "message": "Na tomto účte nebol nájdený žiadny Boks zodpovedajúci MAC adrese."
+    },
+    "cannot_retrieve_key": {
+      "message": "Nepodarilo sa získať konfiguračný kľúč z cloudu."
+    },
+    "device_not_found": {
+      "message": "Zariadenie nebolo nájdené v zozname."
+    },
+    "device_not_in_cache": {
+      "message": "Zariadenie nebolo nájdené v pamäti cache Bluetooth. Nie je k dispozícii žiadna cesta na pripojenie."
+    },
+    "no_devices_found": {
+      "message": "Na tomto účte neboli nájdené žiadne zariadenia Boks."
+    },
+    "connection_error": {
+      "message": "Chyba pripojenia pri načítaní zariadení."
+    },
+    "invalid_credential_format": {
+      "message": "Neplatný formát prihlasovacích údajov. Musí to byť 8/64 hex znakov."
+    },
+    "invalid_master_code_format": {
+      "message": "Neplatný formát hlavného kódu. Musí to byť šesťmiestny kód (0-9, A, B)."
+    },
+    "unknown": {
+      "message": "Došlo k neznámej chybe."
+    },
+    "pin_code_invalid_length": {
+      "message": "PIN kód musí mať 6 znakov."
+    },
+    "pin_code_invalid": {
+      "message": "Neplatný PIN kód."
+    },
+    "unauthorized": {
+      "message": "Neoprávnený prístup."
+    },
+    "config_key_required": {
+      "message": "Pre túto operáciu je vyžadovaný konfiguračný kľúč."
+    },
+    "invalid_code_format": {
+      "message": "Formát kódu je neplatný (musí mať 6 znakov z rozmedzia 0-9, A, B)."
+    },
+    "create_code_failed": {
+      "message": "Vytvorenie kódu zlyhalo (zariadenie vrátilo chybu)."
+    },
+    "change_master_code_failed": {
+      "message": "Zmena hlavného kódu zlyhala (zariadenie vrátilo chybu)."
+    },
+    "unknown_code_type": {
+      "message": "Neznámy typ kódu."
+    },
+    "unknown_device": {
+      "message": "Zariadenie nie je viditeľné pre Bluetooth adaptér."
+    },
+    "not_connectable": {
+      "message": "Detegované zariadenie nie je pripojiteľné (pravdepodobne cez pasívne proxy)."
+    },
+    "todo_entity_not_found_for_device": {
+      "message": "Pre zariadenie {target_device_id} nebola nájdená žiadna entita Todo."
+    },
+    "target_devices_not_boks": {
+      "message": "Cieľové zariadenia nie sú zariadenia Boks."
+    },
+    "target_entities_not_boks": {
+      "message": "Cieľové entity nepatria k zariadeniam Boks."
+    },
+    "target_device_missing": {
+      "message": "Cieľové zariadenie Boks nebolo nájdené alebo nebolo špecifikované. Uveďte device_id alebo entity_id."
+    },
+    "multiple_devices_found": {
+      "message": "Bolo nájdených viac zariadení Boks. Špecifikujte prosím cieľovú entitu alebo zariadenie."
+    },
+    "no_devices_configured": {
+      "message": "Nie sú konfigurované žiadne zariadenia Boks."
+    },
+    "opening_failed_no_code": {
+      "message": "Otvorenie zlyhalo: nebol zadaný žiadny PIN kód, nie je uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Otvorenie zlyhalo: nebol zadaný žiadny PIN kód, nie je uložený žiadny hlavný kód a nepodarilo sa vygenerovať jednorazový PIN (nie je k dispozícii konfiguračný kľúč)."
+    },
+    "operation_timed_out": {
+      "message": "Operácia vypršala po {seconds} sekundách."
+    },
+    "set_configuration_failed": {
+      "message": "Nastavenie konfigurácie {config_type} zlyhalo (zariadenie vrátilo chybu)."
+    },
+    "timeout_waiting_response": {
+      "message": "Vypršal časový limit čakania na odpoveď pre opcode {opcode}."
+    },
+    "todo_entity_not_found": {
+      "message": "Entita Todo {target_entity_id} nebola nájdená alebo nie je načítaná."
+    },
+    "todo_integration_not_loaded": {
+      "message": "Integrácia Todo nie je načítaná."
+    },
+    "ble_client_none": {
+      "message": "BLE klient je None, nemožno odoslať príkaz."
+    },
+    "ble_error": {
+      "message": "Chyba BLE: {error}"
+    },
+    "ble_internal_error": {
+      "message": "Interná chyba BLE: {error}"
+    },
+    "busy": {
+      "message": "Zariadenie zaneprázdnené: iná operácia už počúva oznámenia."
+    },
+    "cannot_resolve_todo": {
+      "message": "Nepodarilo sa vyriešiť cieľový zoznam úloh Boks."
+    },
+    "config_key_invalid_length": {
+      "message": "Konfiguračný kľúč musí mať presne 8 znakov."
+    },
+    "delete_code_failed": {
+      "message": "Zmazanie kódu zlyhalo (zariadenie vrátilo chybu)."
+    },
+    "door_opened_recently": {
+      "message": "Dvere boli nedávno otvorené. Počkajte prosím {seconds} sekúnd pred ďalším otvorením."
+    },
+    "entity_not_parcel_list": {
+      "message": "Entita {target_entity_id} nie je zoznam balíkov Boks."
+    },
+    "firmware_update_failed": {
+      "message": "Nepodarilo sa spustiť aktualizáciu firmvéru pre verziu {version}"
+    },
+    "firmware_update_required": {
+      "message": "Funkcia {feature} vyžaduje verziu firmvéru {required_sw}. Vaša aktuálna verzia je {current_sw}."
+    },
+    "firmware_version_required": {
+      "message": "Verzia firmvéru musí byť vyššia ako {required_version} na použitie tejto funkcie. Aktuálna verzia: {current_version}"
+    },
+    "hardware_unsupported": {
+      "message": "Funkcia {feature} vyžaduje Boks v{required_hw} alebo vyššiu. Vaša aktuálna verzia je v{current_hw}."
+    },
+    "invalid_master_code_index": {
+      "message": "Neplatný index hlavného kódu (musí byť v rozmedzí 0 až 255)."
+    },
+    "invalid_uid_format": {
+      "message": "Neplatný formát UID NFC."
+    },
+    "item_not_found": {
+      "message": "Položka nebola nájdená"
+    },
+    "laposte_firmware_version_required": {
+      "message": "Verzia firmvéru musí byť vyššia ako {required_version} pre povolenie funkcie La Poste. Aktuálna verzia: {current_version}"
+    },
+    "lock_entity_not_found": {
+      "message": "Entita zámku nebola pre toto zariadenie nájdená."
+    },
+    "maintenance_already_running": {
+      "message": "Úloha údržby už prebieha. Počkajte prosím na jej dokončenie."
+    },
+    "maintenance_error_msg": {
+      "message": "Čistenie hlavných kódov zlyhalo na indexe {current_idx}.\nChyba: {error}"
+    },
+    "maintenance_failed_msg": {
+      "message": "Údržba zlyhala: {error}"
+    },
+    "maintenance_error_title": {
+      "message": "Chyba údržby Boks"
+    },
+    "nfc_tag_already_exists": {
+      "message": "Tento NFC tag je už na Boks zaregistrovaný."
+    }
   },
   "options": {
     "step": {
@@ -214,14 +303,22 @@
   },
   "entity": {
     "button": {
-      "sync_logs": { "name": "Synchronizovať protokoly" }
+      "sync_logs": {
+        "name": "Synchronizovať protokoly"
+      }
     },
     "lock": {
-      "door": { "name": "Dvere" }
+      "door": {
+        "name": "Dvere"
+      }
     },
     "sensor": {
-      "battery": { "name": "Batéria" },
-      "last_connection": { "name": "Posledné pripojenie" },
+      "battery": {
+        "name": "Batéria"
+      },
+      "last_connection": {
+        "name": "Posledné pripojenie"
+      },
       "last_event": {
         "name": "Posledná udalosť",
         "state": {
@@ -242,12 +339,10 @@
           "error": "Chyba (diagnostická)",
           "nfc_opening": "Otvorenie NFC",
           "nfc_tag_registering_scan": "Skenovanie NFC tagu",
-          "nfc_tag_registering_scan_desc": "Skenovanie štítku {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (terciárny)",
           "nfc_tag_type_3": "Tag",
           "unknown": "Neznáma udalosť",
-          "opening_by": "Otvorené používateľom {name}",
           "diagnostic_error_bc": "Interná chyba MFRC630 (0xBC)",
           "diagnostic_error_integrity": "Chyba integrity (CRC/Parita)",
           "diagnostic_error_no_tag": "Tag nedetekovaný / Vypršanie limitu",
@@ -264,8 +359,12 @@
           "power_off_reason_8": "Prebudenie LPCOMP"
         }
       },
-      "master_codes_count": { "name": "Hlavné kódy" },
-      "single_use_codes_count": { "name": "Jednorazové kódy" },
+      "master_codes_count": {
+        "name": "Hlavné kódy"
+      },
+      "single_use_codes_count": {
+        "name": "Jednorazové kódy"
+      },
       "battery_format": {
         "name": "Formát batérie",
         "state": {
@@ -285,14 +384,30 @@
           "other": "Iný"
         }
       },
-      "battery_level_first": { "name": "Napätie batérie (prvé)" },
-      "battery_level_min": { "name": "Napätie batérie (min)" },
-      "battery_level_mean": { "name": "Napätie batérie (priemer)" },
-      "battery_level_max": { "name": "Napätie batérie (max)" },
-      "battery_level_last": { "name": "Napätie batérie (posledné)" },
-      "battery_level_t1": { "name": "Napätie batérie (T1)" },
-      "battery_level_t5": { "name": "Napätie batérie (T5)" },
-      "battery_level_t10": { "name": "Napätie batérie (T10)" },
+      "battery_level_first": {
+        "name": "Napätie batérie (prvé)"
+      },
+      "battery_level_min": {
+        "name": "Napätie batérie (min)"
+      },
+      "battery_level_mean": {
+        "name": "Napätie batérie (priemer)"
+      },
+      "battery_level_max": {
+        "name": "Napätie batérie (max)"
+      },
+      "battery_level_last": {
+        "name": "Napätie batérie (posledné)"
+      },
+      "battery_level_t1": {
+        "name": "Napätie batérie (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Napätie batérie (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Napätie batérie (T10)"
+      },
       "maintenance_status": {
         "name": "Stav údržby",
         "state": {
@@ -300,10 +415,14 @@
           "cleaning": "Čistenie hlavných kódov"
         }
       },
-      "log_count": { "name": "Počet protokolov" }
+      "log_count": {
+        "name": "Počet protokolov"
+      }
     },
     "todo": {
-      "parcels": { "name": "Balíky" }
+      "parcels": {
+        "name": "Balíky"
+      }
     },
     "event": {
       "logs": {
@@ -325,30 +444,16 @@
           "error": "Chyba (diagnostická)",
           "nfc_opening": "Otvorenie NFC",
           "nfc_tag_registering_scan": "Skenovanie NFC tagu",
-          "nfc_tag_registering_scan_desc": "Skenovanie štítku {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (terciárny)",
           "nfc_tag_type_3": "Tag",
-          "unknown": "Neznáma udalosť",
-          "opening_by": "Otvorené používateľom {name}"
+          "unknown": "Neznáma udalosť"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "Aktualizácia firmvéru",
-        "state": {
-          "no_firmware_downloaded": "Na inštaláciu nebol stiahnutý žiadny firmvér",
-          "notification_title": "Aktualizácia firmvéru Boks",
-          "firmware_ready_message": "Aktualizácia firmvéru {version} bola stiahnutá.\nUmiestnenie súboru: {path}\nURL na stiahnutie: {url}\n\nDÔLEŽITÉ: Obráťte sa prosím na vývojára pre ďalšie pokyny k ručnej aplikácii tejto aktualizácie.\nNepokúšajte sa tento súbor flashovať bez konkrétneho vedenia.",
-          "manual_action_required_title": "Aktualizácia firmvéru Boks - vyžadovaná ručná akcia",
-          "download_failed_message": "Stiahnutie verzie firmvéru {version} zlyhalo. Stav HTTP: {status}\nSkontrolujte prosím URL firmvéru alebo to skúste neskôr.",
-          "download_failed_title": "Aktualizácia firmvéru Boks - stiahnutie zlyhalo",
-          "network_error_message": "Chyba siete pri sťahovaní verzie firmvéru {version}.\nChyba: {error}\nSkontrolujte prosím svoje sieťové pripojenie a skúste to znova.",
-          "network_error_title": "Aktualizácia firmvéru Boks - chyba siete",
-          "generic_error_message": "Chyba pri sťahovaní verzie firmvéru {version}.\nChyba: {error}\nSkúste to prosím znova alebo kontaktujte podporu.",
-          "generic_error_title": "Aktualizácia firmvéru Boks - chyba"
-        }
+        "name": "Aktualizácia firmvéru"
       }
     }
   },
@@ -487,7 +592,10 @@
           "description": "Unikátne ID tagu (napr. A1B2C3D4).",
           "example": "A1B2C3D4"
         },
-        "name": { "name": "Priateľský názov", "description": "Voliteľný názov pre uloženie do registra tagov HA." }
+        "name": {
+          "name": "Priateľský názov",
+          "description": "Voliteľný názov pre uloženie do registra tagov HA."
+        }
       }
     },
     "nfc_unregister_tag": {

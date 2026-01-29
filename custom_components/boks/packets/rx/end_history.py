@@ -1,6 +1,7 @@
 """RX Packet: End History."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class EndHistoryPacket(BoksHistoryLogPacket):
     """Log entry for end of history event."""

@@ -3,8 +3,8 @@ from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorStateClass,
 )
-from homeassistant.const import UnitOfElectricPotential, CONF_ADDRESS, EntityCategory
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS, EntityCategory, UnitOfElectricPotential
 
 from ...coordinator import BoksDataUpdateCoordinator
 from .retaining_sensor import BoksRetainingSensor
@@ -32,19 +32,19 @@ class BoksBatteryDiagnosticSensor(BoksRetainingSensor):
         if stats:
             # Check if this sensor's key is relevant for the current battery format
             battery_format = stats.get("format")
-            
+
             # Define which keys are relevant for each format
             format_keys = {
                 "measure-single": ["level_single"],
                 "measures-t1-t5-t10": ["level_t1", "level_t5", "level_t10"],
                 "measures-first-min-mean-max-last": ["level_first", "level_min", "level_mean", "level_max", "level_last"]
             }
-            
+
             # If we have a format and this key is not relevant for that format, return None
             if battery_format and battery_format in format_keys:
                 if self._key not in format_keys[battery_format] and self._key != "temperature":
                     return None
-            
+
             raw = stats.get(self._key)
             if raw is not None:
                 # For temperature, return as-is (already converted)
@@ -71,20 +71,20 @@ class BoksBatteryDiagnosticSensor(BoksRetainingSensor):
         stats = self.coordinator.data.get("battery_stats")
         if stats:
             battery_format = stats.get("format")
-            
+
             # Define which keys are relevant for each format
             format_keys = {
                 "measure-single": ["level_single"],
                 "measures-t1-t5-t10": ["level_t1", "level_t5", "level_t10"],
                 "measures-first-min-mean-max-last": ["level_first", "level_min", "level_mean", "level_max", "level_last"]
             }
-            
+
             # If we have a format and this key is not relevant for that format, mark as unavailable
             if battery_format and battery_format in format_keys:
                 return self._key in format_keys[battery_format] or self._key == "temperature"
-            
+
             # If we don't have a format yet, assume all sensors could be relevant
             return True
-            
+
         # If we don't have stats at all, mark as unavailable
         return False

@@ -59,7 +59,7 @@ class BoksRetainingSensor(BoksEntity, SensorEntity, RestoreEntity):
             _LOGGER.debug("Updating %s with new live value: %s", self.entity_id, current_val)
             self._last_valid_value = current_val
             return current_val
-        
+
         return self._last_valid_value
 
     def _get_current_value(self) -> Any | None:

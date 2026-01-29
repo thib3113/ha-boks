@@ -108,88 +108,177 @@
     }
   },
   "exceptions": {
-    "cannot_connect": { "message": "Nie można połączyć się z API Boks." },
-    "invalid_auth": { "message": "Nieprawidłowy adres email lub hasło." },
-    "boks_not_found": { "message": "Nie znaleziono urządzenia Boks pasującego do adresu MAC na tym koncie." },
-    "cannot_retrieve_key": { "message": "Nie można pobrać klucza konfiguracyjnego z chmury." },
-    "device_not_found": { "message": "Urządzenia nie znaleziono na liście." },
-    "device_not_in_cache": { "message": "Urządzenia nie znaleziono w pamięci podręcznej Bluetooth. Brak dostępnej ścieżki połączenia." },
-    "no_devices_found": { "message": "Nie znaleziono żadnych urządzeń Boks na tym koncie." },
-    "connection_error": { "message": "Błąd połączenia podczas pobierania urządzeń." },
-    "invalid_credential_format": { "message": "Nieprawidłowy format danych uwierzytelniających. Musi to być 8/64 znaków szesnastkowych." },
-    "invalid_master_code_format": { "message": "Nieprawidłowy format kodu nadrzędnego. Musi to być 6-cyfrowy kod (0-9, A, B)." },
-    "unknown": { "message": "Wystąpił nieoczekiwany błąd." },
-    "pin_code_invalid_length": { "message": "Kod PIN musi składać się z 6 znaków." },
-    "pin_code_invalid": { "message": "Nieprawidłowy kod PIN." },
-    "unauthorized": { "message": "Brak autoryzacji." },
-    "config_key_required": { "message": "Klucz konfiguracyjny jest wymagany do tej operacji." },
-    "invalid_code_format": { "message": "Format kodu jest nieprawidłowy (musi to być 6 znaków od 0-9, A, B)." },
-    "create_code_failed": { "message": "Tworzenie kodu nie powiodło się (urządzenie zwróciło błąd)." },
-    "change_master_code_failed": { "message": "Zmiana kodu nadrzędnego nie powiodła się (urządzenie zwróciło błąd)." },
-    "unknown_code_type": { "message": "Nieznany typ kodu." },
-    "unknown_device": { "message": "Urządzenie nie jest widziane przez adapter Bluetooth." },
-    "not_connectable": { "message": "Wykryte urządzenie nie pozwala na połączenie (prawdopodobnie przez pasywne proxy)." },
-    "todo_entity_not_found_for_device": { "message": "Nie znaleziono encji Todo dla urządzenia {target_device_id}." },
-    "target_devices_not_boks": { "message": "Urządzenia docelowe {device_ids} nie są urządzeniami Boks." },
-    "target_entities_not_boks": { "message": "Encje docelowe {entity_ids} należą do urządzeń innych niż Boks." },
-    "target_device_missing": { "message": "Docelowe urządzenie Boks nie zostało znalezione lub nie zostało określone. Proszę podać device_id lub entity_id." },
-    "multiple_devices_found": { "message": "Znaleziono wiele urządzeń Boks. Proszę określić docelową encję lub urządzenie." },
-    "no_devices_configured": { "message": "Brak skonfigurowanych urządzeń Boks." },
-    "no_devices_found": { "message": "Nie znaleziono żadnych urządzeń Boks na tym koncie." },
-    "not_connectable": { "message": "Wykryte urządzenie nie pozwala na połączenie (prawdopodobnie przez pasywne proxy)." },
-    "opening_failed_no_code": { "message": "Otwieranie nie powiodło się: nie podano kodu PIN, brak zapisanego kodu nadrzędnego i nie można wygenerować jednorazowego kodu PIN." },
-    "opening_failed_no_code_no_key": { "message": "Otwieranie nie powiodło się: nie podano kodu PIN, brak zapisanego kodu nadrzędnego i nie można wygenerować jednorazowego kodu PIN (brak dostępnego klucza konfiguracyjnego)." },
-    "operation_timed_out": { "message": "Operacja przekroczyła limit czasu po {seconds} sekundach." },
-    "pin_code_invalid": { "message": "Nieprawidłowy kod PIN." },
-    "pin_code_invalid_length": { "message": "Kod PIN musi składać się z 6 znaków." },
-    "set_configuration_failed": { "message": "Ustawienie konfiguracji {config_type} nie powiodło się (urządzenie zwróciło błąd)." },
-    "target_device_missing": { "message": "Docelowe urządzenie Boks nie zostało znalezione lub nie zostało określone. Proszę podać device_id lub entity_id." },
-    "target_devices_not_boks": { "message": "Urządzenia docelowe {device_ids} nie są urządzeniami Boks." },
-    "target_entities_not_boks": { "message": "Encje docelowe {entity_ids} należą do urządzeń innych niż Boks." },
-    "timeout_waiting_response": { "message": "Przekroczono limit czasu oczekiwania na odpowiedź dla kodu operacji {opcode}." },
-    "todo_entity_not_found": { "message": "Encja Todo {target_entity_id} nie została znaleziona lub załadowana." },
-    "todo_entity_not_found_for_device": { "message": "Nie znaleziono encji Todo dla urządzenia {target_device_id}." },
-    "todo_integration_not_loaded": { "message": "Integracja Todo nie została załadowana." },
-    "unauthorized": { "message": "Brak autoryzacji." },
-    "unknown": { "message": "Wystąpił nieoczekiwany błąd." },
-    "unknown_code_type": { "message": "Nieznany typ kodu." },
-    "unknown_device": { "message": "Urządzenie nie jest widziane przez adapter Bluetooth." },
-    "ble_client_none": { "message": "Klient BLE ma wartość None, nie można wysłać polecenia." },
-    "ble_error": { "message": "Błąd BLE: {error}" },
-    "ble_internal_error": { "message": "Wewnętrzny błąd BLE: {error}" },
-    "boks_not_found": { "message": "Nie znaleziono urządzenia Boks pasującego do adresu MAC na tym koncie." },
-    "busy": { "message": "Urządzenie zajęte: inna operacja już nasłuchuje powiadomień." },
-    "cannot_connect": { "message": "Nie można połączyć się z API Boks." },
-    "cannot_resolve_todo": { "message": "Nie można rozpoznać docelowej listy zadań Boks." },
-    "cannot_retrieve_key": { "message": "Nie można pobrać klucza konfiguracyjnego z chmury." },
-    "change_master_code_failed": { "message": "Zmiana kodu nadrzędnego nie powiodła się (urządzenie zwróciło błąd)." },
-    "config_key_invalid_length": { "message": "Klucz konfiguracyjny musi mieć dokładnie 8 znaków." },
-    "config_key_required": { "message": "Klucz konfiguracyjny jest wymagany do tej operacji." },
-    "connection_error": { "message": "Błąd połączenia podczas pobierania urządzeń." },
-    "create_code_failed": { "message": "Tworzenie kodu nie powiodło się (urządzenie zwróciło błąd)." },
-    "delete_code_failed": { "message": "Usuwanie kodu nie powiodło się (urządzenie zwróciło błąd)." },
-    "device_not_found": { "message": "Urządzenia nie znaleziono na liście." },
-    "device_not_in_cache": { "message": "Urządzenia nie znaleziono w pamięci podręcznej Bluetooth. Brak dostępnej ścieżki połączenia." },
-    "door_opened_recently": { "message": "Drzwi zostały niedawno otwarte. Proszę odczekać {seconds} sekund przed ponownym otwarciem." },
-    "entity_not_parcel_list": { "message": "Encja {target_entity_id} nie jest listą paczek Boks." },
-    "firmware_update_failed": { "message": "Nie udało się wywołać aktualizacji oprogramowania układowego dla wersji {version}" },
-    "firmware_update_required": { "message": "Funkcja {feature} wymaga oprogramowania układowego w wersji {required_sw}. Twoja aktualna wersja to {current_sw}." },
-    "firmware_version_required": { "message": "Wersja oprogramowania układowego musi być wyższa niż {required_version}, aby korzystać z tej funkcji. Aktualna wersja: {current_version}" },
-    "hardware_unsupported": { "message": "Funkcja {feature} wymaga urządzenia Boks w wersji v{required_hw} lub nowszej. Twoja aktualna wersja to v{current_hw}." },
-    "invalid_auth": { "message": "Nieprawidłowy adres email lub hasło." },
-    "invalid_code_format": { "message": "Format kodu jest nieprawidłowy (musi to być 6 znaków od 0-9, A, B)." },
-    "invalid_credential_format": { "message": "Nieprawidłowy format danych uwierzytelniających. Musi to być 8/64 znaków szesnastkowych." },
-    "invalid_master_code_format": { "message": "Format kodu nadrzędnego jest nieprawidłowy. Musi to być 6-cyfrowy kod (0-9, A, B)." },
-    "invalid_master_code_index": { "message": "Nieprawidłowy indeks kodu nadrzędnego (musi mieścić się w przedziale od 0 do 255)." },
-    "invalid_uid_format": { "message": "Nieprawidłowy format UID NFC." },
-    "item_not_found": { "message": "Nie znaleziono elementu" },
-    "laposte_firmware_version_required": { "message": "Wersja oprogramowania układowego musi być wyższa niż {required_version}, aby włączyć funkcję La Poste. Aktualna wersja: {current_version}" },
-    "lock_entity_not_found": { "message": "Nie znaleziono encji blokady dla tego urządzenia." },
-    "maintenance_already_running": { "message": "Zadanie konserwacji jest już w toku. Proszę poczekać na jego zakończenie." },
-    "maintenance_error_msg": { "message": "Czyszczenie kodów nadrzędnych nie powiodło się na indeksie {current_idx}.\nBłąd: {error}" },
-    "maintenance_failed_msg": { "message": "Konserwacja nie powiodła się: {error}" },
-    "maintenance_error_title": { "message": "Błąd konserwacji Boks" },
-    "nfc_tag_already_exists": { "message": "Ten tag NFC jest już zarejestrowany w urządzeniu Boks." }
+    "cannot_connect": {
+      "message": "Nie można połączyć się z API Boks."
+    },
+    "invalid_auth": {
+      "message": "Nieprawidłowy adres email lub hasło."
+    },
+    "boks_not_found": {
+      "message": "Nie znaleziono urządzenia Boks pasującego do adresu MAC na tym koncie."
+    },
+    "cannot_retrieve_key": {
+      "message": "Nie można pobrać klucza konfiguracyjnego z chmury."
+    },
+    "device_not_found": {
+      "message": "Urządzenia nie znaleziono na liście."
+    },
+    "device_not_in_cache": {
+      "message": "Urządzenia nie znaleziono w pamięci podręcznej Bluetooth. Brak dostępnej ścieżki połączenia."
+    },
+    "no_devices_found": {
+      "message": "Nie znaleziono żadnych urządzeń Boks na tym koncie."
+    },
+    "connection_error": {
+      "message": "Błąd połączenia podczas pobierania urządzeń."
+    },
+    "invalid_credential_format": {
+      "message": "Nieprawidłowy format danych uwierzytelniających. Musi to być 8/64 znaków szesnastkowych."
+    },
+    "invalid_master_code_format": {
+      "message": "Format kodu nadrzędnego jest nieprawidłowy. Musi to być 6-cyfrowy kod (0-9, A, B)."
+    },
+    "unknown": {
+      "message": "Wystąpił nieoczekiwany błąd."
+    },
+    "pin_code_invalid_length": {
+      "message": "Kod PIN musi składać się z 6 znaków."
+    },
+    "pin_code_invalid": {
+      "message": "Nieprawidłowy kod PIN."
+    },
+    "unauthorized": {
+      "message": "Brak autoryzacji."
+    },
+    "config_key_required": {
+      "message": "Klucz konfiguracyjny jest wymagany do tej operacji."
+    },
+    "invalid_code_format": {
+      "message": "Format kodu jest nieprawidłowy (musi to być 6 znaków od 0-9, A, B)."
+    },
+    "create_code_failed": {
+      "message": "Tworzenie kodu nie powiodło się (urządzenie zwróciło błąd)."
+    },
+    "change_master_code_failed": {
+      "message": "Zmiana kodu nadrzędnego nie powiodła się (urządzenie zwróciło błąd)."
+    },
+    "unknown_code_type": {
+      "message": "Nieznany typ kodu."
+    },
+    "unknown_device": {
+      "message": "Urządzenie nie jest widziane przez adapter Bluetooth."
+    },
+    "not_connectable": {
+      "message": "Wykryte urządzenie nie pozwala na połączenie (prawdopodobnie przez pasywne proxy)."
+    },
+    "todo_entity_not_found_for_device": {
+      "message": "Nie znaleziono encji Todo dla urządzenia {target_device_id}."
+    },
+    "target_devices_not_boks": {
+      "message": "Urządzenia docelowe {device_ids} nie są urządzeniami Boks."
+    },
+    "target_entities_not_boks": {
+      "message": "Encje docelowe {entity_ids} należą do urządzeń innych niż Boks."
+    },
+    "target_device_missing": {
+      "message": "Docelowe urządzenie Boks nie zostało znalezione lub nie zostało określone. Proszę podać device_id lub entity_id."
+    },
+    "multiple_devices_found": {
+      "message": "Znaleziono wiele urządzeń Boks. Proszę określić docelową encję lub urządzenie."
+    },
+    "no_devices_configured": {
+      "message": "Brak skonfigurowanych urządzeń Boks."
+    },
+    "opening_failed_no_code": {
+      "message": "Otwieranie nie powiodło się: nie podano kodu PIN, brak zapisanego kodu nadrzędnego i nie można wygenerować jednorazowego kodu PIN."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Otwieranie nie powiodło się: nie podano kodu PIN, brak zapisanego kodu nadrzędnego i nie można wygenerować jednorazowego kodu PIN (brak dostępnego klucza konfiguracyjnego)."
+    },
+    "operation_timed_out": {
+      "message": "Operacja przekroczyła limit czasu po {seconds} sekundach."
+    },
+    "set_configuration_failed": {
+      "message": "Ustawienie konfiguracji {config_type} nie powiodło się (urządzenie zwróciło błąd)."
+    },
+    "timeout_waiting_response": {
+      "message": "Przekroczono limit czasu oczekiwania na odpowiedź dla kodu operacji {opcode}."
+    },
+    "todo_entity_not_found": {
+      "message": "Encja Todo {target_entity_id} nie została znaleziona lub załadowana."
+    },
+    "todo_integration_not_loaded": {
+      "message": "Integracja Todo nie została załadowana."
+    },
+    "ble_client_none": {
+      "message": "Klient BLE ma wartość None, nie można wysłać polecenia."
+    },
+    "ble_error": {
+      "message": "Błąd BLE: {error}"
+    },
+    "ble_internal_error": {
+      "message": "Wewnętrzny błąd BLE: {error}"
+    },
+    "busy": {
+      "message": "Urządzenie zajęte: inna operacja już nasłuchuje powiadomień."
+    },
+    "cannot_resolve_todo": {
+      "message": "Nie można rozpoznać docelowej listy zadań Boks."
+    },
+    "config_key_invalid_length": {
+      "message": "Klucz konfiguracyjny musi mieć dokładnie 8 znaków."
+    },
+    "delete_code_failed": {
+      "message": "Usuwanie kodu nie powiodło się (urządzenie zwróciło błąd)."
+    },
+    "door_opened_recently": {
+      "message": "Drzwi zostały niedawno otwarte. Proszę odczekać {seconds} sekund przed ponownym otwarciem."
+    },
+    "entity_not_parcel_list": {
+      "message": "Encja {target_entity_id} nie jest listą paczek Boks."
+    },
+    "firmware_update_failed": {
+      "message": "Nie udało się wywołać aktualizacji oprogramowania układowego dla wersji {version}"
+    },
+    "firmware_update_required": {
+      "message": "Funkcja {feature} wymaga oprogramowania układowego w wersji {required_sw}. Twoja aktualna wersja to {current_sw}."
+    },
+    "firmware_version_required": {
+      "message": "Wersja oprogramowania układowego musi być wyższa niż {required_version}, aby korzystać z tej funkcji. Aktualna wersja: {current_version}"
+    },
+    "hardware_unsupported": {
+      "message": "Funkcja {feature} wymaga urządzenia Boks w wersji v{required_hw} lub nowszej. Twoja aktualna wersja to v{current_hw}."
+    },
+    "invalid_master_code_index": {
+      "message": "Nieprawidłowy indeks kodu nadrzędnego (musi mieścić się w przedziale od 0 do 255)."
+    },
+    "invalid_uid_format": {
+      "message": "Nieprawidłowy format UID NFC."
+    },
+    "item_not_found": {
+      "message": "Nie znaleziono elementu"
+    },
+    "laposte_firmware_version_required": {
+      "message": "Wersja oprogramowania układowego musi być wyższa niż {required_version}, aby włączyć funkcję La Poste. Aktualna wersja: {current_version}"
+    },
+    "lock_entity_not_found": {
+      "message": "Nie znaleziono encji blokady dla tego urządzenia."
+    },
+    "maintenance_already_running": {
+      "message": "Zadanie konserwacji jest już w toku. Proszę poczekać na jego zakończenie."
+    },
+    "maintenance_error_msg": {
+      "message": "Czyszczenie kodów nadrzędnych nie powiodło się na indeksie {current_idx}.\nBłąd: {error}"
+    },
+    "maintenance_failed_msg": {
+      "message": "Konserwacja nie powiodła się: {error}"
+    },
+    "maintenance_error_title": {
+      "message": "Błąd konserwacji Boks"
+    },
+    "nfc_tag_already_exists": {
+      "message": "Ten tag NFC jest już zarejestrowany w urządzeniu Boks."
+    }
   },
   "options": {
     "step": {
@@ -214,14 +303,22 @@
   },
   "entity": {
     "button": {
-      "sync_logs": { "name": "Synchronizuj logi" }
+      "sync_logs": {
+        "name": "Synchronizuj logi"
+      }
     },
     "lock": {
-      "door": { "name": "Drzwi" }
+      "door": {
+        "name": "Drzwi"
+      }
     },
     "sensor": {
-      "battery": { "name": "Bateria" },
-      "last_connection": { "name": "Ostatnie połączenie" },
+      "battery": {
+        "name": "Bateria"
+      },
+      "last_connection": {
+        "name": "Ostatnie połączenie"
+      },
       "last_event": {
         "name": "Ostatnie zdarzenie",
         "state": {
@@ -242,12 +339,10 @@
           "error": "Błąd (diagnostyczny)",
           "nfc_opening": "Otwarcie NFC",
           "nfc_tag_registering_scan": "Skanowanie tagu NFC",
-          "nfc_tag_registering_scan_desc": "Skanowanie tagu {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (tercjarny)",
           "nfc_tag_type_3": "Tag",
           "unknown": "Nieznane zdarzenie",
-          "opening_by": "Otwarcie przez {name}",
           "diagnostic_error_bc": "Wewnętrzny błąd MFRC630 (0xBC)",
           "diagnostic_error_integrity": "Błąd integralności (CRC/Parzystość)",
           "diagnostic_error_no_tag": "Nie wykryto tagu / Limit czasu",
@@ -264,8 +359,12 @@
           "power_off_reason_8": "Wybudzenie LPCOMP"
         }
       },
-      "master_codes_count": { "name": "Kody nadrzędne" },
-      "single_use_codes_count": { "name": "Kody jednorazowe" },
+      "master_codes_count": {
+        "name": "Kody nadrzędne"
+      },
+      "single_use_codes_count": {
+        "name": "Kody jednorazowe"
+      },
       "battery_format": {
         "name": "Format baterii",
         "state": {
@@ -285,14 +384,30 @@
           "other": "Inny"
         }
       },
-      "battery_level_first": { "name": "Napięcie baterii (Pierwsze)" },
-      "battery_level_min": { "name": "Napięcie baterii (Min)" },
-      "battery_level_mean": { "name": "Napięcie baterii (Średnie)" },
-      "battery_level_max": { "name": "Napięcie baterii (Max)" },
-      "battery_level_last": { "name": "Napięcie baterii (Ostatnie)" },
-      "battery_level_t1": { "name": "Napięcie baterii (T1)" },
-      "battery_level_t5": { "name": "Napięcie baterii (T5)" },
-      "battery_level_t10": { "name": "Napięcie baterii (T10)" },
+      "battery_level_first": {
+        "name": "Napięcie baterii (Pierwsze)"
+      },
+      "battery_level_min": {
+        "name": "Napięcie baterii (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Napięcie baterii (Średnie)"
+      },
+      "battery_level_max": {
+        "name": "Napięcie baterii (Max)"
+      },
+      "battery_level_last": {
+        "name": "Napięcie baterii (Ostatnie)"
+      },
+      "battery_level_t1": {
+        "name": "Napięcie baterii (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Napięcie baterii (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Napięcie baterii (T10)"
+      },
       "maintenance_status": {
         "name": "Status konserwacji",
         "state": {
@@ -300,10 +415,14 @@
           "cleaning": "Czyszczenie kodów nadrzędnych"
         }
       },
-      "log_count": { "name": "Liczba logów" }
+      "log_count": {
+        "name": "Liczba logów"
+      }
     },
     "todo": {
-      "parcels": { "name": "Paczki" }
+      "parcels": {
+        "name": "Paczki"
+      }
     },
     "event": {
       "logs": {
@@ -325,30 +444,16 @@
           "error": "Błąd (diagnostyczny)",
           "nfc_opening": "Otwarcie NFC",
           "nfc_tag_registering_scan": "Skanowanie tagu NFC",
-          "nfc_tag_registering_scan_desc": "Skanowanie tagu {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (tercjarny)",
           "nfc_tag_type_3": "Tag",
-          "unknown": "Nieznane zdarzenie",
-          "opening_by": "Otwarcie przez {name}"
+          "unknown": "Nieznane zdarzenie"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "Aktualizacja oprogramowania układowego",
-        "state": {
-          "no_firmware_downloaded": "Nie pobrano oprogramowania układowego do instalacji",
-          "notification_title": "Aktualizacja oprogramowania układowego Boks",
-          "firmware_ready_message": "Aktualizacja oprogramowania układowego {version} została pobrana.\nLokalizacja pliku: {path}\nAdres URL pobierania: {url}\n\nWAŻNE: Skontaktuj się z programistą, aby uzyskać dodatkowe instrukcje dotyczące ręcznej aktualizacji.\nNie próbuj flashować tego pliku bez wyraźnych wytycznych.",
-          "manual_action_required_title": "Aktualizacja oprogramowania układowego Boks - wymagane działanie ręczne",
-          "download_failed_message": "Nie udało się pobrać oprogramowania układowego w wersji {version}. Status HTTP: {status}\nSprawdź adres URL oprogramowania układowego lub spróbuj ponownie później.",
-          "download_failed_title": "Aktualizacja oprogramowania układowego Boks - błąd pobierania",
-          "network_error_message": "Błąd sieci podczas pobierania oprogramowania układowego w wersji {version}.\nBłąd: {error}\nSprawdź połączenie sieciowe i spróbuj ponownie.",
-          "network_error_title": "Aktualizacja oprogramowania układowego Boks - błąd sieci",
-          "generic_error_message": "Błąd podczas pobierania oprogramowania układowego w wersji {version}.\nBłąd: {error}\nSpróbuj ponownie lub skontaktuj się z pomocą techniczną.",
-          "generic_error_title": "Aktualizacja oprogramowania układowego Boks - błąd"
-        }
+        "name": "Aktualizacja oprogramowania układowego"
       }
     }
   },
@@ -487,7 +592,10 @@
           "description": "Unikalny identyfikator tagu (np. A1B2C3D4).",
           "example": "A1B2C3D4"
         },
-        "name": { "name": "Przyjazna nazwa", "description": "Opcjonalna nazwa do zapisania w rejestrze tagów HA." }
+        "name": {
+          "name": "Przyjazna nazwa",
+          "description": "Opcjonalna nazwa do zapisania w rejestrze tagów HA."
+        }
       }
     },
     "nfc_unregister_tag": {

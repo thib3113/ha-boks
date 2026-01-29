@@ -3,43 +3,43 @@
 import asyncio
 import logging
 import time
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Callable, Any, List, Optional
+from typing import Any
 
 from bleak import BleakClient
-from bleak.exc import BleakError
 from bleak.backends.device import BLEDevice
+from bleak.exc import BleakError
 from bleak_retry_connector import establish_connection
-
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 
-from .const import (
-    BoksServiceUUID,
-    BoksNotificationOpcode,
-    BoksHistoryEvent,
+from ..const import (
+    DELAY_RETRY,
+    DOMAIN,
+    TIMEOUT_COMMAND_RESPONSE,
+    TIMEOUT_DOOR_CLOSE,
+    TIMEOUT_LOG_COUNT_STABILIZATION,
 )
-from .protocol import BoksProtocol
-from ..errors import BoksError, BoksAuthError
+from ..errors import BoksAuthError, BoksError
 from ..logic.anonymizer import BoksAnonymizer
-from ..packets.base import BoksTXPacket, BoksRXPacket
+from ..packets.base import BoksRXPacket, BoksTXPacket
 from ..packets.factory import PacketFactory
-from ..packets.rx.door_status import DoorStatusPacket
-from ..packets.rx.door_opened import DoorOpenedPacket
-from ..packets.rx.door_closed import DoorClosedPacket
 from ..packets.rx.code_ble_valid import CodeBleValidPacket
 from ..packets.rx.code_key_valid import CodeKeyValidPacket
-from ..packets.rx.nfc_opening import NfcOpeningPacket
-from ..packets.rx.key_opening import KeyOpeningPacket
+from ..packets.rx.door_closed import DoorClosedPacket
+from ..packets.rx.door_opened import DoorOpenedPacket
+from ..packets.rx.door_status import DoorStatusPacket
 from ..packets.rx.error_response import ErrorResponsePacket
+from ..packets.rx.key_opening import KeyOpeningPacket
+from ..packets.rx.nfc_opening import NfcOpeningPacket
 from ..packets.rx.nfc_scan_result import NfcScanResultPacket
-from ..const import (
-    DOMAIN,
-    TIMEOUT_DOOR_CLOSE,
-    TIMEOUT_COMMAND_RESPONSE,
-    TIMEOUT_LOG_COUNT_STABILIZATION,
-    DELAY_RETRY,
+from .const import (
+    BoksHistoryEvent,
+    BoksNotificationOpcode,
+    BoksServiceUUID,
 )
+from .protocol import BoksProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ class BoksBluetoothDevice:
             _LOGGER.debug("BoksBluetoothDevice initialized with address: %s, Config Key Present: %s",
                            BoksAnonymizer.anonymize_mac(address, anonymize_logs), bool(config_key))
 
-        self._client: Optional[BleakClient] = None
+        self._client: BleakClient | None = None
         self._lock = asyncio.Lock()
         self._response_futures: dict[str, asyncio.Future] = {}
         self._notify_callback = None
@@ -72,12 +72,12 @@ class BoksBluetoothDevice:
         self._notifications_subscribed = False
         self._response_callbacks: dict[int, Callable[[bytearray], None]] = {}
         self._opcode_callbacks: dict[int, list[Callable[[bytearray], None]]] = {}
-        self._last_battery_update: Optional[datetime] = None
+        self._last_battery_update: datetime | None = None
         self._full_refresh_interval_hours: int = 12
         self._refresh_needed = False
-        self._last_door_close_time: Optional[float] = None
-        self._last_door_open_time: Optional[float] = None
-        self._last_log_count_value: Optional[int] = None
+        self._last_door_close_time: float | None = None
+        self._last_door_open_time: float | None = None
+        self._last_log_count_value: int | None = None
         self._last_log_count_ts: float = 0.0
 
     @property
@@ -166,7 +166,7 @@ class BoksBluetoothDevice:
             raise BoksError("no_connectable_adapter")
 
         if _LOGGER.isEnabledFor(logging.DEBUG):
-            _LOGGER.debug("Found %d connectable candidates for %s", len(devices), 
+            _LOGGER.debug("Found %d connectable candidates for %s", len(devices),
                           BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs))
 
         best_device = None
@@ -181,7 +181,7 @@ class BoksBluetoothDevice:
                 info = BoksAnonymizer.get_scanner_info(dev)
                 scanner_display = BoksAnonymizer.get_scanner_display_name(info, self.anonymize_logs)
                 _LOGGER.debug(" - [RSSI: %s] %s", info.get("rssi", "None"), scanner_display)
-            
+
             if rssi is not None and rssi > best_rssi:
                 best_rssi = rssi
                 best_device = dev
@@ -193,9 +193,9 @@ class BoksBluetoothDevice:
         service_info = bluetooth.async_last_service_info(self.hass, self.address, connectable=True)
         rssi_log = service_info.rssi if service_info else None
         self._last_rssi_log = rssi_log or -100
-        
+
         if _LOGGER.isEnabledFor(logging.DEBUG):
-            _LOGGER.debug("BLE Device to use: %s", 
+            _LOGGER.debug("BLE Device to use: %s",
                           BoksAnonymizer.format_scanner_info(device, self.anonymize_logs, fallback_rssi=self._last_rssi_log))
 
     def _report_no_connectable_adapter(self):
@@ -219,9 +219,9 @@ class BoksBluetoothDevice:
         fallback_rssi = getattr(self, "_last_rssi_log", None)
         sc_info = BoksAnonymizer.format_scanner_info(device, self.anonymize_logs, fallback_rssi=fallback_rssi)
         error_msg = BoksAnonymizer.anonymize_log_message(str(error), self.anonymize_logs)
-        
+
         _LOGGER.error("Failed to connect to Boks %s via %s: %s",
-                      BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs), 
+                      BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs),
                       sc_info, error_msg)
 
     async def disconnect(self) -> None:
@@ -265,7 +265,7 @@ class BoksBluetoothDevice:
         _LOGGER.debug("Performing final refresh (battery and logs) before disconnect")
         try:
             update_data = {}
-            
+
             # 1. Battery info
             update_data.update(await self._get_final_battery_info())
 
@@ -332,7 +332,7 @@ class BoksBluetoothDevice:
                       direction, packet.opcode, packet.get_opcode_name(),
                       log_info["payload"], log_info["raw"], log_info.get("suffix", ""))
 
-    async def _send_packet(self, packet: BoksTXPacket, wait_for_opcodes: List[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
+    async def _send_packet(self, packet: BoksTXPacket, wait_for_opcodes: list[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
         """Internal send packet without lock/connection handling."""
         raw_bytes = packet.to_bytes()
 
@@ -356,19 +356,19 @@ class BoksBluetoothDevice:
                 return PacketFactory.from_rx_data(resp_data)
             return None
 
-        except asyncio.TimeoutError:
+        except TimeoutError as e:
             if future_key in self._response_futures:
                 del self._response_futures[future_key]
-            raise BoksError("timeout_waiting_response", {"opcode": f"0x{packet.opcode:02X}"})
+            raise BoksError("timeout_waiting_response", {"opcode": f"0x{packet.opcode:02X}"}) from e
 
         except (BleakError, AttributeError, OSError) as e:
             if future_key in self._response_futures:
                 del self._response_futures[future_key]
             if isinstance(e, AttributeError):
-                 raise BoksError("ble_internal_error", {"error": str(e)})
-            raise BoksError("ble_error", {"error": str(e)})
+                 raise BoksError("ble_internal_error", {"error": str(e)}) from e
+            raise BoksError("ble_error", {"error": str(e)}) from e
 
-    async def send_packet(self, packet: BoksTXPacket, wait_for_opcodes: List[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
+    async def send_packet(self, packet: BoksTXPacket, wait_for_opcodes: list[int] = None, timeout: float = TIMEOUT_COMMAND_RESPONSE) -> BoksRXPacket | None:
         """Send a packet object and optionally wait for a specific response packet (Public)."""
         max_attempts = 2
 
@@ -451,10 +451,10 @@ class BoksBluetoothDevice:
         current_time = time.time()
         last_data = getattr(self, '_last_notification_data', None)
         last_time = getattr(self, '_last_notification_time', 0)
-        
+
         if last_data == data and (current_time - last_time) < 1.0:
             _LOGGER.debug("Potential duplicate notification received")
-            
+
         self._last_notification_data = data
         self._last_notification_time = current_time
         return True
@@ -471,21 +471,21 @@ class BoksBluetoothDevice:
         if isinstance(packet, DoorStatusPacket):
             self._door_status = packet.is_open
             return True
-        
+
         if isinstance(packet, DoorClosedPacket):
             self._door_status = False
             self._last_door_close_time = time.time()
             if getattr(packet, "age", 0) < 10:
                 self._refresh_needed = True
             return True
-            
+
         if isinstance(packet, (DoorOpenedPacket, CodeBleValidPacket, CodeKeyValidPacket, NfcOpeningPacket, KeyOpeningPacket)):
             self._door_status = True
             self._last_door_open_time = time.time()
             if getattr(packet, "age", 0) < 10:
                 self._refresh_needed = True
             return True
-            
+
         return False
 
     def _dispatch_door_update(self):
@@ -525,15 +525,15 @@ class BoksBluetoothDevice:
         if not self.is_connected:
              _LOGGER.warning("Cannot wait for door close: Not connected.")
              return False
-        
+
         try:
             async with asyncio.timeout(timeout):
                 while self._door_status:
                     self._door_event.clear()
                     await self._door_event.wait()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
-            
+
         return not self._door_status
 
     async def get_battery_level(self) -> int:
@@ -604,8 +604,8 @@ class BoksBluetoothDevice:
 
     async def get_door_status(self) -> bool:
         """Get current door status."""
-        from ..packets.tx.ask_door_status import AskDoorStatusPacket
         from ..packets.rx.door_status import DoorStatusPacket
+        from ..packets.tx.ask_door_status import AskDoorStatusPacket
         packet = AskDoorStatusPacket()
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_DOOR_STATUS, BoksNotificationOpcode.ANSWER_DOOR_STATUS])
         if isinstance(resp, DoorStatusPacket):
@@ -656,8 +656,8 @@ class BoksBluetoothDevice:
 
     async def get_code_counts(self) -> dict:
         """Get code counts."""
-        from ..packets.tx.count_codes import CountCodesPacket
         from ..packets.rx.code_counts import CodeCountsPacket
+        from ..packets.tx.count_codes import CountCodesPacket
         packet = CountCodesPacket()
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_CODES_COUNT])
         if isinstance(resp, CodeCountsPacket):
@@ -675,8 +675,8 @@ class BoksBluetoothDevice:
 
     async def _get_logs_count(self) -> int:
         """Internal get logs count with stabilization."""
-        from ..packets.tx.get_logs_count import GetLogsCountPacket
         from ..packets.rx.log_count import LogCountPacket
+        from ..packets.tx.get_logs_count import GetLogsCountPacket
 
         # Check cache first
         if self._last_log_count_value is not None and (time.time() - self._last_log_count_ts) < 3.0:
@@ -719,7 +719,7 @@ class BoksBluetoothDevice:
 
         return 0
 
-    async def get_logs(self, count: int) -> List[dict]:
+    async def get_logs(self, count: int) -> list[dict]:
         """Retrieve logs."""
         async with self._lock:
             await self._connect()
@@ -728,7 +728,7 @@ class BoksBluetoothDevice:
             finally:
                 await self._disconnect()
 
-    async def _get_logs(self, count: int) -> List[dict]:
+    async def _get_logs(self, count: int) -> list[dict]:
         """Internal retrieve logs."""
         from ..packets.tx.request_logs import RequestLogsPacket
         if count <= 0:
@@ -749,7 +749,7 @@ class BoksBluetoothDevice:
         try:
             await self._send_packet(packet)
             await asyncio.wait_for(logs_received_event.wait(), timeout=5.0 + (count * 1.5))
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.warning("Timeout waiting for logs. Received %d/%d", len(logs), count)
         finally:
             self._notify_callback = None
@@ -831,19 +831,20 @@ class BoksBluetoothDevice:
             BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_SCAN
         )
 
-    def _handle_scanned_tag(self, uid: Optional[str], status: str):
+    def _handle_scanned_tag(self, uid: str | None, status: str):
         """Handle a scanned tag."""
         if _LOGGER.isEnabledFor(logging.INFO):
             log_uid = BoksAnonymizer.anonymize_uid(uid, self.anonymize_logs)
             _LOGGER.info("NFC Tag Scanned: %s (Status: %s)", log_uid, status)
         self.hass.async_create_task(self._async_handle_scanned_tag(uid, status))
 
-    async def _async_handle_scanned_tag(self, uid: Optional[str], status: str):
+    async def _async_handle_scanned_tag(self, uid: str | None, status: str):
         """Async handle scanned tag."""
         coordinator = None
-        for entry_id, coord in self.hass.data.get(DOMAIN, {}).items():
+        for _entry_id, coord in self.hass.data.get(DOMAIN, {}).items():
             if hasattr(coord, "ble_device") and coord.ble_device == self:
                 coordinator = coord
+                break
                 break
         if not coordinator:
             _LOGGER.warning("Could not find coordinator for NFC notification")

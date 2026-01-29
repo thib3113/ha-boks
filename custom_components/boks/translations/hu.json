@@ -108,88 +108,177 @@
     }
   },
   "exceptions": {
-    "cannot_connect": { "message": "Nem sikerült csatlakozni a Boks API-hoz." },
-    "invalid_auth": { "message": "Érvénytelen e-mail cím vagy jelszó." },
-    "boks_not_found": { "message": "Nem található a MAC-címnek megfelelő Boks eszköz ebben a fiókban." },
-    "cannot_retrieve_key": { "message": "Nem sikerült lekérni a konfigurációs kulcsot a felhőből." },
-    "device_not_found": { "message": "Az eszköz nem található a listában." },
-    "device_not_in_cache": { "message": "Az eszköz nem található a Bluetooth gyorsítótárban. Nincs elérhető csatlakozási útvonal." },
-    "no_devices_found": { "message": "Nem található Boks eszköz ebben a fiókban." },
-    "connection_error": { "message": "Csatlakozási hiba az eszközök lekérése közben." },
-    "invalid_credential_format": { "message": "Érvénytelen hitelesítő adat formátum. 8 vagy 64 hex karakternek kell lennie." },
-    "invalid_master_code_format": { "message": "A mesterkód formátuma érvénytelen. 6 számjegyű kódnak kell lennie (0-9, A, B)." },
-    "unknown": { "message": "Váratlan hiba történt." },
-    "pin_code_invalid_length": { "message": "A PIN kódnak 6 karakterből kell állnia." },
-    "pin_code_invalid": { "message": "Érvénytelen PIN kód." },
-    "unauthorized": { "message": "Jogosulatlan hozzáférés." },
-    "config_key_required": { "message": "A művelethez konfigurációs kulcs szükséges." },
-    "invalid_code_format": { "message": "A kódformátum érvénytelen (6 karakternek kell lennie a 0-9, A, B karakterekből)." },
-    "create_code_failed": { "message": "A kód létrehozása sikertelen (az eszköz hibát jelzett)." },
-    "change_master_code_failed": { "message": "A mesterkód megváltoztatása sikertelen (az eszköz hibát jelzett)." },
-    "unknown_code_type": { "message": "Ismeretlen kódtípus." },
-    "unknown_device": { "message": "A Bluetooth adapter nem látja az eszközt." },
-    "not_connectable": { "message": "Az észlelt eszköz nem csatlakoztatható (valószínűleg passzív proxyn keresztül)." },
-    "todo_entity_not_found_for_device": { "message": "Nem található Todo entitás a(z) {target_device_id} eszközhöz." },
-    "target_devices_not_boks": { "message": "A célzott eszközök nem Boks eszközök." },
-    "target_entities_not_boks": { "message": "A célzott entitások nem Boks eszközhöz tartoznak." },
-    "target_device_missing": { "message": "A célzott Boks eszköz nem található vagy nincs megadva. Kérem, adjon meg egy device_id-t vagy entity_id-t." },
-    "multiple_devices_found": { "message": "Több Boks eszközt találtam. Kérem, adjon meg egy cél entitást vagy eszközt." },
-    "no_devices_configured": { "message": "Nincs beállítva Boks eszköz." },
-    "no_devices_found": { "message": "Nem található Boks eszköz ebben a fiókban." },
-    "not_connectable": { "message": "Az észlelt eszköz nem csatlakoztatható (valószínűleg passzív proxyn keresztül)." },
-    "opening_failed_no_code": { "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni." },
-    "opening_failed_no_code_no_key": { "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni (nincs konfigurációs kulcs)." },
-    "operation_timed_out": { "message": "A művelet időtúllépés miatt megszakadt {seconds} másodperc után." },
-    "pin_code_invalid": { "message": "Érvénytelen PIN kód." },
-    "pin_code_invalid_length": { "message": "A PIN kódnak 6 karakterből kell állnia." },
-    "set_configuration_failed": { "message": "A(z) {config_type} konfiguráció beállítása sikertelen (az eszköz hibát jelzett)." },
-    "target_device_missing": { "message": "A célzott Boks eszköz nem található vagy nincs megadva. Kérem, adjon meg egy device_id-t vagy entity_id-t." },
-    "target_devices_not_boks": { "message": "A célzott eszközök nem Boks eszközök." },
-    "target_entities_not_boks": { "message": "A célzott entitások nem Boks eszközhöz tartoznak." },
-    "timeout_waiting_response": { "message": "Időtúllépés a(z) {opcode} műveleti kódra adott válaszra várva." },
-    "todo_entity_not_found": { "message": "A(z) {target_entity_id} Todo entitás nem található vagy nincs betöltve." },
-    "todo_entity_not_found_for_device": { "message": "Nem található Todo entitás a(z) {target_device_id} eszközhöz." },
-    "todo_integration_not_loaded": { "message": "A Todo integráció nincs betöltve." },
-    "unauthorized": { "message": "Jogosulatlan hozzáférés." },
-    "unknown": { "message": "Váratlan hiba történt." },
-    "unknown_code_type": { "message": "Ismeretlen kódtípus." },
-    "unknown_device": { "message": "A Bluetooth adapter nem látja az eszközt." },
-    "ble_client_none": { "message": "A BLE kliens értéke None, nem lehet parancsot küldeni." },
-    "ble_error": { "message": "BLE hiba: {error}" },
-    "ble_internal_error": { "message": "Belső BLE hiba: {error}" },
-    "boks_not_found": { "message": "Nem található a MAC-címnek megfelelő Boks eszköz ebben a fiókban." },
-    "busy": { "message": "Eszköz foglalt: egy másik művelet már vár az értesítésekre." },
-    "cannot_connect": { "message": "Nem sikerült csatlakozni a Boks API-hoz." },
-    "cannot_resolve_todo": { "message": "Nem sikerült feloldani a cél Boks Todo listát." },
-    "cannot_retrieve_key": { "message": "Nem sikerült lekérni a konfigurációs kulcsot a felhőből." },
-    "change_master_code_failed": { "message": "A mesterkód megváltoztatása sikertelen (az eszköz hibát jelzett)." },
-    "config_key_invalid_length": { "message": "A konfigurációs kulcsnak pontosan 8 karakterből kell állnia." },
-    "config_key_required": { "message": "A művelethez konfigurációs kulcs szükséges." },
-    "connection_error": { "message": "Csatlakozási hiba az eszközök lekérése közben." },
-    "create_code_failed": { "message": "A kód létrehozása sikertelen (az eszköz hibát jelzett)." },
-    "delete_code_failed": { "message": "A kód törlése sikertelen (az eszköz hibát jelzett)." },
-    "device_not_found": { "message": "Az eszköz nem található a listában." },
-    "device_not_in_cache": { "message": "Az eszköz nem található a Bluetooth gyorsítótárban. Nincs elérhető csatlakozási útvonal." },
-    "door_opened_recently": { "message": "Az ajtót nemrég nyitották ki. Kérjük, várjon {seconds} másodpercet az újbóli nyitás előtt." },
-    "entity_not_parcel_list": { "message": "A(z) {target_entity_id} entitás nem Boks csomaglista." },
-    "firmware_update_failed": { "message": "Nem sikerült elindítani a firmware frissítést a(z) {version} verzióra." },
-    "firmware_update_required": { "message": "A(z) {feature} funkcióhoz {required_sw} firmware verzió szükséges. Az Ön jelenlegi verziója {current_sw}." },
-    "firmware_version_required": { "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}" },
-    "hardware_unsupported": { "message": "A(z) {feature} funkcióhoz Boks v{required_hw} vagy újabb szükséges. Az Ön jelenlegi verziója v{current_hw}." },
-    "invalid_auth": { "message": "Érvénytelen e-mail cím vagy jelszó." },
-    "invalid_code_format": { "message": "A kódformátum érvénytelen (6 karakternek kell lennie a 0-9, A, B karakterekből)." },
-    "invalid_credential_format": { "message": "Érvénytelen hitelesítő adat formátum. 8 vagy 64 hex karakternek kell lennie." },
-    "invalid_master_code_format": { "message": "A mesterkód formátuma érvénytelen. 6 számjegyű kódnak kell lennie (0-9, A, B)." },
-    "invalid_master_code_index": { "message": "Érvénytelen mesterkód index (0 és 255 között kell lennie)." },
-    "invalid_uid_format": { "message": "Érvénytelen NFC UID formátum." },
-    "item_not_found": { "message": "Az elem nem található" },
-    "laposte_firmware_version_required": { "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}" },
-    "lock_entity_not_found": { "message": "Zár entitás nem található ehhez az eszközhöz." },
-    "maintenance_already_running": { "message": "Egy karbantartási feladat már folyamatban van. Kérjük, várja meg, amíg befejeződik." },
-    "maintenance_error_msg": { "message": "A mesterkódok tisztítása sikertelen a(z) {current_idx} indexnél.\nHiba: {error}" },
-    "maintenance_failed_msg": { "message": "A karbantartás sikertelen: {error}" },
-    "maintenance_error_title": { "message": "Boks karbantartási hiba" },
-    "nfc_tag_already_exists": { "message": "Ez az NFC kártya már regisztrálva van a Bokszban." }
+    "cannot_connect": {
+      "message": "Nem sikerült csatlakozni a Boks API-hoz."
+    },
+    "invalid_auth": {
+      "message": "Érvénytelen e-mail cím vagy jelszó."
+    },
+    "boks_not_found": {
+      "message": "Nem található a MAC-címnek megfelelő Boks eszköz ebben a fiókban."
+    },
+    "cannot_retrieve_key": {
+      "message": "Nem sikerült lekérni a konfigurációs kulcsot a felhőből."
+    },
+    "device_not_found": {
+      "message": "Az eszköz nem található a listában."
+    },
+    "device_not_in_cache": {
+      "message": "Az eszköz nem található a Bluetooth gyorsítótárban. Nincs elérhető csatlakozási útvonal."
+    },
+    "no_devices_found": {
+      "message": "Nem található Boks eszköz ebben a fiókban."
+    },
+    "connection_error": {
+      "message": "Csatlakozási hiba az eszközök lekérése közben."
+    },
+    "invalid_credential_format": {
+      "message": "Érvénytelen hitelesítő adat formátum. 8 vagy 64 hex karakternek kell lennie."
+    },
+    "invalid_master_code_format": {
+      "message": "A mesterkód formátuma érvénytelen. 6 számjegyű kódnak kell lennie (0-9, A, B)."
+    },
+    "unknown": {
+      "message": "Váratlan hiba történt."
+    },
+    "pin_code_invalid_length": {
+      "message": "A PIN kódnak 6 karakterből kell állnia."
+    },
+    "pin_code_invalid": {
+      "message": "Érvénytelen PIN kód."
+    },
+    "unauthorized": {
+      "message": "Jogosulatlan hozzáférés."
+    },
+    "config_key_required": {
+      "message": "A művelethez konfigurációs kulcs szükséges."
+    },
+    "invalid_code_format": {
+      "message": "A kódformátum érvénytelen (6 karakternek kell lennie a 0-9, A, B karakterekből)."
+    },
+    "create_code_failed": {
+      "message": "A kód létrehozása sikertelen (az eszköz hibát jelzett)."
+    },
+    "change_master_code_failed": {
+      "message": "A mesterkód megváltoztatása sikertelen (az eszköz hibát jelzett)."
+    },
+    "unknown_code_type": {
+      "message": "Ismeretlen kódtípus."
+    },
+    "unknown_device": {
+      "message": "A Bluetooth adapter nem látja az eszközt."
+    },
+    "not_connectable": {
+      "message": "Az észlelt eszköz nem csatlakoztatható (valószínűleg passzív proxyn keresztül)."
+    },
+    "todo_entity_not_found_for_device": {
+      "message": "Nem található Todo entitás a(z) {target_device_id} eszközhöz."
+    },
+    "target_devices_not_boks": {
+      "message": "A célzott eszközök nem Boks eszközök."
+    },
+    "target_entities_not_boks": {
+      "message": "A célzott entitások nem Boks eszközhöz tartoznak."
+    },
+    "target_device_missing": {
+      "message": "A célzott Boks eszköz nem található vagy nincs megadva. Kérem, adjon meg egy device_id-t vagy entity_id-t."
+    },
+    "multiple_devices_found": {
+      "message": "Több Boks eszközt találtam. Kérem, adjon meg egy cél entitást vagy eszközt."
+    },
+    "no_devices_configured": {
+      "message": "Nincs beállítva Boks eszköz."
+    },
+    "opening_failed_no_code": {
+      "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni (nincs konfigurációs kulcs)."
+    },
+    "operation_timed_out": {
+      "message": "A művelet időtúllépés miatt megszakadt {seconds} másodperc után."
+    },
+    "set_configuration_failed": {
+      "message": "A(z) {config_type} konfiguráció beállítása sikertelen (az eszköz hibát jelzett)."
+    },
+    "timeout_waiting_response": {
+      "message": "Időtúllépés a(z) {opcode} műveleti kódra adott válaszra várva."
+    },
+    "todo_entity_not_found": {
+      "message": "A(z) {target_entity_id} Todo entitás nem található vagy nincs betöltve."
+    },
+    "todo_integration_not_loaded": {
+      "message": "A Todo integráció nincs betöltve."
+    },
+    "ble_client_none": {
+      "message": "A BLE kliens értéke None, nem lehet parancsot küldeni."
+    },
+    "ble_error": {
+      "message": "BLE hiba: {error}"
+    },
+    "ble_internal_error": {
+      "message": "Belső BLE hiba: {error}"
+    },
+    "busy": {
+      "message": "Eszköz foglalt: egy másik művelet már vár az értesítésekre."
+    },
+    "cannot_resolve_todo": {
+      "message": "Nem sikerült feloldani a cél Boks Todo listát."
+    },
+    "config_key_invalid_length": {
+      "message": "A konfigurációs kulcsnak pontosan 8 karakterből kell állnia."
+    },
+    "delete_code_failed": {
+      "message": "A kód törlése sikertelen (az eszköz hibát jelzett)."
+    },
+    "door_opened_recently": {
+      "message": "Az ajtót nemrég nyitották ki. Kérjük, várjon {seconds} másodpercet az újbóli nyitás előtt."
+    },
+    "entity_not_parcel_list": {
+      "message": "A(z) {target_entity_id} entitás nem Boks csomaglista."
+    },
+    "firmware_update_failed": {
+      "message": "Nem sikerült elindítani a firmware frissítést a(z) {version} verzióra."
+    },
+    "firmware_update_required": {
+      "message": "A(z) {feature} funkcióhoz {required_sw} firmware verzió szükséges. Az Ön jelenlegi verziója {current_sw}."
+    },
+    "firmware_version_required": {
+      "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}"
+    },
+    "hardware_unsupported": {
+      "message": "A(z) {feature} funkcióhoz Boks v{required_hw} vagy újabb szükséges. Az Ön jelenlegi verziója v{current_hw}."
+    },
+    "invalid_master_code_index": {
+      "message": "Érvénytelen mesterkód index (0 és 255 között kell lennie)."
+    },
+    "invalid_uid_format": {
+      "message": "Érvénytelen NFC UID formátum."
+    },
+    "item_not_found": {
+      "message": "Az elem nem található"
+    },
+    "laposte_firmware_version_required": {
+      "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}"
+    },
+    "lock_entity_not_found": {
+      "message": "Zár entitás nem található ehhez az eszközhöz."
+    },
+    "maintenance_already_running": {
+      "message": "Egy karbantartási feladat már folyamatban van. Kérjük, várja meg, amíg befejeződik."
+    },
+    "maintenance_error_msg": {
+      "message": "A mesterkódok tisztítása sikertelen a(z) {current_idx} indexnél.\nHiba: {error}"
+    },
+    "maintenance_failed_msg": {
+      "message": "A karbantartás sikertelen: {error}"
+    },
+    "maintenance_error_title": {
+      "message": "Boks karbantartási hiba"
+    },
+    "nfc_tag_already_exists": {
+      "message": "Ez az NFC kártya már regisztrálva van a Bokszban."
+    }
   },
   "options": {
     "step": {
@@ -214,14 +303,22 @@
   },
   "entity": {
     "button": {
-      "sync_logs": { "name": "Naplók szinkronizálása" }
+      "sync_logs": {
+        "name": "Naplók szinkronizálása"
+      }
     },
     "lock": {
-      "door": { "name": "Ajtó" }
+      "door": {
+        "name": "Ajtó"
+      }
     },
     "sensor": {
-      "battery": { "name": "Akkumulátor" },
-      "last_connection": { "name": "Utolsó kapcsolat" },
+      "battery": {
+        "name": "Akkumulátor"
+      },
+      "last_connection": {
+        "name": "Utolsó kapcsolat"
+      },
       "last_event": {
         "name": "Utolsó esemény",
         "state": {
@@ -242,12 +339,10 @@
           "error": "Hiba (diagnosztika)",
           "nfc_opening": "NFC nyitás",
           "nfc_tag_registering_scan": "NFC kártya beolvasás",
-          "nfc_tag_registering_scan_desc": "{name} kártya beolvasása",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (Harmadlagos)",
           "nfc_tag_type_3": "Kártya",
           "unknown": "Ismeretlen esemény",
-          "opening_by": "Nyitotta: {name}",
           "diagnostic_error_bc": "Belső MFRC630 hiba (0xBC)",
           "diagnostic_error_integrity": "Integritási hiba (CRC/paritás)",
           "diagnostic_error_no_tag": "Kártya nem észlelhető / Időtúllépés",
@@ -264,8 +359,12 @@
           "power_off_reason_8": "LPCOMP ébresztés"
         }
       },
-      "master_codes_count": { "name": "Mesterkódok" },
-      "single_use_codes_count": { "name": "Egyszeri kódok" },
+      "master_codes_count": {
+        "name": "Mesterkódok"
+      },
+      "single_use_codes_count": {
+        "name": "Egyszeri kódok"
+      },
       "battery_format": {
         "name": "Akkumulátor formátum",
         "state": {
@@ -285,14 +384,30 @@
           "other": "Egyéb"
         }
       },
-      "battery_level_first": { "name": "Akkumulátor feszültség (Első)" },
-      "battery_level_min": { "name": "Akkumulátor feszültség (Min)" },
-      "battery_level_mean": { "name": "Akkumulátor feszültség (Átlag)" },
-      "battery_level_max": { "name": "Akkumulátor feszültség (Max)" },
-      "battery_level_last": { "name": "Akkumulátor feszültség (Utolsó)" },
-      "battery_level_t1": { "name": "Akkumulátor feszültség (T1)" },
-      "battery_level_t5": { "name": "Akkumulátor feszültség (T5)" },
-      "battery_level_t10": { "name": "Akkumulátor feszültség (T10)" },
+      "battery_level_first": {
+        "name": "Akkumulátor feszültség (Első)"
+      },
+      "battery_level_min": {
+        "name": "Akkumulátor feszültség (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Akkumulátor feszültség (Átlag)"
+      },
+      "battery_level_max": {
+        "name": "Akkumulátor feszültség (Max)"
+      },
+      "battery_level_last": {
+        "name": "Akkumulátor feszültség (Utolsó)"
+      },
+      "battery_level_t1": {
+        "name": "Akkumulátor feszültség (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Akkumulátor feszültség (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Akkumulátor feszültség (T10)"
+      },
       "maintenance_status": {
         "name": "Karbantartás állapota",
         "state": {
@@ -300,10 +415,14 @@
           "cleaning": "Mesterkódok tisztítása"
         }
       },
-      "log_count": { "name": "Naplók száma" }
+      "log_count": {
+        "name": "Naplók száma"
+      }
     },
     "todo": {
-      "parcels": { "name": "Csomagok" }
+      "parcels": {
+        "name": "Csomagok"
+      }
     },
     "event": {
       "logs": {
@@ -325,30 +444,16 @@
           "error": "Hiba (diagnosztika)",
           "nfc_opening": "NFC nyitás",
           "nfc_tag_registering_scan": "NFC kártya beolvasás",
-          "nfc_tag_registering_scan_desc": "{name} kártya beolvasása",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (Harmadlagos)",
           "nfc_tag_type_3": "Kártya",
-          "unknown": "Ismeretlen esemény",
-          "opening_by": "Nyitotta: {name}"
+          "unknown": "Ismeretlen esemény"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "Firmware frissítés",
-        "state": {
-          "no_firmware_downloaded": "Nincs letöltött firmware a telepítéshez",
-          "notification_title": "Boks firmware frissítés",
-          "firmware_ready_message": "A(z) {version} verziójú firmware frissítés letöltődött.\nFájl helye: {path}\nLetöltési URL: {url}\n\nFONTOS: Kérjük, vegye fel a kapcsolatot a fejlesztővel a frissítés manuális alkalmazásával kapcsolatos további utasításokért.\nNe próbálja meg flashelni ezt a fájlt specifikus útmutatás nélkül.",
-          "manual_action_required_title": "Boks firmware frissítés - Manuális beavatkozás szükséges",
-          "download_failed_message": "Nem sikerült letölteni a(z) {version} verziójú firmware-t. HTTP állapot: {status}\nKérjük, ellenőrizze a firmware URL-jét, vagy próbálja újra később.",
-          "download_failed_title": "Boks firmware frissítés - Letöltés sikertelen",
-          "network_error_message": "Hálózati hiba a(z) {version} verziójú firmware letöltése közben.\nHiba: {error}\nKérjük, ellenőrizze hálózati kapcsolatát, és próbálja újra.",
-          "network_error_title": "Boks firmware frissítés - Hálózati hiba",
-          "generic_error_message": "Hiba történt a(z) {version} verziójú firmware letöltése közben.\nHiba: {error}\nKérjük, próbálja újra, vagy lépjen kapcsolatba az ügyfélszolgálattal.",
-          "generic_error_title": "Boks firmware frissítés - Hiba"
-        }
+        "name": "Firmware frissítés"
       }
     }
   },
@@ -487,7 +592,10 @@
           "description": "A kártya egyedi azonosítója (pl. A1B2C3D4).",
           "example": "A1B2C3D4"
         },
-        "name": { "name": "Barátságos név", "description": "Opcionális név a HA kártyanyilvántartásba való mentéshez." }
+        "name": {
+          "name": "Barátságos név",
+          "description": "Opcionális név a HA kártyanyilvántartásba való mentéshez."
+        }
       }
     },
     "nfc_unregister_tag": {

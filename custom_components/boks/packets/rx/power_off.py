@@ -1,6 +1,7 @@
 """RX Packet: Power Off."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class PowerOffPacket(BoksHistoryLogPacket):
     """Notification for a device power off/reset."""

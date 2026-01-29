@@ -217,12 +217,10 @@
           "error": "Error (Diagnostic)",
           "nfc_opening": "NFC opening",
           "nfc_tag_registering_scan": "NFC tag scan",
-          "nfc_tag_registering_scan_desc": "Scan of tag {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (Tertiary)",
           "nfc_tag_type_3": "Badge",
           "unknown": "Unknown event",
-          "opening_by": "Opening by {name}",
           "diagnostic_error_bc": "Internal MFRC630 error (0xBC)",
           "diagnostic_error_integrity": "Integrity error (CRC/Parity)",
           "diagnostic_error_no_tag": "No tag detected / Timeout",
@@ -300,30 +298,16 @@
           "error": "Error (Diagnostic)",
           "nfc_opening": "NFC opening",
           "nfc_tag_registering_scan": "NFC tag scan",
-          "nfc_tag_registering_scan_desc": "Scan of tag {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (Tertiary)",
           "nfc_tag_type_3": "Badge",
-          "unknown": "Unknown event",
-          "opening_by": "Opening by {name}"
+          "unknown": "Unknown event"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "Firmware Update",
-        "state": {
-          "no_firmware_downloaded": "No firmware downloaded for installation",
-          "notification_title": "Boks Firmware Update",
-          "firmware_ready_message": "Firmware update {version} has been downloaded.\nFile location: {path}\nDownload URL: {url}\n\nIMPORTANT: Please contact the developer for additional instructions on how to manually apply this update.\nDo not attempt to flash this file without specific guidance.",
-          "manual_action_required_title": "Boks Firmware Update - Manual Action Required",
-          "download_failed_message": "Failed to download firmware version {version}. HTTP Status: {status}\nPlease check the firmware URL or try again later.",
-          "download_failed_title": "Boks Firmware Update - Download Failed",
-          "network_error_message": "Network error while downloading firmware version {version}.\nError: {error}\nPlease check your network connection and try again.",
-          "network_error_title": "Boks Firmware Update - Network Error",
-          "generic_error_message": "Error while downloading firmware version {version}.\nError: {error}\nPlease try again or contact support.",
-          "generic_error_title": "Boks Firmware Update - Error"
-        }
+        "name": "Firmware Update"
       }
     }
   },
@@ -473,6 +457,10 @@
           "description": "The Unique ID of the tag to remove."
         }
       }
+    },
+    "ask_door_status": {
+      "name": "Check Door Status",
+      "description": "Manually poll the Boks to check if the door is open or closed."
     }
   }
 }

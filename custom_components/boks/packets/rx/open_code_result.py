@@ -1,6 +1,7 @@
 """RX Packet: Open Code Validation Result."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class OpenCodeResultPacket(BoksRXPacket):
     """Notification confirming if an opening code was valid or not."""

@@ -8,16 +8,15 @@ all keys are present in all files.
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Set
 
 
-def load_json_file(file_path: Path) -> Dict:
+def load_json_file(file_path: Path) -> dict:
     """Load a JSON file and return its content as a dictionary."""
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding='utf-8') as f:
         return json.load(f)
 
 
-def get_nested_keys(data: Dict, parent_key: str = '') -> Set[str]:
+def get_nested_keys(data: dict, parent_key: str = '') -> set[str]:
     """Recursively extract all nested keys from a dictionary."""
     keys = set()
     for key, value in data.items():
@@ -29,7 +28,7 @@ def get_nested_keys(data: Dict, parent_key: str = '') -> Set[str]:
     return keys
 
 
-def compare_keys(source_keys: Set[str], target_keys: Set[str], target_file: Path) -> List[str]:
+def compare_keys(source_keys: set[str], target_keys: set[str], target_file: Path) -> list[str]:
     """Compare source keys with target keys and return missing keys."""
     missing_keys = source_keys - target_keys
     return list(missing_keys)

@@ -1,5 +1,5 @@
 """Anonymization utilities for Boks."""
-from typing import Optional, Any
+from typing import Any
 
 from ..ble.const import BoksCommandOpcode, BoksHistoryEvent, BoksNotificationOpcode
 from ..ble.protocol import BoksProtocol
@@ -15,7 +15,7 @@ class BoksAnonymizer:
     """Helper class to anonymize sensitive data in packets and strings."""
 
     @staticmethod
-    def anonymize_mac(mac: Optional[str], anonymize: bool = True) -> Optional[str]:
+    def anonymize_mac(mac: str | None, anonymize: bool = True) -> str | None:
         """Mask a MAC address (e.g. AA:BB:CC:DD:EE:FF -> AA:BB:CC:XX:XX:XX) if anonymize is True."""
         if not mac or not anonymize:
             return mac
@@ -46,7 +46,7 @@ class BoksAnonymizer:
         return re.sub(mac_pattern, replace_mac, message)
 
     @staticmethod
-    def anonymize_uid(uid: Optional[str], anonymize: bool = True) -> Optional[str]:
+    def anonymize_uid(uid: str | None, anonymize: bool = True) -> str | None:
         """Mask an NFC UID (e.g. 5A3EDAE0 -> 5A...E0) for display if anonymize is True."""
         if not uid or not anonymize:
             return uid or "None" if not uid else uid
@@ -56,21 +56,21 @@ class BoksAnonymizer:
         return f"{uid[:2]}...{uid[-2:]}"
 
     @staticmethod
-    def anonymize_pin(pin: Optional[str], anonymize: bool = True) -> Optional[str]:
+    def anonymize_pin(pin: str | None, anonymize: bool = True) -> str | None:
         """Mask a 6-character PIN if anonymize is True."""
         if not pin or not anonymize:
             return pin
         return FAKE_PIN_STR
 
     @staticmethod
-    def anonymize_key(key: Optional[str], anonymize: bool = True) -> Optional[str]:
+    def anonymize_key(key: str | None, anonymize: bool = True) -> str | None:
         """Mask an 8-character Config Key if anonymize is True."""
         if not key or not anonymize:
             return key
         return FAKE_KEY_STR
 
     @staticmethod
-    def anonymize_packet(data: Optional[bytearray], anonymize: bool = True) -> Optional[bytearray]:
+    def anonymize_packet(data: bytearray | None, anonymize: bool = True) -> bytearray | None:
         """
         Create a version of the packet with sensitive data replaced by placeholders.
         Only performs anonymization if anonymize is True.
@@ -202,7 +202,7 @@ class BoksAnonymizer:
                 rssi_val = getattr(device, "rssi", None)
 
         scanner_name, scanner_source = BoksAnonymizer._extract_scanner_name_and_source(device)
-        
+
         return {
             "scanner_name": scanner_name,
             "scanner_source": scanner_source,
@@ -217,14 +217,14 @@ class BoksAnonymizer:
         name = info.get("scanner_name", "Unknown")
         source = info.get("scanner_source", "unknown")
         anon_source = BoksAnonymizer.anonymize_mac(source, anonymize)
-        
+
         # Normalize for check: remove potential closing parenthesis and spaces
         clean_name = name.strip().rstrip(')').strip()
-        
+
         if clean_name.lower().endswith(source.lower()):
             # Name already contains MAC, don't duplicate
             return name
-        
+
         return f"{name} ({anon_source})"
 
     @staticmethod
@@ -257,7 +257,7 @@ class BoksAnonymizer:
         """Extract target name and address from device object."""
         name = getattr(device, "name", "Unknown")
         address = getattr(device, "address", "unknown")
-        
+
         if hasattr(device, "ble_device"):
             name = getattr(device.ble_device, "name", name)
             address = getattr(device.ble_device, "address", address)
@@ -282,7 +282,7 @@ class BoksAnonymizer:
         if name == "Unknown":
              ble_device = getattr(device, "ble_device", device)
              name = BoksAnonymizer._get_name_from_details(getattr(ble_device, "details", {}))
-        
+
         return name, source
 
     @staticmethod
@@ -293,10 +293,10 @@ class BoksAnonymizer:
             connector = getattr(scanner, "connector", None)
             if connector:
                 name = getattr(connector, "name", None)
-        
+
         if not name or name == "Unknown":
             name = getattr(scanner, "adapter", None)
-            
+
         return name or "Unknown"
 
     @staticmethod
@@ -311,7 +311,7 @@ class BoksAnonymizer:
                "Unknown"
 
     @staticmethod
-    def get_packet_log_info(data: Optional[bytearray], anonymize: bool = True) -> dict[str, str]:
+    def get_packet_log_info(data: bytearray | None, anonymize: bool = True) -> dict[str, str]:
         """Get formatted hex strings and suffix for logging a packet."""
         if data is None:
             return {"payload": "", "raw": "None", "suffix": ""}

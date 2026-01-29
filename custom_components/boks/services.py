@@ -12,9 +12,9 @@ from homeassistant.helpers import entity_registry as er
 from .ble.const import BoksConfigType
 from .const import DOMAIN, MAX_MASTER_CODE_CLEAN_RANGE, TIMEOUT_NFC_LISTENING, TIMEOUT_NFC_WAIT_RESULT
 from .coordinator import BoksDataUpdateCoordinator
-from .logic.anonymizer import BoksAnonymizer
 from .errors import BoksError
-from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
+from .logic.anonymizer import BoksAnonymizer
+from .parcels.utils import format_parcel_item, generate_random_code, parse_parcel_string
 from .todo import BoksParcelTodoList
 
 _LOGGER = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ async def async_setup_services(hass: HomeAssistant):
             code = code.strip().upper()
 
         coordinator = get_coordinator_from_call(hass, call)
-        _LOGGER.info("Open Door requested via service for %s", 
+        _LOGGER.info("Open Door requested via service for %s",
                      BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
 
         # Get the lock entity to use its open logic
@@ -168,7 +168,7 @@ async def async_setup_services(hass: HomeAssistant):
 
         if lock_entity:
             await lock_entity.async_open(code=code)
-            _LOGGER.info("Open Door service completed for %s", 
+            _LOGGER.info("Open Door service completed for %s",
                          BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
         else:
             raise HomeAssistantError(
@@ -438,11 +438,11 @@ async def async_setup_services(hass: HomeAssistant):
     async def handle_sync_logs(call: ServiceCall):
         """Handle the sync logs service call."""
         coordinator = get_coordinator_from_call(hass, call)
-        _LOGGER.info("Manual log sync requested via service for %s", 
+        _LOGGER.info("Manual log sync requested via service for %s",
                      BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
         try:
             await coordinator.async_sync_logs(update_state=True)
-            _LOGGER.info("Manual log sync completed for %s", 
+            _LOGGER.info("Manual log sync completed for %s",
                          BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
         except Exception as e:
             _LOGGER.error("Failed to sync logs via service: %s", e)
@@ -654,7 +654,7 @@ async def async_setup_services(hass: HomeAssistant):
 
                     try:
                         await asyncio.wait_for(scan_done.wait(), timeout=TIMEOUT_NFC_WAIT_RESULT)
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         _LOGGER.warning("NFC scan session timed out (no response from device).")
                     finally:
                         coordinator.ble_device.unregister_opcode_callback(0xC5, scan_callback)
@@ -766,4 +766,27 @@ async def async_setup_services(hass: HomeAssistant):
         "nfc_unregister_tag",
         handle_nfc_unregister_tag,
         schema=SERVICE_NFC_UNREGISTER_TAG_SCHEMA
+    )
+
+    # --- Service: Ask Door Status ---
+    async def handle_ask_door_status(call: ServiceCall) -> dict:
+        """Handle the ask door status service call."""
+        coordinator = get_coordinator_from_call(hass, call)
+        _LOGGER.info("Door status poll requested via service for %s",
+                     BoksAnonymizer.anonymize_mac(coordinator.ble_device.address, coordinator.ble_device.anonymize_logs))
+        
+        try:
+            await coordinator.ble_device.connect()
+            is_open = await coordinator.ble_device.get_door_status()
+            
+            _LOGGER.info("Door status poll completed. Open: %s", is_open)
+            return {"is_open": is_open}
+        finally:
+            await asyncio.shield(coordinator.ble_device.disconnect())
+
+    hass.services.async_register(
+        DOMAIN,
+        "ask_door_status",
+        handle_ask_door_status,
+        supports_response=SupportsResponse.OPTIONAL
     )

@@ -8,6 +8,7 @@ from homeassistant.helpers.entity import EntityCategory
 from ..coordinator import BoksDataUpdateCoordinator
 from ..entity import BoksEntity
 
+
 class BoksMaintenanceSensor(BoksEntity, SensorEntity):
     """Sensor to track maintenance operations status."""
 
@@ -28,7 +29,7 @@ class BoksMaintenanceSensor(BoksEntity, SensorEntity):
         status = self.coordinator.maintenance_status
         if not status or not status.get("running"):
             return "idle"
-        
+
         return "cleaning"
 
     @property
@@ -37,7 +38,7 @@ class BoksMaintenanceSensor(BoksEntity, SensorEntity):
         status = self.coordinator.maintenance_status
         if not status:
             return None
-            
+
         current = status.get("current_index", 0)
         total = status.get("total_to_clean", 0)
         percent = int((current / total) * 100) if total > 0 else 0

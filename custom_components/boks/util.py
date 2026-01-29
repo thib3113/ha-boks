@@ -1,10 +1,11 @@
 """Utility functions for Boks integration."""
 from typing import Any
-from packaging import version
 
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
+from packaging import version
 
 from .const import DOMAIN, PCB_VERSIONS
+
 
 def infer_pcb_version(internal_revision: str) -> str | None:
     """Infer PCB version based on internal firmware revision."""
@@ -71,11 +72,11 @@ def process_device_info(entry_data: dict, device_info_service: dict = None) -> d
 def is_firmware_version_greater_than(current_version: str, required_version: str) -> bool:
     """
     Check if the current firmware version is greater than the required version.
-    
+
     Args:
         current_version: Current firmware version string (e.g., "4.3.3")
         required_version: Required firmware version string (e.g., "4.3.3")
-        
+
     Returns:
         bool: True if current version is greater than required version, False otherwise
     """

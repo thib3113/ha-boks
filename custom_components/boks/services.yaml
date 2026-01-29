@@ -229,3 +229,18 @@ nfc_unregister_tag:
       required: true
       selector:
         text:
+
+ask_door_status:
+  name: translation::services.ask_door_status.name
+  description: translation::services.ask_door_status.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  response:
+    optional: true
+    description: Returns the current door status
+    fields:
+      is_open:
+        description: True if the door is open, False if closed
+        example: true

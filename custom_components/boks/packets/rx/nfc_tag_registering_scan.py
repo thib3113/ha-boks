@@ -1,7 +1,8 @@
 """RX Packet: NFC Tag Registering Scan."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksHistoryLogPacket
+
 
 class NfcTagRegisteringScanPacket(BoksHistoryLogPacket):
     """Log entry for an NFC tag registration scan."""

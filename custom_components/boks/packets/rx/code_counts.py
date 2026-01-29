@@ -1,6 +1,7 @@
 """RX Packet: Code Counts."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class CodeCountsPacket(BoksRXPacket):
     """Notification containing current code counts."""
@@ -13,7 +14,7 @@ class CodeCountsPacket(BoksRXPacket):
         # Payload: [MasterCount_MSB][MasterCount_LSB][SingleUseCount_MSB][SingleUseCount_LSB]
         self.master_count = 0
         self.single_use_count = 0
-        
+
         if len(self.payload) >= 4:
             self.master_count = int.from_bytes(self.payload[0:2], 'big')
             self.single_use_count = int.from_bytes(self.payload[2:4], 'big')

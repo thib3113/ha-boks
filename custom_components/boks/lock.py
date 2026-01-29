@@ -13,12 +13,12 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .ble import BoksBluetoothDevice
-from .ble.const import BoksHistoryEvent, LOG_EVENT_TYPES
-from .const import DOMAIN, CONF_MASTER_CODE, TIMEOUT_DOOR_OPEN_MESSAGE, TIMEOUT_DOOR_CLOSE
+from .ble.const import LOG_EVENT_TYPES, BoksHistoryEvent
+from .const import CONF_MASTER_CODE, DOMAIN, TIMEOUT_DOOR_CLOSE, TIMEOUT_DOOR_OPEN_MESSAGE
 from .coordinator import BoksDataUpdateCoordinator
-from .logic.anonymizer import BoksAnonymizer
 from .entity import BoksEntity
 from .errors.boks_command_error import BoksCommandError
+from .logic.anonymizer import BoksAnonymizer
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,20 +109,20 @@ class BoksLock(BoksEntity, LockEntity):
 
             # Always connect to increment reference counter
             if _LOGGER.isEnabledFor(logging.DEBUG):
-                _LOGGER.debug("async_open: getting BLE device from address %s", 
+                _LOGGER.debug("async_open: getting BLE device from address %s",
                           BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self.coordinator.ble_device.anonymize_logs))
-            
+
             # Prefer wrapper for logs (contains scanner name)
             scanners = bluetooth.async_scanner_devices_by_address(self.hass, self._entry.data[CONF_ADDRESS], connectable=True)
             device = scanners[0] if scanners else None
-            
+
             if not device:
                 device = bluetooth.async_ble_device_from_address(
                     self.hass, self._entry.data[CONF_ADDRESS], connectable=True
                 )
-            
+
             if not device:
-                _LOGGER.error("async_open: Device not found in cache for %s", 
+                _LOGGER.error("async_open: Device not found in cache for %s",
                               BoksAnonymizer.anonymize_mac(self._entry.data[CONF_ADDRESS], self.coordinator.ble_device.anonymize_logs))
                 raise BoksCommandError("device_not_in_cache")
 
@@ -131,7 +131,7 @@ class BoksLock(BoksEntity, LockEntity):
                 service_info = bluetooth.async_last_service_info(self.hass, self._entry.data[CONF_ADDRESS], connectable=True)
                 if service_info:
                     rssi_now = service_info.rssi
-                _LOGGER.debug("async_open: Target scanner identified: %s", 
+                _LOGGER.debug("async_open: Target scanner identified: %s",
                               BoksAnonymizer.format_scanner_info(device, self.coordinator.ble_device.anonymize_logs, fallback_rssi=rssi_now))
 
             success = False
@@ -187,13 +187,13 @@ class BoksLock(BoksEntity, LockEntity):
                     else:
                         _LOGGER.debug("Door closed detected. Disconnecting to trigger auto-refresh.")
 
-            except TimeoutError:
+            except TimeoutError as e:
                 _LOGGER.error("async_open: Operation timed out after %ds", timeout_open)
                 raise HomeAssistantError(
                     translation_domain=DOMAIN,
                     translation_key="operation_timed_out",
                     translation_placeholders={"seconds": str(timeout_open)}
-                )
+                ) from e
             except Exception as e:
                 _LOGGER.error("async_open: Error during operation: %s", e)
                 raise e

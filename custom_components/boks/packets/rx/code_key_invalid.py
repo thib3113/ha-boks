@@ -1,7 +1,8 @@
 """RX Packet: Invalid Keypad Code."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksHistoryLogPacket
+
 
 class CodeKeyInvalidPacket(BoksHistoryLogPacket):
     """Log entry for an invalid keypad code attempt."""

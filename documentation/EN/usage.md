@@ -13,6 +13,12 @@ Opens the Boks door.
 *   **Entity**: `lock.your_boks_door`
 *   **Code (Optional)**: If omitted, the integration uses the configured "Master Code". If you specify a code, that one will be used (useful for testing single-use codes).
 
+#### `boks.ask_door_status`
+Manually polls the Boks to check the current door state (open/closed).
+*   **Entity**: `lock.your_boks_door`
+*   **Response**: Returns a JSON object with `is_open: true/false`.
+*   **Effect**: Immediately updates the state of the associated `lock` entity.
+
 ### Parcel Management
 
 #### `todo.add_item` (or `boks.add_parcel`)

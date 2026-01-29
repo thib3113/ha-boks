@@ -32,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Boks from a config entry."""
 
     # Ensure options are populated with defaults if missing
-    from .const import DEFAULT_SCAN_INTERVAL, DEFAULT_FULL_REFRESH_INTERVAL
+    from .const import DEFAULT_FULL_REFRESH_INTERVAL, DEFAULT_SCAN_INTERVAL
 
     options_update = {}
     if "scan_interval" not in entry.options:

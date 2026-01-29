@@ -1,6 +1,6 @@
 """Base packet definitions for Boks."""
 from abc import ABC, abstractmethod
-from typing import Any, Union, List
+from typing import Any
 
 
 class BoksPacket(ABC):
@@ -12,7 +12,7 @@ class BoksPacket(ABC):
 
     def get_opcode_name(self) -> str:
         """Return a readable name for the opcode."""
-        from ..ble.const import BoksCommandOpcode, BoksNotificationOpcode, BoksHistoryEvent
+        from ..ble.const import BoksCommandOpcode, BoksHistoryEvent, BoksNotificationOpcode
         for enum_class in [BoksCommandOpcode, BoksNotificationOpcode, BoksHistoryEvent]:
             try:
                 return enum_class(self.opcode).name
@@ -69,7 +69,7 @@ class BoksRXPacket(BoksPacket):
     """Base class for incoming notification/log packets."""
 
     # Can be a single int or a list of opcodes
-    OPCODES: Union[int, List[int], None] = None
+    OPCODES: int | list[int] | None = None
 
     def __init__(self, opcode: int, raw_data: bytearray):
         """Initialize with raw data."""

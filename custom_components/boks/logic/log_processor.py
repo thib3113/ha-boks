@@ -45,10 +45,7 @@ class BoksLogProcessor:
         if tag_name:
             extra_data["tag_name"] = tag_name
 
-        # 6. Final Formatting for specific patterns (like opening_by)
-        translated_description = self._format_nfc_description(event_type, extra_data, translations, translated_description)
-
-        # 7. Update last_scanned if needed
+        # 6. Update last_scanned if needed
         await self._update_tag_last_scanned(event_type, timestamp, extra_data)
 
         return {
@@ -102,17 +99,17 @@ class BoksLogProcessor:
         """Retrieve the tags collection helper robustly."""
         if "tag" not in self.hass.data:
             return None
-        
+
         tag_manager = self.hass.data["tag"]
-        
+
         # Case 1: Standard structure hass.data['tag']['tags']
         if isinstance(tag_manager, dict) and "tags" in tag_manager:
             return tag_manager["tags"]
-            
+
         # Case 2: Direct collection object (observed in some environments)
         if hasattr(tag_manager, "data"):
              return tag_manager
-             
+
         return None
 
     async def _resolve_tag_name(self, extra_data: dict) -> str | None:
@@ -127,9 +124,9 @@ class BoksLogProcessor:
             # Normalize ID: uppercase and remove any non-hex chars
             import re
             tag_id_lookup = re.sub(r'[^0-9A-F]', '', tag_uid.upper())
-            
+
             _LOGGER.debug("Resolving tag name for UID: %s (Normalized: %s)", tag_uid, tag_id_lookup)
-            
+
             # 1. Try Tag Registry (Standard)
             tags_helper = self._get_tags_collection()
             if tags_helper and hasattr(tags_helper, "data") and tag_id_lookup in tags_helper.data:
@@ -161,35 +158,6 @@ class BoksLogProcessor:
             _LOGGER.debug("Failed to lookup tag name for %s: %s", tag_uid, e)
 
         return tag_uid
-
-    @staticmethod
-    def _format_nfc_description(event_type: str, extra_data: dict, translations: dict[str, str], current_desc: str) -> str:
-        """Format description specifically for NFC openings and scans."""
-        if event_type not in ("nfc_opening", "nfc_tag_registering_scan"):
-            return current_desc
-
-        tag_uid = extra_data.get("tag_uid") or extra_data.get("scan_uid")
-        tag_name = extra_data.get("tag_name")
-        
-        # Use specific pattern for scanning vs opening if available
-        if event_type == "nfc_tag_registering_scan":
-             pattern_key = f"component.{DOMAIN}.entity.sensor.last_event.state.nfc_tag_registering_scan_desc"
-             # Fallback to a generic "Scan of {name}" if key missing
-             pattern = translations.get(pattern_key, "Scan of {name}")
-        else:
-             pattern_key = f"component.{DOMAIN}.entity.sensor.last_event.state.opening_by"
-             pattern = translations.get(pattern_key, "Opening by {name}")
-
-        # Determine display name
-        display_name = tag_name
-        if not display_name:
-            type_desc = extra_data.get("tag_type_description", "Badge")
-            display_name = f"{type_desc} ({tag_uid})"
-
-        try:
-            return pattern.format(name=display_name)
-        except Exception:
-            return current_desc
 
     async def _update_tag_last_scanned(self, event_type: str, timestamp: int, extra_data: dict) -> None:
         """Update last_scanned attribute in HA tag registry."""

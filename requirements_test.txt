@@ -8,3 +8,4 @@ tzdata
 janus
 Pillow
 aiousbwatcher
+ruff

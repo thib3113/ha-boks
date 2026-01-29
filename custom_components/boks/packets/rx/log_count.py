@@ -1,6 +1,7 @@
 """RX Packet: Log Count."""
-from ..base import BoksRXPacket
 from ...ble.const import BoksNotificationOpcode
+from ..base import BoksRXPacket
+
 
 class LogCountPacket(BoksRXPacket):
     """Notification containing the number of available logs."""

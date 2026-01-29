@@ -108,88 +108,177 @@
     }
   },
   "exceptions": {
-    "cannot_connect": { "message": "Verbindung zur Boks-API nicht möglich." },
-    "invalid_auth": { "message": "Ungültige E-Mail-Adresse oder Passwort." },
-    "boks_not_found": { "message": "Kein Boks mit dieser MAC-Adresse in diesem Konto gefunden." },
-    "cannot_retrieve_key": { "message": "Der Konfigurationsschlüssel konnte nicht aus der Cloud abgerufen werden." },
-    "device_not_found": { "message": "Gerät nicht in der Liste gefunden." },
-    "device_not_in_cache": { "message": "Gerät nicht im Bluetooth-Cache gefunden. Kein verbindungsfähiger Pfad verfügbar." },
-    "no_devices_found": { "message": "Keine Boks-Geräte in diesem Konto gefunden." },
-    "connection_error": { "message": "Verbindungsfehler beim Abrufen der Geräte." },
-    "invalid_credential_format": { "message": "Ungültiges Format für Zugangsdaten. Muss 8/64 Hex-Zeichen sein." },
-    "invalid_master_code_format": { "message": "Ungültiges Format für Master-Code. Muss ein 6-stelliger Code (0-9, A, B) sein." },
-    "unknown": { "message": "Ein unbekannter Fehler ist aufgetreten." },
-    "pin_code_invalid_length": { "message": "Der PIN-Code muss 6 Zeichen lang sein." },
-    "pin_code_invalid": { "message": "Ungültiger PIN-Code." },
-    "unauthorized": { "message": "Nicht autorisiert." },
-    "config_key_required": { "message": "Konfigurationsschlüssel für diesen Vorgang erforderlich." },
-    "invalid_code_format": { "message": "Ungültiges Code-Format (muss 6 Zeichen von 0-9, A, B sein)." },
-    "create_code_failed": { "message": "Code konnte nicht erstellt werden (Gerät meldete einen Fehler)." },
-    "change_master_code_failed": { "message": "Master-Code konnte nicht geändert werden (Gerät meldete einen Fehler)." },
-    "unknown_code_type": { "message": "Unbekannter Code-Typ." },
-    "unknown_device": { "message": "Gerät wurde vom Bluetooth-Adapter nicht erkannt." },
-    "not_connectable": { "message": "Das erkannte Gerät ist nicht verbindungsfähig (wahrscheinlich über einen passiven Proxy)." },
-    "todo_entity_not_found_for_device": { "message": "Keine Todo-Entität für das Gerät {target_device_id} gefunden." },
-    "target_devices_not_boks": { "message": "Zielgerät(e) {device_ids} sind keine Boks-Geräte." },
-    "target_entities_not_boks": { "message": "Zielentität(en) {entity_ids} gehören nicht zu Boks-Geräten." },
-    "target_device_missing": { "message": "Ziel-Boks-Gerät nicht gefunden oder nicht angegeben. Bitte geben Sie eine device_id oder entity_id an." },
-    "multiple_devices_found": { "message": "Mehrere Boks-Geräte gefunden. Bitte geben Sie eine Zielentität oder ein Zielgerät an." },
-    "no_devices_configured": { "message": "Keine Boks-Geräte konfiguriert." },
-    "no_devices_found": { "message": "Keine Boks-Geräte in diesem Konto gefunden." },
-    "not_connectable": { "message": "Das erkannte Gerät ist nicht verbindungsfähig (wahrscheinlich über einen passiven Proxy)." },
-    "opening_failed_no_code": { "message": "Öffnen fehlgeschlagen: Kein PIN-Code angegeben, kein Master-Code gespeichert und ein Einmal-PIN konnte nicht generiert werden." },
-    "opening_failed_no_code_no_key": { "message": "Öffnen fehlgeschlagen: Kein PIN-Code angegeben, kein Master-Code gespeichert und ein Einmal-PIN konnte nicht generiert werden (kein Konfigurationsschlüssel verfügbar)." },
-    "operation_timed_out": { "message": "Der Vorgang wurde nach {seconds} Sekunden abgebrochen." },
-    "pin_code_invalid": { "message": "Ungültiger PIN-Code." },
-    "pin_code_invalid_length": { "message": "Der PIN-Code muss 6 Zeichen lang sein." },
-    "set_configuration_failed": { "message": "Konfiguration {config_type} konnte nicht festgelegt werden (Gerät meldete einen Fehler)." },
-    "target_device_missing": { "message": "Ziel-Boks-Gerät nicht gefunden oder nicht angegeben. Bitte geben Sie eine device_id oder entity_id an." },
-    "target_devices_not_boks": { "message": "Zielgerät(e) {device_ids} sind keine Boks-Geräte." },
-    "target_entities_not_boks": { "message": "Zielentität(en) {entity_ids} gehören nicht zu Boks-Geräten." },
-    "timeout_waiting_response": { "message": "Zeitüberschreitung beim Warten auf Antwort für Opcode {opcode}." },
-    "todo_entity_not_found": { "message": "Todo-Entität {target_entity_id} nicht gefunden oder nicht geladen." },
-    "todo_entity_not_found_for_device": { "message": "Keine Todo-Entität für das Gerät {target_device_id} gefunden." },
-    "todo_integration_not_loaded": { "message": "Todo-Integration nicht geladen." },
-    "unauthorized": { "message": "Nicht autorisiert." },
-    "unknown": { "message": "Ein unbekannter Fehler ist aufgetreten." },
-    "unknown_code_type": { "message": "Unbekannter Code-Typ." },
-    "unknown_device": { "message": "Gerät wurde vom Bluetooth-Adapter nicht erkannt." },
-    "ble_client_none": { "message": "BLE-Client ist None, Befehl kann nicht gesendet werden." },
-    "ble_error": { "message": "BLE-Fehler: {error}" },
-    "ble_internal_error": { "message": "Interner BLE-Fehler: {error}" },
-    "boks_not_found": { "message": "Kein Boks mit dieser MAC-Adresse in diesem Konto gefunden." },
-    "busy": { "message": "Gerät beschäftigt: Ein anderer Vorgang wartet bereits auf Benachrichtigungen." },
-    "cannot_connect": { "message": "Verbindung zur Boks-API nicht möglich." },
-    "cannot_resolve_todo": { "message": "Eine Boks-Todo-Ziel-Liste konnte nicht aufgelöst werden." },
-    "cannot_retrieve_key": { "message": "Der Konfigurationsschlüssel konnte nicht aus der Cloud abgerufen werden." },
-    "change_master_code_failed": { "message": "Master-Code konnte nicht geändert werden (Gerät meldete einen Fehler)." },
-    "config_key_invalid_length": { "message": "Der Konfigurationsschlüssel muss genau 8 Zeichen lang sein." },
-    "config_key_required": { "message": "Konfigurationsschlüssel für diesen Vorgang erforderlich." },
-    "connection_error": { "message": "Verbindungsfehler beim Abrufen der Geräte." },
-    "create_code_failed": { "message": "Code konnte nicht erstellt werden (Gerät meldete einen Fehler)." },
-    "delete_code_failed": { "message": "Code konnte nicht gelöscht werden (Gerät meldete einen Fehler)." },
-    "device_not_found": { "message": "Gerät nicht in der Liste gefunden." },
-    "device_not_in_cache": { "message": "Gerät nicht im Bluetooth-Cache gefunden. Kein verbindungsfähiger Pfad verfügbar." },
-    "door_opened_recently": { "message": "Die Tür wurde vor kurzem geöffnet. Bitte warten Sie {seconds} Sekunden, bevor Sie sie erneut öffnen." },
-    "entity_not_parcel_list": { "message": "Entität {target_entity_id} ist keine Boks-Paketliste." },
-    "firmware_update_failed": { "message": "Auslösen des Firmware-Updates für Version {version} fehlgeschlagen." },
-    "firmware_update_required": { "message": "Die Funktion {feature} erfordert die Firmware-Version {required_sw}. Ihre aktuelle Version ist {current_sw}." },
-    "firmware_version_required": { "message": "Firmware-Version muss höher als {required_version} sein, um diese Funktion zu nutzen. Aktuelle Version: {current_version}" },
-    "hardware_unsupported": { "message": "Die Funktion {feature} erfordert Boks v{required_hw} oder höher. Ihre aktuelle Version ist v{current_hw}." },
-    "invalid_auth": { "message": "Ungültige E-Mail-Adresse oder Passwort." },
-    "invalid_code_format": { "message": "Ungültiges Code-Format (muss 6 Zeichen von 0-9, A, B sein)." },
-    "invalid_credential_format": { "message": "Ungültiges Format für Zugangsdaten. Muss 8/64 Hex-Zeichen sein." },
-    "invalid_master_code_format": { "message": "Ungültiges Format für Master-Code. Muss ein 6-stelliger Code (0-9, A, B) sein." },
-    "invalid_master_code_index": { "message": "Ungültiger Index für Master-Code (muss zwischen 0 und 255 sein)." },
-    "invalid_uid_format": { "message": "Ungültiges Format für NFC-UID." },
-    "item_not_found": { "message": "Element nicht gefunden" },
-    "laposte_firmware_version_required": { "message": "Firmware-Version muss höher als {required_version} sein, um die La Poste-Funktion zu aktivieren. Aktuelle Version: {current_version}" },
-    "lock_entity_not_found": { "message": "Schloss-Entität für dieses Gerät nicht gefunden." },
-    "maintenance_already_running": { "message": "Ein Wartungsvorgang wird bereits ausgeführt. Bitte warten Sie, bis er abgeschlossen ist." },
-    "maintenance_error_msg": { "message": "Die Reinigung der Master-Codes an Index {current_idx} ist fehlgeschlagen.\nFehler: {error}" },
-    "maintenance_failed_msg": { "message": "Wartung fehlgeschlagen: {error}" },
-    "maintenance_error_title": { "message": "Boks-Wartungsfehler" },
-    "nfc_tag_already_exists": { "message": "Dieser NFC-Tag ist bereits im Boks registriert." }
+    "cannot_connect": {
+      "message": "Verbindung zur Boks-API nicht möglich."
+    },
+    "invalid_auth": {
+      "message": "Ungültige E-Mail-Adresse oder Passwort."
+    },
+    "boks_not_found": {
+      "message": "Kein Boks mit dieser MAC-Adresse in diesem Konto gefunden."
+    },
+    "cannot_retrieve_key": {
+      "message": "Der Konfigurationsschlüssel konnte nicht aus der Cloud abgerufen werden."
+    },
+    "device_not_found": {
+      "message": "Gerät nicht in der Liste gefunden."
+    },
+    "device_not_in_cache": {
+      "message": "Gerät nicht im Bluetooth-Cache gefunden. Kein verbindungsfähiger Pfad verfügbar."
+    },
+    "no_devices_found": {
+      "message": "Keine Boks-Geräte in diesem Konto gefunden."
+    },
+    "connection_error": {
+      "message": "Verbindungsfehler beim Abrufen der Geräte."
+    },
+    "invalid_credential_format": {
+      "message": "Ungültiges Format für Zugangsdaten. Muss 8/64 Hex-Zeichen sein."
+    },
+    "invalid_master_code_format": {
+      "message": "Ungültiges Format für Master-Code. Muss ein 6-stelliger Code (0-9, A, B) sein."
+    },
+    "unknown": {
+      "message": "Ein unbekannter Fehler ist aufgetreten."
+    },
+    "pin_code_invalid_length": {
+      "message": "Der PIN-Code muss 6 Zeichen lang sein."
+    },
+    "pin_code_invalid": {
+      "message": "Ungültiger PIN-Code."
+    },
+    "unauthorized": {
+      "message": "Nicht autorisiert."
+    },
+    "config_key_required": {
+      "message": "Konfigurationsschlüssel für diesen Vorgang erforderlich."
+    },
+    "invalid_code_format": {
+      "message": "Ungültiges Code-Format (muss 6 Zeichen von 0-9, A, B sein)."
+    },
+    "create_code_failed": {
+      "message": "Code konnte nicht erstellt werden (Gerät meldete einen Fehler)."
+    },
+    "change_master_code_failed": {
+      "message": "Master-Code konnte nicht geändert werden (Gerät meldete einen Fehler)."
+    },
+    "unknown_code_type": {
+      "message": "Unbekannter Code-Typ."
+    },
+    "unknown_device": {
+      "message": "Gerät wurde vom Bluetooth-Adapter nicht erkannt."
+    },
+    "not_connectable": {
+      "message": "Das erkannte Gerät ist nicht verbindungsfähig (wahrscheinlich über einen passiven Proxy)."
+    },
+    "todo_entity_not_found_for_device": {
+      "message": "Keine Todo-Entität für das Gerät {target_device_id} gefunden."
+    },
+    "target_devices_not_boks": {
+      "message": "Zielgerät(e) {device_ids} sind keine Boks-Geräte."
+    },
+    "target_entities_not_boks": {
+      "message": "Zielentität(en) {entity_ids} gehören nicht zu Boks-Geräten."
+    },
+    "target_device_missing": {
+      "message": "Ziel-Boks-Gerät nicht gefunden oder nicht angegeben. Bitte geben Sie eine device_id oder entity_id an."
+    },
+    "multiple_devices_found": {
+      "message": "Mehrere Boks-Geräte gefunden. Bitte geben Sie eine Zielentität oder ein Zielgerät an."
+    },
+    "no_devices_configured": {
+      "message": "Keine Boks-Geräte konfiguriert."
+    },
+    "opening_failed_no_code": {
+      "message": "Öffnen fehlgeschlagen: Kein PIN-Code angegeben, kein Master-Code gespeichert und ein Einmal-PIN konnte nicht generiert werden."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Öffnen fehlgeschlagen: Kein PIN-Code angegeben, kein Master-Code gespeichert und ein Einmal-PIN konnte nicht generiert werden (kein Konfigurationsschlüssel verfügbar)."
+    },
+    "operation_timed_out": {
+      "message": "Der Vorgang wurde nach {seconds} Sekunden abgebrochen."
+    },
+    "set_configuration_failed": {
+      "message": "Konfiguration {config_type} konnte nicht festgelegt werden (Gerät meldete einen Fehler)."
+    },
+    "timeout_waiting_response": {
+      "message": "Zeitüberschreitung beim Warten auf Antwort für Opcode {opcode}."
+    },
+    "todo_entity_not_found": {
+      "message": "Todo-Entität {target_entity_id} nicht gefunden oder nicht geladen."
+    },
+    "todo_integration_not_loaded": {
+      "message": "Todo-Integration nicht geladen."
+    },
+    "ble_client_none": {
+      "message": "BLE-Client ist None, Befehl kann nicht gesendet werden."
+    },
+    "ble_error": {
+      "message": "BLE-Fehler: {error}"
+    },
+    "ble_internal_error": {
+      "message": "Interner BLE-Fehler: {error}"
+    },
+    "busy": {
+      "message": "Gerät beschäftigt: Ein anderer Vorgang wartet bereits auf Benachrichtigungen."
+    },
+    "cannot_resolve_todo": {
+      "message": "Eine Boks-Todo-Ziel-Liste konnte nicht aufgelöst werden."
+    },
+    "config_key_invalid_length": {
+      "message": "Der Konfigurationsschlüssel muss genau 8 Zeichen lang sein."
+    },
+    "delete_code_failed": {
+      "message": "Code konnte nicht gelöscht werden (Gerät meldete einen Fehler)."
+    },
+    "door_opened_recently": {
+      "message": "Die Tür wurde vor kurzem geöffnet. Bitte warten Sie {seconds} Sekunden, bevor Sie sie erneut öffnen."
+    },
+    "entity_not_parcel_list": {
+      "message": "Entität {target_entity_id} ist keine Boks-Paketliste."
+    },
+    "firmware_update_failed": {
+      "message": "Auslösen des Firmware-Updates für Version {version} fehlgeschlagen."
+    },
+    "firmware_update_required": {
+      "message": "Die Funktion {feature} erfordert die Firmware-Version {required_sw}. Ihre aktuelle Version ist {current_sw}."
+    },
+    "firmware_version_required": {
+      "message": "Firmware-Version muss höher als {required_version} sein, um diese Funktion zu nutzen. Aktuelle Version: {current_version}"
+    },
+    "hardware_unsupported": {
+      "message": "Die Funktion {feature} erfordert Boks v{required_hw} oder höher. Ihre aktuelle Version ist v{current_hw}."
+    },
+    "invalid_master_code_index": {
+      "message": "Ungültiger Index für Master-Code (muss zwischen 0 und 255 sein)."
+    },
+    "invalid_uid_format": {
+      "message": "Ungültiges Format für NFC-UID."
+    },
+    "item_not_found": {
+      "message": "Element nicht gefunden"
+    },
+    "laposte_firmware_version_required": {
+      "message": "Firmware-Version muss höher als {required_version} sein, um die La Poste-Funktion zu aktivieren. Aktuelle Version: {current_version}"
+    },
+    "lock_entity_not_found": {
+      "message": "Schloss-Entität für dieses Gerät nicht gefunden."
+    },
+    "maintenance_already_running": {
+      "message": "Ein Wartungsvorgang wird bereits ausgeführt. Bitte warten Sie, bis er abgeschlossen ist."
+    },
+    "maintenance_error_msg": {
+      "message": "Die Reinigung der Master-Codes an Index {current_idx} ist fehlgeschlagen.\nFehler: {error}"
+    },
+    "maintenance_failed_msg": {
+      "message": "Wartung fehlgeschlagen: {error}"
+    },
+    "maintenance_error_title": {
+      "message": "Boks-Wartungsfehler"
+    },
+    "nfc_tag_already_exists": {
+      "message": "Dieser NFC-Tag ist bereits im Boks registriert."
+    }
   },
   "options": {
     "step": {
@@ -214,14 +303,22 @@
   },
   "entity": {
     "button": {
-      "sync_logs": { "name": "Logs synchronisieren" }
+      "sync_logs": {
+        "name": "Logs synchronisieren"
+      }
     },
     "lock": {
-      "door": { "name": "Tür" }
+      "door": {
+        "name": "Tür"
+      }
     },
     "sensor": {
-      "battery": { "name": "Batterie" },
-      "last_connection": { "name": "Letzte Verbindung" },
+      "battery": {
+        "name": "Batterie"
+      },
+      "last_connection": {
+        "name": "Letzte Verbindung"
+      },
       "last_event": {
         "name": "Letztes Ereignis",
         "state": {
@@ -242,12 +339,10 @@
           "error": "Fehler (Diagnose)",
           "nfc_opening": "NFC-Öffnung",
           "nfc_tag_registering_scan": "NFC-Tag-Scan",
-          "nfc_tag_registering_scan_desc": "Scan von Tag {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (Tertiär)",
           "nfc_tag_type_3": "Tag",
           "unknown": "Unbekanntes Ereignis",
-          "opening_by": "Öffnung durch {name}",
           "diagnostic_error_bc": "Interner MFRC630-Fehler (0xBC)",
           "diagnostic_error_integrity": "Integritätsfehler (CRC/Parität)",
           "diagnostic_error_no_tag": "Kein Tag erkannt / Zeitüberschreitung",
@@ -264,8 +359,12 @@
           "power_off_reason_8": "LPCOMP-Aufwecken"
         }
       },
-      "master_codes_count": { "name": "Master-Codes" },
-      "single_use_codes_count": { "name": "Einmal-Codes" },
+      "master_codes_count": {
+        "name": "Master-Codes"
+      },
+      "single_use_codes_count": {
+        "name": "Einmal-Codes"
+      },
       "battery_format": {
         "name": "Batterieformat",
         "state": {
@@ -285,14 +384,30 @@
           "other": "Andere"
         }
       },
-      "battery_level_first": { "name": "Batteriespannung (Erste)" },
-      "battery_level_min": { "name": "Batteriespannung (Min)" },
-      "battery_level_mean": { "name": "Batteriespannung (Mittel)" },
-      "battery_level_max": { "name": "Batteriespannung (Max)" },
-      "battery_level_last": { "name": "Batteriespannung (Letzte)" },
-      "battery_level_t1": { "name": "Batteriespannung (T1)" },
-      "battery_level_t5": { "name": "Batteriespannung (T5)" },
-      "battery_level_t10": { "name": "Batteriespannung (T10)" },
+      "battery_level_first": {
+        "name": "Batteriespannung (Erste)"
+      },
+      "battery_level_min": {
+        "name": "Batteriespannung (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Batteriespannung (Mittel)"
+      },
+      "battery_level_max": {
+        "name": "Batteriespannung (Max)"
+      },
+      "battery_level_last": {
+        "name": "Batteriespannung (Letzte)"
+      },
+      "battery_level_t1": {
+        "name": "Batteriespannung (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Batteriespannung (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Batteriespannung (T10)"
+      },
       "maintenance_status": {
         "name": "Wartungsstatus",
         "state": {
@@ -300,10 +415,14 @@
           "cleaning": "Reinigung der Master-Codes"
         }
       },
-      "log_count": { "name": "Anzahl der Protokolle" }
+      "log_count": {
+        "name": "Anzahl der Protokolle"
+      }
     },
     "todo": {
-      "parcels": { "name": "Pakete" }
+      "parcels": {
+        "name": "Pakete"
+      }
     },
     "event": {
       "logs": {
@@ -325,30 +444,16 @@
           "error": "Fehler (Diagnose)",
           "nfc_opening": "NFC-Öffnung",
           "nfc_tag_registering_scan": "NFC-Tag-Scan",
-          "nfc_tag_registering_scan_desc": "Scan von Tag {name}",
           "nfc_tag_type_1": "La Poste",
           "nfc_tag_type_2": "Vigik (Tertiär)",
           "nfc_tag_type_3": "Tag",
-          "unknown": "Unbekanntes Ereignis",
-          "opening_by": "Öffnung durch {name}"
+          "unknown": "Unbekanntes Ereignis"
         }
       }
     },
     "update": {
       "firmware_update": {
-        "name": "Firmware-Update",
-        "state": {
-          "no_firmware_downloaded": "Keine Firmware zur Installation heruntergeladen",
-          "notification_title": "Boks Firmware-Update",
-          "firmware_ready_message": "Das Firmware-Update {version} wurde heruntergeladen.\nDateispeicherort: {path}\nDownload-URL: {url}\n\nWICHTIG: Bitte kontaktieren Sie den Entwickler für weitere Anweisungen zur manuellen Installation dieses Updates.\nVersuchen Sie nicht, diese Datei ohne ausdrückliche Anleitung zu flashen.",
-          "manual_action_required_title": "Boks Firmware-Update - Manuelle Aktion erforderlich",
-          "download_failed_message": "Firmware-Update Version {version} konnte nicht heruntergeladen werden. HTTP-Status: {status}\nBitte überprüfen Sie die Firmware-URL oder versuchen Sie es später erneut.",
-          "download_failed_title": "Boks Firmware-Update - Download fehlgeschlagen",
-          "network_error_message": "Netzwerkfehler beim Herunterladen der Firmware Version {version}.\nFehler: {error}\nBitte überprüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut.",
-          "network_error_title": "Boks Firmware-Update - Netzwerkfehler",
-          "generic_error_message": "Fehler beim Herunterladen der Firmware Version {version}.\nFehler: {error}\nBitte versuchen Sie es erneut oder kontaktieren Sie den Support.",
-          "generic_error_title": "Boks Firmware-Update - Fehler"
-        }
+        "name": "Firmware-Update"
       }
     }
   },
@@ -486,7 +591,10 @@
           "name": "Tag-UID",
           "description": "Die eindeutige ID des Tags (z. B. A1B2C3D4)."
         },
-        "name": { "name": "Anzeigename", "description": "Optionaler Name zum Speichern im HA-Tag-Register." }
+        "name": {
+          "name": "Anzeigename",
+          "description": "Optionaler Name zum Speichern im HA-Tag-Register."
+        }
       }
     },
     "nfc_unregister_tag": {

@@ -1,6 +1,7 @@
 """TX Packet: Count Codes."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
+from ..base import BoksTXPacket
+
 
 class CountCodesPacket(BoksTXPacket):
     """Simple command to request the current code counts."""

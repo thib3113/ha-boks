@@ -1,6 +1,7 @@
 """RX Packet: Key Opening."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class KeyOpeningPacket(BoksHistoryLogPacket):
     """Log entry for key opening event."""

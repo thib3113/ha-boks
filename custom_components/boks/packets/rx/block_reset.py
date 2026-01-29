@@ -1,6 +1,7 @@
 """RX Packet: Block Reset."""
-from ..base import BoksHistoryLogPacket
 from ...ble.const import BoksHistoryEvent
+from ..base import BoksHistoryLogPacket
+
 
 class BlockResetPacket(BoksHistoryLogPacket):
     """Log entry for block reset event."""

@@ -3,7 +3,6 @@ import logging
 import uuid
 from datetime import timedelta
 
-from homeassistant.util import dt as dt_util
 from homeassistant.components.todo import (
     TodoItem,
     TodoItemStatus,
@@ -19,10 +18,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, CONF_CONFIG_KEY, EVENT_PARCEL_COMPLETED, EVENT_LOGS_RETRIEVED
+from .const import CONF_CONFIG_KEY, DOMAIN, EVENT_LOGS_RETRIEVED, EVENT_PARCEL_COMPLETED
 from .coordinator import BoksDataUpdateCoordinator
-from .parcels.utils import parse_parcel_string, generate_random_code, format_parcel_item
+from .parcels.utils import format_parcel_item, generate_random_code, parse_parcel_string
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -435,11 +435,11 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         # Find the existing item
         try:
             existing_index = next(i for i, x in enumerate(self._items) if x.uid == item.uid)
-        except StopIteration:
+        except StopIteration as e:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
                 translation_key="item_not_found"
-            )
+            ) from e
 
         existing_item = self._items[existing_index]
 

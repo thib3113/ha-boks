@@ -1,11 +1,11 @@
 """Battery type sensor for Boks."""
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import CONF_ADDRESS, EntityCategory
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_ADDRESS, EntityCategory
 
+from ...const import PCB_VERSIONS
 from ...coordinator import BoksDataUpdateCoordinator
 from .retaining_sensor import BoksRetainingSensor
-from ...const import PCB_VERSIONS
 
 
 class BoksBatteryTypeSensor(BoksRetainingSensor):
@@ -27,7 +27,7 @@ class BoksBatteryTypeSensor(BoksRetainingSensor):
         # Infer from PCB Version
         device_info = self.coordinator.data.get("device_info_service", {})
         fw_rev = device_info.get("firmware_revision")
-        
+
         if fw_rev and fw_rev in PCB_VERSIONS:
             pcb_version = PCB_VERSIONS[fw_rev]
             if pcb_version == "3.0":

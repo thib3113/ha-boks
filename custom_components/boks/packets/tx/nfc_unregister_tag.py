@@ -1,7 +1,8 @@
 """TX Packet: NFC Unregister Tag."""
-from ..base import BoksTXPacket
 from ...ble.const import BoksCommandOpcode
 from ...logic.anonymizer import BoksAnonymizer
+from ..base import BoksTXPacket
+
 
 class NfcUnregisterTagPacket(BoksTXPacket):
     """Command to unregister an NFC tag from the Boks whitelist."""
