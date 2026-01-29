@@ -1,6 +1,8 @@
 import logging
+
 from homeassistant.components.todo import TodoItem, TodoItemStatus
 from homeassistant.helpers.storage import Store
+
 from ..parcels.utils import parse_parcel_string
 
 _LOGGER = logging.getLogger(__name__)
@@ -45,7 +47,7 @@ class BoksParcelStore:
                 )
                 for item in data
             ]
-            
+
             # Migration: Ensure all items have cached parcel_code
             if await self._migrate_data():
                 await self.save()
@@ -61,7 +63,7 @@ class BoksParcelStore:
                 code, _ = parse_parcel_string(item["summary"])
                 item["parcel_code"] = code
                 changed = True
-        
+
         if changed:
             _LOGGER.info("Migrated items to include cached parcel codes.")
         return changed
@@ -91,7 +93,7 @@ class BoksParcelStore:
     async def add_item(self, item: TodoItem, metadata: dict = None) -> None:
         """Add a new item."""
         self._items.append(item)
-        
+
         raw_item = {
             "uid": item.uid,
             "summary": item.summary,
@@ -101,7 +103,7 @@ class BoksParcelStore:
         }
         if metadata:
             raw_item.update(metadata)
-            
+
         # Ensure parcel_code is set if not provided in metadata
         if "parcel_code" not in raw_item:
              code, _ = parse_parcel_string(item.summary)
@@ -118,7 +120,7 @@ class BoksParcelStore:
             return
 
         self._items[idx] = item
-        
+
         # Update raw data
         for raw_item in self._raw_data:
             if raw_item["uid"] == item.uid:
@@ -126,12 +128,12 @@ class BoksParcelStore:
                 raw_item["status"] = item.status
                 raw_item["due"] = item.due
                 raw_item["description"] = item.description
-                
+
                 # Update parcel_code cache if summary changed
                 code, _ = parse_parcel_string(item.summary)
                 raw_item["parcel_code"] = code
                 break
-        
+
         await self.save()
 
     async def delete_items(self, uids: list[str]) -> None:
@@ -145,7 +147,7 @@ class BoksParcelStore:
         # Find the item to move
         item_idx = next((i for i, x in enumerate(self._items) if x.uid == uid), -1)
         raw_idx = next((i for i, x in enumerate(self._raw_data) if x["uid"] == uid), -1)
-        
+
         if item_idx == -1 or raw_idx == -1:
             return
 
@@ -160,12 +162,12 @@ class BoksParcelStore:
             # Find new position
             new_item_idx = next((i for i, x in enumerate(self._items) if x.uid == previous_uid), -1)
             new_raw_idx = next((i for i, x in enumerate(self._raw_data) if x["uid"] == previous_uid), -1)
-            
+
             if new_item_idx != -1:
                 self._items.insert(new_item_idx + 1, item)
             else:
                 self._items.append(item)
-                
+
             if new_raw_idx != -1:
                 self._raw_data.insert(new_raw_idx + 1, raw_item)
             else:
@@ -179,7 +181,7 @@ class BoksParcelStore:
         for raw_item in self._raw_data:
             if raw_item["uid"] == uid:
                 raw_item.update(updates)
-                
+
                 # Sync back to TodoItem if standard fields changed
                 if "status" in updates or "summary" in updates:
                     for item in self._items:
@@ -191,10 +193,10 @@ class BoksParcelStore:
                             break
                 changed = True
                 break
-        
+
         if changed:
             await self.save()
-            
+
     async def remove_metadata_field(self, uid: str, field: str) -> None:
         """Remove a metadata field from an item."""
         changed = False
@@ -203,6 +205,6 @@ class BoksParcelStore:
                 raw_item.pop(field)
                 changed = True
                 break
-        
+
         if changed:
             await self.save()

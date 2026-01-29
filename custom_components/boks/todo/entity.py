@@ -18,10 +18,10 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .storage import BoksParcelStore
 from ..const import DOMAIN, EVENT_LOGS_RETRIEVED, EVENT_PARCEL_COMPLETED
 from ..coordinator import BoksDataUpdateCoordinator
 from ..parcels.utils import format_parcel_item, generate_random_code, parse_parcel_string
+from .storage import BoksParcelStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
             _LOGGER.debug("BoksParcelTodoList received event: %s", event)
             device_registry = dr.async_get(self.hass)
             device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])})
-            
+
             if not device_entry:
                 _LOGGER.warning("Could not find device entry for address %s", self._entry.data[CONF_ADDRESS])
                 return
@@ -129,7 +129,7 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
                             for raw_item in matching_items:
                                 if raw_item["status"] == TodoItemStatus.NEEDS_ACTION:
                                     _LOGGER.info("Parcel %s delivered! Marking as completed.", used_code)
-                                    
+
                                     # Update status via Store
                                     await self._store.update_raw_item(raw_item["uid"], {"status": TodoItemStatus.COMPLETED})
                                     changed = True
