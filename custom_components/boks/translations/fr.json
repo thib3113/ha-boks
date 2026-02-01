@@ -267,18 +267,10 @@
     "invalid_master_code_index": {
       "message": "Index de code permanent invalide (doit être entre 0 et 255)."
     },
-    "nfc_tag_already_exists": {
-      "message": "Ce badge NFC est déjà enregistré dans la Boks."
-    },
-    "maintenance_failed_msg": {
-      "message": "Échec de la maintenance : {error}"
-    },
-    "maintenance_error_title": {
-      "message": "Erreur de Maintenance Boks"
-    },
-    "maintenance_error_msg": {
-      "message": "L'opération de nettoyage des codes permanents a échoué à l'index {current_idx}.\nErreur : {error}"
-    }
+    "nfc_tag_already_exists": { "message": "Ce badge NFC est déjà enregistré dans la Boks." },
+    "maintenance_failed_msg": { "message": "Échec de la maintenance : {error}" },
+    "maintenance_error_title": { "message": "Erreur de Maintenance Boks" },
+    "maintenance_error_msg": { "message": "L'opération de nettoyage des codes permanents a échoué à l'index {current_idx}.\nErreur : {error}" }
   },
   "options": {
     "step": {

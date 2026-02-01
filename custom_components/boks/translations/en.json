@@ -458,9 +458,10 @@
         }
       }
     },
-    "ask_door_status": {
-      "name": "Check Door Status",
-      "description": "Manually poll the Boks to check if the door is open or closed."
+        "ask_door_status": {
+          "name": "Check Door Status",
+          "description": "Manually poll the Boks to check if the door is open or closed."
+        }
+      }
     }
-  }
-}
+    

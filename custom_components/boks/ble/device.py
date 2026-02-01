@@ -14,9 +14,15 @@ from bleak_retry_connector import establish_connection
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 
+from .const import (
+    BoksHistoryEvent,
+    BoksNotificationOpcode,
+    BoksServiceUUID,
+)
+from .protocol import BoksProtocol
 from ..const import (
     DELAY_RETRY,
-    DOMAIN,
+    MAX_RETRIES_MASTER_CODE_CLEANING,
     TIMEOUT_COMMAND_RESPONSE,
     TIMEOUT_DOOR_CLOSE,
     TIMEOUT_LOG_COUNT_STABILIZATION,
@@ -34,12 +40,6 @@ from ..packets.rx.error_response import ErrorResponsePacket
 from ..packets.rx.key_opening import KeyOpeningPacket
 from ..packets.rx.nfc_opening import NfcOpeningPacket
 from ..packets.rx.nfc_scan_result import NfcScanResultPacket
-from .const import (
-    BoksHistoryEvent,
-    BoksNotificationOpcode,
-    BoksServiceUUID,
-)
-from .protocol import BoksProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -642,8 +642,28 @@ class BoksBluetoothDevice:
             finally:
                 await self._disconnect()
 
+    def _validate_pin(self, code: str) -> str:
+        """Validate PIN code format (6 chars, 0-9, A, B)."""
+        if not code:
+            raise BoksError("pin_code_invalid")
+
+        # Clean code
+        clean_code = str(code).upper().strip()
+
+        if len(clean_code) != 6:
+            raise BoksError("pin_code_invalid_length")
+
+        valid_chars = "0123456789AB"
+        if not all(c in valid_chars for c in clean_code):
+            raise BoksError("invalid_code_format")
+
+        return clean_code
+
     async def open_door(self, code: str = None) -> bool:
         """Open the door."""
+        if code:
+            code = self._validate_pin(code)
+
         from ..packets.tx.open_door import OpenDoorPacket
         packet = OpenDoorPacket(code or "")
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.VALID_OPEN_CODE, BoksNotificationOpcode.INVALID_OPEN_CODE, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
@@ -719,6 +739,105 @@ class BoksBluetoothDevice:
 
         return 0
 
+    async def clean_master_codes(self, start_index: int, range_val: int, coordinator: Any) -> None:
+        """Clean a range of master codes."""
+
+        total_to_clean = range_val
+        current_idx = start_index
+
+        if hasattr(coordinator, "set_maintenance_status"):
+             coordinator.set_maintenance_status(
+                running=True,
+                current_index=current_idx,
+                total_to_clean=total_to_clean,
+                message="Starting..."
+            )
+
+        cleaned_count = 0
+
+        try:
+            if not self.is_connected:
+                await self.connect()
+
+            for i in range(range_val):
+                target_index = start_index + i
+                current_idx = target_index
+
+                if hasattr(coordinator, "set_maintenance_status"):
+                    current_progress_msg = f"Cleaning index {target_index}..."
+                    coordinator.set_maintenance_status(
+                        running=True,
+                        current_index=i + 1,
+                        total_to_clean=total_to_clean,
+                        message=current_progress_msg
+                    )
+
+                retry_count = 0
+                max_retries = MAX_RETRIES_MASTER_CODE_CLEANING
+                success = False
+
+                while retry_count < max_retries and not success:
+                    try:
+                        if not self.is_connected:
+                            _LOGGER.debug("Reconnecting for index %d...", target_index)
+                            await self.connect()
+
+                        await self.delete_pin_code(type="master", index_or_code=target_index)
+                        cleaned_count += 1
+                        await asyncio.sleep(0.2)
+                        success = True
+
+                    except Exception as e:
+                        retry_count += 1
+                        _LOGGER.warning("Error cleaning index %d (Attempt %d/%d): %s", target_index, retry_count, max_retries, e)
+                        await asyncio.sleep(1.0)
+
+                if not success:
+                    _LOGGER.error("Failed to clean index %d after %d attempts. Aborting.", target_index, max_retries)
+                    raise Exception("Connection lost or device unresponsive")
+
+            if hasattr(coordinator, "set_maintenance_status"):
+                coordinator.set_maintenance_status(
+                    running=False,
+                    current_index=total_to_clean,
+                    total_to_clean=total_to_clean,
+                    message="Finished",
+                    cleaned_count=cleaned_count
+                )
+
+            if self.hass:
+                await self.hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "message": f"Master Code Cleaning Completed.\nScanned {range_val} indices starting from {start_index}.",
+                        "title": "Boks Maintenance",
+                        "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
+                    }
+                )
+
+        except Exception as e:
+            _LOGGER.error("Maintenance task failed: %s", e)
+            if hasattr(coordinator, "set_maintenance_status"):
+                coordinator.set_maintenance_status(running=False, message=f"Failed: {e}")
+
+            if self.hass:
+                await self.hass.services.async_call(
+                    "persistent_notification",
+                    "create",
+                    {
+                        "message": f"Master Code Cleaning Failed at index {current_idx}.\nError: {e}",
+                        "title": "Boks Maintenance Error",
+                        "notification_id": f"boks_maintenance_{coordinator.entry.entry_id}"
+                    }
+                )
+
+        finally:
+             await self.disconnect()
+             await asyncio.sleep(5)
+             if hasattr(coordinator, "set_maintenance_status"):
+                 coordinator.set_maintenance_status(running=False, message="")
+
     async def get_logs(self, count: int) -> list[dict]:
         """Retrieve logs."""
         async with self._lock:
@@ -762,6 +881,10 @@ class BoksBluetoothDevice:
         """Create a PIN code."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
+
+        # Validate format
+        code = self._validate_pin(code)
+
         if code_type == "master":
             from ..packets.tx.create_master_code import CreateMasterCodePacket
             packet = CreateMasterCodePacket(self._config_key_str, code, index)
@@ -807,7 +930,7 @@ class BoksBluetoothDevice:
              raise BoksAuthError("unauthorized")
         raise BoksError("set_configuration_failed", {"config_type": str(config_type)})
 
-    async def nfc_scan_start(self) -> bool:
+    async def start_nfc_scan(self) -> bool:
         """Start NFC scan mode."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
@@ -831,78 +954,30 @@ class BoksBluetoothDevice:
             BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_SCAN
         )
 
-    def _handle_scanned_tag(self, uid: str | None, status: str):
-        """Handle a scanned tag."""
-        if _LOGGER.isEnabledFor(logging.INFO):
-            log_uid = BoksAnonymizer.anonymize_uid(uid, self.anonymize_logs)
-            _LOGGER.info("NFC Tag Scanned: %s (Status: %s)", log_uid, status)
-        self.hass.async_create_task(self._async_handle_scanned_tag(uid, status))
-
-    async def _async_handle_scanned_tag(self, uid: str | None, status: str):
-        """Async handle scanned tag."""
-        coordinator = None
-        for _entry_id, coord in self.hass.data.get(DOMAIN, {}).items():
-            if hasattr(coord, "ble_device") and coord.ble_device == self:
-                coordinator = coord
-                break
-                break
-        if not coordinator:
-            _LOGGER.warning("Could not find coordinator for NFC notification")
-            return
-        display_uid = BoksAnonymizer.anonymize_uid(uid, self.anonymize_logs)
-        tag_name = None
-        if uid and "tag" in self.hass.data:
-            try:
-                tag_id_lookup = uid.replace(":", "").upper()
-                try:
-                    from homeassistant.components.tag import async_scan_tag
-                    await async_scan_tag(self.hass, tag_id_lookup, self.address)
-                except Exception as e:
-                    _LOGGER.debug("Could not trigger async_scan_tag: %s", e)
-                tag_manager = self.hass.data["tag"]
-                tags_helper = tag_manager.get("tags") if isinstance(tag_manager, dict) else None
-                tag_info = None
-                if tags_helper and tag_id_lookup in tags_helper.data:
-                    tag_info = tags_helper.data[tag_id_lookup]
-                if not tag_info and hasattr(tag_manager, "async_get_tag"):
-                    tag_info = await tag_manager.async_get_tag(tag_id_lookup)
-                if tag_info:
-                    tag_name = tag_info.get("name")
-            except Exception as e:
-                _LOGGER.debug("Could not lookup tag name: %s", e)
-        if status == "found":
-            title = coordinator.get_text("common", "nfc_tag_found_title")
-            message = coordinator.get_text("common", "nfc_tag_found_msg_named" if tag_name else "nfc_tag_found_msg", name=tag_name, uid=display_uid)
-            notification_id = f"boks_nfc_found_{uid}"
-        elif status == "already_exists":
-            title = coordinator.get_text("common", "nfc_tag_exists_title")
-            if tag_name:
-                message = coordinator.get_text("common", "nfc_tag_exists_msg_named", name=tag_name, uid=display_uid)
-            elif uid:
-                message = coordinator.get_text("common", "nfc_tag_exists_msg", uid=display_uid)
-            else:
-                message = coordinator.get_text("common", "nfc_tag_exists_msg_unknown")
-            notification_id = f"boks_nfc_exists_{uid}" if uid else "boks_nfc_exists_unknown"
-        elif status == "timeout":
-            title = coordinator.get_text("common", "nfc_scan_timeout_title")
-            message = coordinator.get_text("common", "nfc_scan_timeout_msg")
-            notification_id = "boks_nfc_timeout"
-        else:
-            return
-        if not tag_name and status == "found":
-            help_text = coordinator.get_text("common", "nfc_tag_found_register_help")
-            message += f"\n\n{help_text}"
-        _LOGGER.debug("Creating persistent notification: %s - %s", title, message)
-        await self.hass.services.async_call("persistent_notification", "create", {"title": title, "message": message, "notification_id": notification_id})
-
-    async def nfc_register_tag(self, uid: str) -> bool:
+    async def register_nfc_tag(self, uid: str, name: str = None) -> bool:
         """Register NFC tag."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
+
         from ..packets.tx.register_nfc_tag import RegisterNfcTagPacket
         packet = RegisterNfcTagPacket(self._config_key_str, uid)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED, BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
+
         if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED:
+            # Optionally add to HA Tag Registry
+            if name and self.hass:
+                try:
+                    from homeassistant.components.tag import DOMAIN as TAG_DOMAIN
+                    tag_id = uid.replace(":", "").upper()
+                    # We use a simple approach to avoid complex imports if possible
+                    await self.hass.services.async_call(
+                        TAG_DOMAIN,
+                        "update",
+                        {"tag_id": tag_id, "name": name},
+                        blocking=False
+                    )
+                except Exception as e:
+                    _LOGGER.debug("Could not update HA Tag Registry: %s", e)
             return True
         elif resp and resp.opcode == BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER:
             raise BoksError("nfc_tag_already_exists")
@@ -910,7 +985,7 @@ class BoksBluetoothDevice:
             raise BoksAuthError("unauthorized")
         return False
 
-    async def nfc_unregister_tag(self, uid: str) -> bool:
+    async def unregister_nfc_tag(self, uid: str) -> bool:
         """Unregister NFC tag."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
@@ -918,3 +993,27 @@ class BoksBluetoothDevice:
         packet = NfcUnregisterTagPacket(self._config_key_str, uid)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
         return resp is not None and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED
+
+    async def add_master_code(self, index: int, code: str) -> str:
+        """Add a master code at index."""
+        return await self.create_pin_code(code, "master", index)
+
+    async def delete_master_code(self, index: int) -> bool:
+        """Delete a master code at index."""
+        return await self.delete_pin_code("master", index)
+
+    async def add_single_use_code(self, code: str) -> str:
+        """Add a single use code."""
+        return await self.create_pin_code(code, "single")
+
+    async def delete_single_use_code(self, code: str) -> bool:
+        """Delete a single use code."""
+        return await self.delete_pin_code("single", code)
+
+    async def add_multi_use_code(self, code: str) -> str:
+        """Add a multi use code."""
+        return await self.create_pin_code(code, "multi")
+
+    async def delete_multi_use_code(self, code: str) -> bool:
+        """Delete a multi use code."""
+        return await self.delete_pin_code("multi", code)

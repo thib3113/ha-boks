@@ -1,4 +1,5 @@
 """Constants for the Boks integration."""
+from enum import StrEnum
 
 DOMAIN = "boks"
 
@@ -18,15 +19,26 @@ EVENT_LOG = f"{DOMAIN}_log_entry"
 EVENT_PARCEL_COMPLETED = f"{DOMAIN}_parcel_completed"
 EVENT_LOGS_RETRIEVED = f"{DOMAIN}_logs_retrieved"
 
-# Hardware Revisions Map (Internal Firmware Revision -> Hardware Version)
-PCB_VERSIONS = {
-    "10/125": "4.0",
-    "10/cd": "3.0"
-}
+class BoksChipset(StrEnum):
+    """Boks Chipset Models."""
+    NRF52833 = "nRF52833"
+    NRF52811 = "nRF52811"
 
-FIRMWARE_MAPPING = {
+# Hardware Information Map (Internal Firmware Revision -> Info)
+BOKS_HARDWARE_INFO = {
     "10/125": {
-        "4.3.3": "https://boks-dfu.s3.eu-west-3.amazonaws.com/4.3.3/boks_52833/boks_52833_4.3.3_app_dfu.zip"
+        "hw_version": "4.0",
+        "chipset": BoksChipset.NRF52833,
+        "firmwares": {
+            "4.3.3": "https://boks-dfu.s3.eu-west-3.amazonaws.com/4.3.3/boks_52833/boks_52833_4.3.3_app_dfu.zip"
+        }
+    },
+    "10/cd": {
+        "hw_version": "3.0",
+        "chipset": BoksChipset.NRF52811,
+        "firmwares": {
+            "4.2.0": "https://boks-dfu.s3.eu-west-3.amazonaws.com/4.1.14/boks_52811/boks_52811_4.1.14_app_dfu.zip"
+        }
     }
 }
 

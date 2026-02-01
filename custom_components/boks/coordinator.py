@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import translation  # Import translation helper
 from homeassistant.helpers.update_coordinator import (
@@ -16,7 +15,6 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 from homeassistant.util import dt as dt_util
-from packaging import version
 
 from .ble import BoksBluetoothDevice
 from .const import (
@@ -32,7 +30,7 @@ from .errors import BoksError
 from .logic.anonymizer import BoksAnonymizer
 from .logic.log_processor import BoksLogProcessor
 from .packets.base import BoksRXPacket
-from .util import is_firmware_version_greater_than, process_device_info
+from .util import process_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -418,115 +416,3 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         """Unregister a callback for a specific opcode."""
         self.ble_device.unregister_opcode_callback(opcode, callback)
 
-    async def trigger_firmware_update_check(self, required_version: str) -> bool:
-        """
-        Trigger a firmware update check and download.
-
-        Args:
-            required_version: The minimum firmware version required (e.g., "4.3.3")
-
-        Returns:
-            bool: True if firmware was successfully downloaded, False otherwise
-        """
-        # Get the update entity for this coordinator
-        update_entity = None
-        update_component = self.hass.data.get("entity_components", {}).get("update")
-
-        if update_component:
-            for entity in update_component.entities:
-                if entity.unique_id == f"{self.entry.entry_id}_firmware_update":
-                    update_entity = entity
-                    break
-
-        if not update_entity:
-            _LOGGER.error("Could not find firmware update entity")
-            return False
-
-        # Trigger the update check on the update entity
-        return await update_entity.trigger_update_check(required_version)
-
-    async def ensure_min_firmware_version(self, required_version: str, translation_key: str = "firmware_version_required", update_target_version: str = None) -> None:
-        """
-        Ensure the device firmware version is greater than required_version.
-        If not, triggers an update check for update_target_version (defaults to required_version).
-        Raises HomeAssistantError if requirements aren't met.
-
-        Args:
-            required_version: The version that the current firmware must be greater than.
-            translation_key: The translation key for the error message if version is insufficient.
-            update_target_version: The version to check for update against. Defaults to required_version.
-        """
-        if update_target_version is None:
-            update_target_version = required_version
-
-        software_revision = None
-        if self.device_info:
-            software_revision = self.device_info.get("sw_version")
-
-        if software_revision:
-            if not is_firmware_version_greater_than(software_revision, required_version):
-                _LOGGER.warning("Firmware version %s is not greater than %s. Triggering update check for %s.", software_revision, required_version, update_target_version)
-
-                update_triggered = await self.trigger_firmware_update_check(update_target_version)
-
-                if not update_triggered:
-                    raise HomeAssistantError(
-                        translation_domain=DOMAIN,
-                        translation_key="firmware_update_failed",
-                        translation_placeholders={"version": update_target_version}
-                    )
-
-                raise HomeAssistantError(
-                    translation_domain=DOMAIN,
-                    translation_key=translation_key,
-                    translation_placeholders={
-                        "current_version": software_revision,
-                        "required_version": required_version
-                    }
-                )
-        else:
-            _LOGGER.warning("Could not determine software revision to check against %s", required_version)
-
-    async def async_ensure_prerequisites(self, feature_name: str, min_hw: str, min_sw: str) -> None:
-        """
-        Ensure hardware and software prerequisites are met.
-        Raises HomeAssistantError if not.
-        """
-        hw_version = self.device_info.get("hw_version")
-        sw_version = self.device_info.get("sw_version")
-
-        # 1. Hardware Check
-        if hw_version:
-            try:
-                if version.parse(hw_version) < version.parse(min_hw):
-                    _LOGGER.error("Hardware version %s is insufficient for %s. Required: %s", hw_version, feature_name, min_hw)
-                    raise BoksError(
-                        "hardware_unsupported",
-                        {
-                            "feature": feature_name,
-                            "required_hw": min_hw,
-                            "current_hw": hw_version
-                        }
-                    )
-            except (version.InvalidVersion, ValueError) as e:
-                _LOGGER.warning("Error parsing HW version '%s': %s", hw_version, e)
-        else:
-             _LOGGER.warning("Could not determine HW version for %s prerequisites", feature_name)
-
-        # 2. Software Check
-        if sw_version:
-            if not is_firmware_version_greater_than(sw_version, min_sw) and sw_version != min_sw:
-                _LOGGER.error("Software version %s is insufficient for %s. Required: %s", sw_version, feature_name, min_sw)
-                # Trigger update check
-                await self.trigger_firmware_update_check(min_sw)
-
-                raise BoksError(
-                    "firmware_update_required",
-                    {
-                        "feature": feature_name,
-                        "required_sw": min_sw,
-                        "current_sw": sw_version
-                    }
-                )
-        else:
-             _LOGGER.warning("Could not determine SW version for %s prerequisites", feature_name)

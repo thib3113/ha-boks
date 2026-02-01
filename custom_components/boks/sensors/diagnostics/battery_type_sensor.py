@@ -3,9 +3,9 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS, EntityCategory
 
-from ...const import PCB_VERSIONS
-from ...coordinator import BoksDataUpdateCoordinator
 from .retaining_sensor import BoksRetainingSensor
+from ...const import BOKS_HARDWARE_INFO
+from ...coordinator import BoksDataUpdateCoordinator
 
 
 class BoksBatteryTypeSensor(BoksRetainingSensor):
@@ -28,8 +28,8 @@ class BoksBatteryTypeSensor(BoksRetainingSensor):
         device_info = self.coordinator.data.get("device_info_service", {})
         fw_rev = device_info.get("firmware_revision")
 
-        if fw_rev and fw_rev in PCB_VERSIONS:
-            pcb_version = PCB_VERSIONS[fw_rev]
+        if fw_rev and fw_rev in BOKS_HARDWARE_INFO:
+            pcb_version = BOKS_HARDWARE_INFO[fw_rev]["hw_version"]
             if pcb_version == "3.0":
                 return "lsh14"
             elif pcb_version == "4.0":
