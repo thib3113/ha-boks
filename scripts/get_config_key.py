@@ -17,38 +17,96 @@ APP_PACKAGE_NAME = "com.boks.app"
 
 FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FIREBASE_API_KEY}"
 
-# Common Mobile User Agents
+# Common Mobile User Agents with their Chrome Major Version
 USER_AGENTS = [
-    "Mozilla/5.0 (Linux; Android 14; CPH2581 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; CPH2449 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.102 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; CPH2491 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.88 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; CPH2551 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.39 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; 23127PN0CG Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; 23090RA98G Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; 23049PCD8G Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.58 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; 2306EP901G Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 15; Pixel 9 Pro Build/AP1A.240405.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/132.0.6800.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; Pixel 7a Build/UQ1A.240105.004; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.70 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; motorola edge 40 Build/T1TL33.1-44-6; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; XQ-DQ72 Build/67.1.A.2.112; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.102 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; CPH2305 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/127.0.6533.103 Mobile Safari/537.36"
-    "Mozilla/5.0 (Linux; Android 14; SM-S928B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 15; Pixel 8 Build/AP1A.240405.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.102 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 14; SM-A546B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 13; 2312DRA50G Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.88 Mobile Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 12; SM-G991B Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; CPH2581 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
+        "version": "131"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; CPH2449 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.102 Mobile Safari/537.36",
+        "version": "130"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 13; CPH2491 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.88 Mobile Safari/537.36",
+        "version": "128"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; CPH2551 Build/UKQ1.230924.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.39 Mobile Safari/537.36",
+        "version": "131"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; 23127PN0CG Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
+        "version": "131"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 13; 23090RA98G Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36",
+        "version": "129"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; 23049PCD8G Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.58 Mobile Safari/537.36",
+        "version": "130"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; 2306EP901G Build/UKQ1.230804.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
+        "version": "131"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 15; Pixel 9 Pro Build/AP1A.240405.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/132.0.6800.0 Mobile Safari/537.36",
+        "version": "132"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; Pixel 7a Build/UQ1A.240105.004; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.70 Mobile Safari/537.36",
+        "version": "129"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 13; motorola edge 40 Build/T1TL33.1-44-6; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36",
+        "version": "128"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; XQ-DQ72 Build/67.1.A.2.112; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.102 Mobile Safari/537.36",
+        "version": "130"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 13; CPH2305 Build/TP1A.220905.001; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/127.0.6533.103 Mobile Safari/537.36",
+        "version": "127"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; SM-S928B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/131.0.6778.81 Mobile Safari/537.36",
+        "version": "131"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 15; Pixel 8 Build/AP1A.240405.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.102 Mobile Safari/537.36",
+        "version": "130"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 14; SM-A546B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0.6668.100 Mobile Safari/537.36",
+        "version": "129"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 13; 2312DRA50G Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.88 Mobile Safari/537.36",
+        "version": "128"
+    },
+    {
+        "ua": "Mozilla/5.0 (Linux; Android 12; SM-G991B Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/91.0.4472.114 Mobile Safari/537.36",
+        "version": "91"
+    }
 ]
 
 class BoksClient:
     def __init__(self):
         self.session = requests.Session()
-        self.user_agent = random.choice(USER_AGENTS)
+        selected_agent = random.choice(USER_AGENTS)
+        self.user_agent = selected_agent["ua"]
+        self.chrome_version = selected_agent["version"]
+
         _LOGGER.info("Using User-Agent: %s", self.user_agent)
+        _LOGGER.info("Detected Chrome Version: %s", self.chrome_version)
 
         self.session.headers.update({
             "Connection": "keep-alive",
             "sec-ch-ua-platform": "\"Android\"",
-            "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Android WebView\";v=\"138\"",
+            "sec-ch-ua": f"\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"{self.chrome_version}\", \"Android WebView\";v=\"{self.chrome_version}\"",
             "sec-ch-ua-mobile": "?0",
             "App-Version": APP_VERSION,
             "source": "app",
@@ -135,7 +193,7 @@ def main():
         # Check common places for config key
         config_key = boks.get("configurationKey")
         if not config_key and pcb:
-             config_key = pcb.get("configurationKey")
+            config_key = pcb.get("configurationKey")
 
         print(f"\nName: {name}")
         print(f"ID: {boks_id}")
@@ -151,4 +209,5 @@ def main():
         # if pcb:
         #    _LOGGER.debug(f"Keys available in pcb object: {list(pcb.keys())}")
 
-main()
+if __name__ == "__main__":
+    main()

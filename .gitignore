@@ -44,6 +44,9 @@ tests.log
 TODO.md
 api.py
 
+
+dev_env/config
+
 commit_message.txt
 scripts/manual_tst_live_interactive.py
-
+AGENTS.md

@@ -1,0 +1,24 @@
+blueprint:
+  name: Boks - Parcel Delivered Notification
+  description: >
+    Sends a notification when a parcel is marked as delivered by the Boks integration
+    (when a code associated with a Todo item is used).
+  domain: automation
+  input:
+    notify_device:
+      name: Mobile Device to Notify
+      description: The device that will receive the notifications.
+      selector:
+        device:
+          integration: mobile_app
+
+trigger:
+  - platform: event
+    event_type: boks_parcel_completed
+
+action:
+  - domain: mobile_app
+    type: notify
+    device_id: !input notify_device
+    title: "📦 Parcel Delivered"
+    message: "Parcel '{{ trigger.event.data.description }}' was delivered using code {{ trigger.event.data.code }}."

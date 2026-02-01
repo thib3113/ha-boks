@@ -1,0 +1,24 @@
+name: "💡 Feature Request / Demande de Fonctionnalité"
+description: "Suggest an idea for this project / Suggérer une idée pour ce projet"
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **English:** Thanks for suggesting a new feature!
+        **Français :** Merci de suggérer une nouvelle fonctionnalité !
+
+  - type: textarea
+    id: pitch
+    attributes:
+      label: "Idea Description / Description de l'Idée"
+      description: "A clear and concise description of the new feature. / Une description claire et concise de la nouvelle fonctionnalité."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context / Contexte"
+      description: "Why is this feature useful? What problem does it solve? / Pourquoi cette fonctionnalité est-elle utile ? Quel problème résout-elle ?"
