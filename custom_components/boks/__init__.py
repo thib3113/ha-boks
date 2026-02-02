@@ -6,7 +6,6 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from .const import DOMAIN
@@ -50,7 +49,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await coordinator.async_config_entry_first_refresh()
     except UpdateFailed as ex:
-        raise ConfigEntryNotReady(f"Coordinator init failed: {ex}") from ex
+        # Allow setup to complete even if device is offline
+        # This enables offline services like generate_update_package to work using Device Registry cache
+        _LOGGER.warning("Boks device unreachable during setup: %s. Integration will load in offline mode.", ex)
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator

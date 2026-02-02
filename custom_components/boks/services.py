@@ -76,6 +76,10 @@ SERVICE_NFC_UNREGISTER_TAG_SCHEMA = vol.Schema({
     vol.Required("uid"): cv.string,
 }, extra=vol.ALLOW_EXTRA)
 
+SERVICE_GENERATE_UPDATE_PACKAGE_SCHEMA = vol.Schema({
+    vol.Required("version"): cv.string,
+}, extra=vol.ALLOW_EXTRA)
+
 
 def get_coordinator_from_call(hass: HomeAssistant, call: ServiceCall) -> BoksDataUpdateCoordinator:
     """Retrieve the Boks coordinator from a service call target."""
@@ -113,8 +117,15 @@ def _get_coordinator_by_device_id(hass: HomeAssistant, device_ids: str | list[st
         device = device_registry.async_get(device_id)
         if device:
             for entry_id in device.config_entries:
+                # 1. Try loaded coordinator
                 if entry_id in hass.data.get(DOMAIN, {}):
                     return hass.data[DOMAIN][entry_id]
+
+                # 2. Fallback: Create temp coordinator if entry exists but not loaded
+                config_entry = hass.config_entries.async_get_entry(entry_id)
+                if config_entry and config_entry.domain == DOMAIN:
+                    _LOGGER.debug("Integration not loaded for device %s, creating temporary coordinator", device_id)
+                    return BoksDataUpdateCoordinator(hass, config_entry)
 
     raise HomeAssistantError(
         translation_domain=DOMAIN,
@@ -131,8 +142,16 @@ def _get_coordinator_by_entity_id(hass: HomeAssistant, entity_ids: str | list[st
     registry = er.async_get(hass)
     for entity_id in entity_ids:
         entry = registry.async_get(entity_id)
-        if entry and entry.config_entry_id in hass.data.get(DOMAIN, {}):
-            return hass.data[DOMAIN][entry.config_entry_id]
+        if entry:
+            # 1. Try loaded coordinator
+            if entry.config_entry_id in hass.data.get(DOMAIN, {}):
+                return hass.data[DOMAIN][entry.config_entry_id]
+
+            # 2. Fallback: Create temp coordinator if entry exists but not loaded
+            config_entry = hass.config_entries.async_get_entry(entry.config_entry_id)
+            if config_entry and config_entry.domain == DOMAIN:
+                _LOGGER.debug("Integration not loaded for entity %s, creating temporary coordinator", entity_id)
+                return BoksDataUpdateCoordinator(hass, config_entry)
 
     raise HomeAssistantError(
         translation_domain=DOMAIN,
@@ -582,7 +601,7 @@ async def async_setup_services(hass: HomeAssistant):
             if laposte is not None:
                 # Check software revision if trying to enable laposte
                 if laposte:
-                    await coordinator.async_ensure_prerequisites("La Poste", "4.0", "4.3.3")
+                    await coordinator.updates.ensure_prerequisites("La Poste", "4.0", "4.2.0")
 
                 _LOGGER.info("Setting La Poste configuration to %s", laposte)
                 await coordinator.ble_device.connect()
@@ -616,7 +635,7 @@ async def async_setup_services(hass: HomeAssistant):
         """Handle NFC Scan Start."""
         coordinator = get_coordinator_from_call(hass, call)
         # Verify prerequisites synchronously
-        await coordinator.async_ensure_prerequisites("NFC", "4.0", "4.3.3")
+        await coordinator.updates.ensure_prerequisites("NFC", "4.0", "4.3.3")
 
         async def _run_scan():
             try:
@@ -686,7 +705,7 @@ async def async_setup_services(hass: HomeAssistant):
         name = call.data.get("name")
 
         coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.async_ensure_prerequisites("NFC", "4.0", "4.3.3")
+        await coordinator.updates.ensure_prerequisites("NFC", "4.0", "4.3.3")
 
         try:
 
@@ -741,7 +760,7 @@ async def async_setup_services(hass: HomeAssistant):
         uid = call.data["uid"]
         try:
             coordinator = get_coordinator_from_call(hass, call)
-            await coordinator.async_ensure_prerequisites("NFC", "4.0", "4.3.3")
+            await coordinator.updates.ensure_prerequisites("NFC", "4.0", "4.3.3")
 
             await coordinator.ble_device.connect()
             await coordinator.ble_device.nfc_unregister_tag(uid)
@@ -789,4 +808,22 @@ async def async_setup_services(hass: HomeAssistant):
         "ask_door_status",
         handle_ask_door_status,
         supports_response=SupportsResponse.OPTIONAL
+    )
+
+    # --- Service: Generate Update Package ---
+    async def handle_generate_update_package(call: ServiceCall):
+        """Handle generating the update package."""
+        coordinator = get_coordinator_from_call(hass, call)
+        target_version = call.data["version"]
+        try:
+            await coordinator.updates.generate_package(target_version)
+        except Exception as e:
+            _LOGGER.error("Failed to generate update package via service: %s", e)
+            raise HomeAssistantError(f"Failed to generate update package: {e}") from e
+
+    hass.services.async_register(
+        DOMAIN,
+        "generate_update_package",
+        handle_generate_update_package,
+        schema=SERVICE_GENERATE_UPDATE_PACKAGE_SCHEMA
     )

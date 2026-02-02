@@ -14,6 +14,12 @@ from bleak_retry_connector import establish_connection
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 
+from .const import (
+    BoksHistoryEvent,
+    BoksNotificationOpcode,
+    BoksServiceUUID,
+)
+from .protocol import BoksProtocol
 from ..const import (
     DELAY_RETRY,
     DOMAIN,
@@ -34,12 +40,6 @@ from ..packets.rx.error_response import ErrorResponsePacket
 from ..packets.rx.key_opening import KeyOpeningPacket
 from ..packets.rx.nfc_opening import NfcOpeningPacket
 from ..packets.rx.nfc_scan_result import NfcScanResultPacket
-from .const import (
-    BoksHistoryEvent,
-    BoksNotificationOpcode,
-    BoksServiceUUID,
-)
-from .protocol import BoksProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -642,8 +642,28 @@ class BoksBluetoothDevice:
             finally:
                 await self._disconnect()
 
+    def _validate_pin(self, code: str) -> str:
+        """Validate PIN code format (6 chars, 0-9, A, B)."""
+        if not code:
+            raise BoksError("pin_code_invalid")
+
+        # Clean code
+        clean_code = str(code).upper().strip()
+
+        if len(clean_code) != 6:
+            raise BoksError("pin_code_invalid_length")
+
+        valid_chars = "0123456789AB"
+        if not all(c in valid_chars for c in clean_code):
+            raise BoksError("invalid_code_format")
+
+        return clean_code
+
     async def open_door(self, code: str = None) -> bool:
         """Open the door."""
+        if code:
+            code = self._validate_pin(code)
+
         from ..packets.tx.open_door import OpenDoorPacket
         packet = OpenDoorPacket(code or "")
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.VALID_OPEN_CODE, BoksNotificationOpcode.INVALID_OPEN_CODE, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
@@ -762,6 +782,10 @@ class BoksBluetoothDevice:
         """Create a PIN code."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
+
+        # Validate format
+        code = self._validate_pin(code)
+
         if code_type == "master":
             from ..packets.tx.create_master_code import CreateMasterCodePacket
             packet = CreateMasterCodePacket(self._config_key_str, code, index)

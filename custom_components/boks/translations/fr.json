@@ -267,18 +267,17 @@
     "invalid_master_code_index": {
       "message": "Index de code permanent invalide (doit être entre 0 et 255)."
     },
-    "nfc_tag_already_exists": {
-      "message": "Ce badge NFC est déjà enregistré dans la Boks."
-    },
-    "maintenance_failed_msg": {
-      "message": "Échec de la maintenance : {error}"
-    },
-    "maintenance_error_title": {
-      "message": "Erreur de Maintenance Boks"
-    },
-    "maintenance_error_msg": {
-      "message": "L'opération de nettoyage des codes permanents a échoué à l'index {current_idx}.\nErreur : {error}"
-    }
+    "nfc_tag_already_exists": { "message": "Ce badge NFC est déjà enregistré dans la Boks." },
+    "maintenance_failed_msg": { "message": "Échec de la maintenance : {error}" },
+    "maintenance_error_title": { "message": "Erreur de Maintenance Boks" },
+    "maintenance_error_msg": { "message": "L'opération de nettoyage des codes permanents a échoué à l'index {current_idx}.\nErreur : {error}" },
+    "fw_hw_rev_unknown": { "message": "Impossible de déterminer la révision interne du matériel (ID Hardware). Vérifiez que l'appareil est joignable." },
+    "fw_hw_unsupported": { "message": "Matériel non supporté ou révision inconnue : {revision}" },
+    "fw_version_not_found": { "message": "La version {version} n'est pas disponible pour le matériel {revision}" },
+    "fw_download_failed": { "message": "Échec du téléchargement du firmware : {status}" },
+    "fw_downgrade_blocked": { "message": "Impossible de générer la mise à jour vers la version {target_version} car elle est plus ancienne que la version actuellement installée {current_version}. Le retour à une version antérieure n'est pas supporté." },
+    "fw_update_package_ready_msg": { "message": "Le paquet de mise à jour pour la version {target_version} est prêt :\n{url}" },
+    "fw_update_package_ready_title": { "message": "Mise à jour Boks {target_version} prête" }
   },
   "options": {
     "step": {
@@ -610,6 +609,16 @@
     "ask_door_status": {
       "name": "Vérifier l'état de la porte",
       "description": "Interroge manuellement la Boks pour savoir si la porte est ouverte ou fermée."
+    },
+    "generate_update_package": {
+      "name": "Générer un paquet de mise à jour",
+      "description": "Prépare une page Web locale permettant de mettre à jour le firmware de la Boks via Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Version Cible",
+          "description": "La version du firmware à télécharger (ex: 4.3.3)."
+        }
+      }
     }
   }
 }

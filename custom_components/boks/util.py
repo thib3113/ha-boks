@@ -4,13 +4,13 @@ from typing import Any
 from homeassistant.const import CONF_ADDRESS, CONF_NAME
 from packaging import version
 
-from .const import DOMAIN, PCB_VERSIONS
+from .const import BOKS_HARDWARE_INFO, DOMAIN
 
 
 def infer_pcb_version(internal_revision: str) -> str | None:
     """Infer PCB version based on internal firmware revision."""
-    if internal_revision in PCB_VERSIONS:
-        return PCB_VERSIONS[internal_revision]
+    if internal_revision in BOKS_HARDWARE_INFO:
+        return BOKS_HARDWARE_INFO[internal_revision]["hw_version"]
 
     if internal_revision:
         return f"Unknown ({internal_revision})"

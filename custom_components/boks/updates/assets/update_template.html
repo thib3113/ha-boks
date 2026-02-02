@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boks Flash Tool</title>
+    <style>
+        [[STYLE_CSS]]
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 id="ui-title"></h1>
+        <div id="ui-version-badge" class="version-badge"></div>
+        
+        <div id="https-warning" class="warning-box hidden">
+            <strong id="ui-https-title"></strong> <span id="ui-https-msg"></span><br>
+            <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;">
+                <a href="#" download id="ui-download-link" style="color: inherit; font-weight: bold;"></a>
+                <a href="#" target="_blank" id="ui-backup-link" style="color: var(--primary-color); font-weight: bold;"></a>
+            </div>
+        </div>
+
+        <div id="main-interface" class="hidden">
+            <p id="instruction-text"></p>
+            
+            <div id="device-info" class="info-grid hidden">
+                <div class="info-item">
+                    <span id="ui-label-name" class="info-label"></span>
+                    <span id="info-name" class="info-value">-</span>
+                </div>
+                <div class="info-item">
+                    <span id="ui-label-battery" class="info-label"></span>
+                    <span id="info-battery" class="info-value">-</span>
+                </div>
+                <div class="info-item full-width">
+                    <span id="ui-label-version" class="info-label"></span>
+                    <span id="info-version" class="info-value">-</span>
+                </div>
+                <div class="info-item full-width">
+                    <span id="ui-label-hw" class="info-label"></span>
+                    <span id="info-hw" class="info-value">-</span>
+                </div>
+            </div>
+
+            <div id="status-text" class="status"></div>
+            
+            <div class="progress-container">
+                <div class="info-label" style="margin-bottom: 5px;">Bluetooth Upload</div>
+                <div class="progress-bar" style="background-color: #e1f5fe;"><div id="progress-sent" class="progress-fill" style="background-color: var(--primary-color);"></div></div>
+                <div id="progress-sent-text" class="progress-text">0%</div>
+            </div>
+
+            <div class="progress-container">
+                <div class="info-label" style="margin-bottom: 5px;">Device Validation</div>
+                <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+                <div id="progress-text" class="progress-text">0%</div>
+            </div>
+
+            <div id="dfu-explanation" class="info-box hidden" style="text-align: left; font-size: 0.85rem; margin-top: 15px; border-left: 4px solid var(--primary-color); background: #e3f2fd; padding: 12px; border-radius: 4px;">
+            </div>
+
+            <button id="btn-connect"></button>
+            <button id="btn-start" class="btn-action hidden"></button>
+
+            <div id="action-area" class="hidden" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Troubleshooting:</p>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btn-finalize" class="btn-recovery" style="background-color: var(--success-color); font-size: 0.8rem;">Finalize & Reboot</button>
+                        <button id="btn-disconnect" class="btn-recovery" style="background-color: var(--text-secondary); font-size: 0.8rem;">Force Disconnect</button>
+                    </div>
+                    <button id="btn-clear" class="btn-recovery" style="background-color: #f44336; font-size: 0.8rem;">Restart from 0 (Clear Cache)</button>
+                </div>
+            </div>
+        </div>
+        <div id="log-container" class="log-container"></div>
+    </div>
+
+    <!-- External Libraries -->
+    <script id="external-libs">
+        [[NORDIC_DFU_JS]]
+    </script>
+
+    <!-- Configuration -->
+    <script id="boks-config">
+        /**
+         * UNIQUE PYTHON -> HTML CONTACT POINT
+         */
+        const BOKS_PARAMS = {
+            targetVersion: "[[TARGET_VERSION]]",
+            expectedHw: "[[EXPECTED_HW_VERSION]]",
+            expectedInternalRev: "[[EXPECTED_INTERNAL_REV]]",
+            firmwareFile: "[[FIRMWARE_FILENAME]]"
+        };
+    </script>
+
+    <!-- Translations -->
+    <script id="boks-translations">
+        [[TRANSLATIONS_JS]]
+    </script>
+
+    <!-- Application Logic -->
+    <script id="boks-logic">
+        [[UPDATER_JS]]
+    </script>
+</body>
+</html>

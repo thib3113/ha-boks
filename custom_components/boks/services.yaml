@@ -237,3 +237,18 @@ ask_door_status:
     entity:
       integration: boks
       domain: lock
+
+generate_update_package:
+  name: translation::services.generate_update_package.name
+  description: translation::services.generate_update_package.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    version:
+      name: translation::services.generate_update_package.fields.version.name
+      description: translation::services.generate_update_package.fields.version.description
+      required: true
+      selector:
+        text:

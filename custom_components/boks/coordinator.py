@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import translation  # Import translation helper
 from homeassistant.helpers.update_coordinator import (
@@ -16,23 +15,24 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 from homeassistant.util import dt as dt_util
-from packaging import version
 
 from .ble import BoksBluetoothDevice
 from .const import (
+    BOKS_HARDWARE_INFO,
     CONF_ANONYMIZE_LOGS,
     CONF_CONFIG_KEY,
     DEFAULT_FULL_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     EVENT_LOGS_RETRIEVED,
-    TIMEOUT_BLE_CONNECTION,  # Import DOMAIN and defaults
+    TIMEOUT_BLE_CONNECTION,
 )
 from .errors import BoksError
 from .logic.anonymizer import BoksAnonymizer
 from .logic.log_processor import BoksLogProcessor
 from .packets.base import BoksRXPacket
-from .util import is_firmware_version_greater_than, process_device_info
+from .updates.logic import BoksUpdateController
+from .util import process_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,6 +47,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             config_key=entry.data.get(CONF_CONFIG_KEY),
             anonymize_logs=entry.options.get(CONF_ANONYMIZE_LOGS, False)
         )
+        self.updates = BoksUpdateController(hass, self)
         # Initialize log processor
         self.log_processor = BoksLogProcessor(hass, entry.data[CONF_ADDRESS])
 
@@ -85,24 +86,80 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
     def maintenance_status(self):
         return self._maintenance_status
 
-    def set_translations(self, translations: dict[str, str]):
-        """Set pre-loaded translations."""
+    def set_translations(self, translations: dict):
+        """Set translations for the coordinator."""
         self._translations = translations
 
     def get_text(self, category: str, key: str, **kwargs) -> str:
-        """Get a translated text from the pre-loaded cache. Defaults to key name."""
-        # HA translation keys follow the pattern: component.<domain>.<category>.<key>
-        # For 'exceptions', it's component.<domain>.exceptions.<key>.message
-        full_key = f"component.{DOMAIN}.{category}.{key}"
-        if category == "exceptions":
-            full_key += ".message"
+        """Get a translated string."""
+        base_key = f"component.{DOMAIN}.{category}.{key}"
+        
+        # Try direct key first
+        text = self._translations.get(base_key)
+        
+        # If not found (common for exceptions which have nested 'message'), try appending .message
+        if not text:
+            text = self._translations.get(f"{base_key}.message")
 
-        text = self._translations.get(full_key, key)
-        try:
-            return text.format(**kwargs)
-        except Exception as e:
-            _LOGGER.warning("Failed to format translation %s: %s", full_key, e)
+        if text:
+            # Simple format if needed
+            if kwargs:
+                try:
+                    return text.format(**kwargs)
+                except Exception:
+                    return text
             return text
+        return key
+
+    async def get_or_fetch_device_info(self) -> dict:
+        """
+        Get device info from cache, live fetch, or registry fallback.
+        Returns a dict with 'sw_version', 'hw_version', 'internal_revision'.
+        """
+        # 1. Cache
+        info = {
+            "sw_version": self.device_info.get("sw_version"),
+            "hw_version": self.device_info.get("hw_version"),
+            "internal_revision": self.data.get("device_info_service", {}).get("firmware_revision")
+        }
+
+        # 2. Live Fetch if missing
+        if not info["internal_revision"]:
+            try:
+                _LOGGER.debug("Internal revision not in cache, trying live fetch...")
+                device_info_raw = await self.ble_device.get_device_information()
+                if device_info_raw:
+                    info["internal_revision"] = device_info_raw.get("firmware_revision")
+                    # Update other fields if available and missing
+                    if not info["sw_version"]:
+                        info["sw_version"] = device_info_raw.get("software_revision")
+                    if not info["hw_version"]:
+                        info["hw_version"] = device_info_raw.get("hardware_revision")
+            except Exception as e:
+                _LOGGER.warning("Failed to fetch live device information (device likely offline): %s", e)
+
+        # 3. Registry Fallback if still missing
+        if not info["internal_revision"]:
+            _LOGGER.debug("Live fetch failed, trying Device Registry fallback...")
+            dev_reg = dr.async_get(self.hass)
+            device_entry = dev_reg.async_get_device(identifiers={(DOMAIN, self.ble_device.address)})
+
+            if device_entry:
+                if not info["sw_version"]:
+                    info["sw_version"] = device_entry.sw_version
+                
+                if not info["hw_version"]:
+                    info["hw_version"] = device_entry.hw_version
+
+                # Deduce internal revision
+                if info["hw_version"]:
+                    for rev_id, hw_data in BOKS_HARDWARE_INFO.items():
+                        if hw_data["hw_version"] == info["hw_version"]:
+                            info["internal_revision"] = rev_id
+                            _LOGGER.info("Offline recovery: Deduced internal revision '%s' from registry hardware version '%s'", rev_id, info["hw_version"])
+                            break
+        
+        return info
 
     async def async_enrich_log_entry(self, log: BoksRXPacket | dict, translations: dict[str, str] = None) -> dict:
         """Enrich a log entry using the dedicated processor."""
@@ -418,115 +475,5 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         """Unregister a callback for a specific opcode."""
         self.ble_device.unregister_opcode_callback(opcode, callback)
 
-    async def trigger_firmware_update_check(self, required_version: str) -> bool:
-        """
-        Trigger a firmware update check and download.
 
-        Args:
-            required_version: The minimum firmware version required (e.g., "4.3.3")
 
-        Returns:
-            bool: True if firmware was successfully downloaded, False otherwise
-        """
-        # Get the update entity for this coordinator
-        update_entity = None
-        update_component = self.hass.data.get("entity_components", {}).get("update")
-
-        if update_component:
-            for entity in update_component.entities:
-                if entity.unique_id == f"{self.entry.entry_id}_firmware_update":
-                    update_entity = entity
-                    break
-
-        if not update_entity:
-            _LOGGER.error("Could not find firmware update entity")
-            return False
-
-        # Trigger the update check on the update entity
-        return await update_entity.trigger_update_check(required_version)
-
-    async def ensure_min_firmware_version(self, required_version: str, translation_key: str = "firmware_version_required", update_target_version: str = None) -> None:
-        """
-        Ensure the device firmware version is greater than required_version.
-        If not, triggers an update check for update_target_version (defaults to required_version).
-        Raises HomeAssistantError if requirements aren't met.
-
-        Args:
-            required_version: The version that the current firmware must be greater than.
-            translation_key: The translation key for the error message if version is insufficient.
-            update_target_version: The version to check for update against. Defaults to required_version.
-        """
-        if update_target_version is None:
-            update_target_version = required_version
-
-        software_revision = None
-        if self.device_info:
-            software_revision = self.device_info.get("sw_version")
-
-        if software_revision:
-            if not is_firmware_version_greater_than(software_revision, required_version):
-                _LOGGER.warning("Firmware version %s is not greater than %s. Triggering update check for %s.", software_revision, required_version, update_target_version)
-
-                update_triggered = await self.trigger_firmware_update_check(update_target_version)
-
-                if not update_triggered:
-                    raise HomeAssistantError(
-                        translation_domain=DOMAIN,
-                        translation_key="firmware_update_failed",
-                        translation_placeholders={"version": update_target_version}
-                    )
-
-                raise HomeAssistantError(
-                    translation_domain=DOMAIN,
-                    translation_key=translation_key,
-                    translation_placeholders={
-                        "current_version": software_revision,
-                        "required_version": required_version
-                    }
-                )
-        else:
-            _LOGGER.warning("Could not determine software revision to check against %s", required_version)
-
-    async def async_ensure_prerequisites(self, feature_name: str, min_hw: str, min_sw: str) -> None:
-        """
-        Ensure hardware and software prerequisites are met.
-        Raises HomeAssistantError if not.
-        """
-        hw_version = self.device_info.get("hw_version")
-        sw_version = self.device_info.get("sw_version")
-
-        # 1. Hardware Check
-        if hw_version:
-            try:
-                if version.parse(hw_version) < version.parse(min_hw):
-                    _LOGGER.error("Hardware version %s is insufficient for %s. Required: %s", hw_version, feature_name, min_hw)
-                    raise BoksError(
-                        "hardware_unsupported",
-                        {
-                            "feature": feature_name,
-                            "required_hw": min_hw,
-                            "current_hw": hw_version
-                        }
-                    )
-            except (version.InvalidVersion, ValueError) as e:
-                _LOGGER.warning("Error parsing HW version '%s': %s", hw_version, e)
-        else:
-             _LOGGER.warning("Could not determine HW version for %s prerequisites", feature_name)
-
-        # 2. Software Check
-        if sw_version:
-            if not is_firmware_version_greater_than(sw_version, min_sw) and sw_version != min_sw:
-                _LOGGER.error("Software version %s is insufficient for %s. Required: %s", sw_version, feature_name, min_sw)
-                # Trigger update check
-                await self.trigger_firmware_update_check(min_sw)
-
-                raise BoksError(
-                    "firmware_update_required",
-                    {
-                        "feature": feature_name,
-                        "required_sw": min_sw,
-                        "current_sw": sw_version
-                    }
-                )
-        else:
-             _LOGGER.warning("Could not determine SW version for %s prerequisites", feature_name)
