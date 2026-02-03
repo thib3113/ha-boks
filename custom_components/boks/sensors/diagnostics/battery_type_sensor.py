@@ -3,9 +3,9 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ADDRESS, EntityCategory
 
-from .retaining_sensor import BoksRetainingSensor
 from ...const import BOKS_HARDWARE_INFO
 from ...coordinator import BoksDataUpdateCoordinator
+from .retaining_sensor import BoksRetainingSensor
 
 
 class BoksBatteryTypeSensor(BoksRetainingSensor):

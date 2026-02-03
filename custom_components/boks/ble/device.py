@@ -14,12 +14,6 @@ from bleak_retry_connector import establish_connection
 from homeassistant.components import bluetooth
 from homeassistant.core import HomeAssistant
 
-from .const import (
-    BoksHistoryEvent,
-    BoksNotificationOpcode,
-    BoksServiceUUID,
-)
-from .protocol import BoksProtocol
 from ..const import (
     DELAY_RETRY,
     DOMAIN,
@@ -40,6 +34,12 @@ from ..packets.rx.error_response import ErrorResponsePacket
 from ..packets.rx.key_opening import KeyOpeningPacket
 from ..packets.rx.nfc_opening import NfcOpeningPacket
 from ..packets.rx.nfc_scan_result import NfcScanResultPacket
+from .const import (
+    BoksHistoryEvent,
+    BoksNotificationOpcode,
+    BoksServiceUUID,
+)
+from .protocol import BoksProtocol
 
 _LOGGER = logging.getLogger(__name__)
 

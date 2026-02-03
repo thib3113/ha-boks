@@ -7,9 +7,9 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.network import get_url
 from packaging import version
 
-from .manager import BoksUpdateManager
 from ..const import BOKS_HARDWARE_INFO, DOMAIN, UPDATE_NOTIFICATION_ID_PREFIX
 from ..errors import BoksError
+from .manager import BoksUpdateManager
 
 if TYPE_CHECKING:
     from ..coordinator import BoksDataUpdateCoordinator

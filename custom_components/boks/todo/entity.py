@@ -18,10 +18,10 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .storage import BoksParcelStore
 from ..const import DOMAIN, EVENT_LOGS_RETRIEVED, EVENT_PARCEL_COMPLETED
 from ..coordinator import BoksDataUpdateCoordinator
 from ..parcels.utils import format_parcel_item, generate_random_code, parse_parcel_string
+from .storage import BoksParcelStore
 
 _LOGGER = logging.getLogger(__name__)
 
