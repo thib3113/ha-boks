@@ -31,7 +31,7 @@ class BoksUpdateController:
         """
         # Retrieve robust device info (Cache -> Live -> Fallback)
         device_info = await self.coordinator.get_or_fetch_device_info()
-        
+
         hw_version = device_info.get("hw_version")
         sw_version = device_info.get("sw_version")
 
@@ -69,7 +69,7 @@ class BoksUpdateController:
 
             if not is_fw_ok(sw_version, min_sw):
                 _LOGGER.warning("Software version %s is insufficient for %s. Required: %s. Generating update package...", sw_version, feature_name, min_sw)
-                
+
                 # Automatically trigger the update package generation
                 self.hass.async_create_task(
                     self.generate_package(min_sw)

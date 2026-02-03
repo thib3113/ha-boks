@@ -5,10 +5,11 @@ import re
 BOKS_CHAR_MAP = "0123456789AB"
 
 # Regex to extract code from task summary
-# Matches "   123456 - Description", "123456: Description", "123456 Description", "123456...Description"
+# Matches "   123456 - Description", "123456: Description", "123456 Description", "123456"
 # Group 1 is the code, Group 2 is the description
-# Logic: Start of string -> Optional spaces -> 6 Hex chars -> Optional non-word chars (separators) -> Description
-PARCEL_REGEX = re.compile(r"^\s*([0-9A-B]{6})(?:[\W_]+)?(.*)", re.IGNORECASE)
+# Logic: Start -> 6 Hex chars -> Separator (space, punctuation) or End -> Description
+# We enforce a separator to avoid matching "aaaaaaa" as code "aaaaaa" + desc "a".
+PARCEL_REGEX = re.compile(r"^\s*([0-9AB]{6})(?:[\s:\-_.,!]+|$)(.*)", re.IGNORECASE)
 
 def parse_parcel_string(text: str) -> tuple[str | None, str]:
     """

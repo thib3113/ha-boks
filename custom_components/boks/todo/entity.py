@@ -18,10 +18,10 @@ from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
+from .storage import BoksParcelStore
 from ..const import DOMAIN, EVENT_LOGS_RETRIEVED, EVENT_PARCEL_COMPLETED
 from ..coordinator import BoksDataUpdateCoordinator
 from ..parcels.utils import format_parcel_item, generate_random_code, parse_parcel_string
-from .storage import BoksParcelStore
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -104,16 +104,33 @@ class BoksParcelTodoList(CoordinatorEntity, TodoListEntity):
         """Handle new logs received from the device via event bus."""
         try:
             _LOGGER.debug("BoksParcelTodoList received event: %s", event)
-            device_registry = dr.async_get(self.hass)
-            device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])})
 
-            if not device_entry:
-                _LOGGER.warning("Could not find device entry for address %s", self._entry.data[CONF_ADDRESS])
+            match = False
+            event_entry_id = event.data.get("config_entry_id")
+
+            if event_entry_id:
+                # Primary Check: Config Entry ID
+                if event_entry_id == self._entry.entry_id:
+                    match = True
+            else:
+                # Fallback Check: Device ID (only if config_entry_id is missing)
+                event_device_id = event.data.get("device_id")
+                if event_device_id:
+                     device_registry = dr.async_get(self.hass)
+                     device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self._entry.data[CONF_ADDRESS])})
+                     if device_entry and event_device_id == device_entry.id:
+                         match = True
+
+            if not match:
+                _LOGGER.debug(
+                    "Ignoring log event: No match found. "
+                    "Event config_entry_id=%s vs Self=%s. "
+                    "Event device_id=%s.",
+                    event_entry_id, self._entry.entry_id, event_device_id
+                )
                 return
 
-            # Ensure we only process logs for this specific device
-            if event.data.get("device_id") != device_entry.id:
-                return
+            _LOGGER.debug("Log event matched for entry %s", self._entry.entry_id)
 
             latest_logs = event.data.get("logs", [])
             if latest_logs:

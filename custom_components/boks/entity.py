@@ -5,7 +5,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .coordinator import BoksDataUpdateCoordinator
-from .util import process_device_info
 
 
 class BoksEntity(CoordinatorEntity):
@@ -21,11 +20,10 @@ class BoksEntity(CoordinatorEntity):
     @property
     def device_info(self):
         """Return device info."""
-        # Get base info using shared utility
-        device_info_service = self.coordinator.data.get("device_info_service") if self.coordinator.data else None
-        info = process_device_info(self._entry.data, device_info_service)
+        # Use centralized device info from coordinator
+        info = self.coordinator.device_info.copy()
 
-        # Add connection info which is specific to Entity Device Info (not always needed for Registry Update)
+        # Add connection info
         info["connections"] = {(dr.CONNECTION_BLUETOOTH, self._entry.data[CONF_ADDRESS])}
 
         return info

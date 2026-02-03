@@ -72,6 +72,7 @@ function updateUIStrings() {
     document.getElementById('ui-download-link').href = CONFIG.firmwareFile;
 
     if (elements.backupLink) {
+        /* 
         const backupUrl = new URL("https://thib3113.github.io/bwb/index.html");
         // Add page target for the SPA router
         backupUrl.searchParams.set("page", "update");
@@ -82,6 +83,11 @@ function updateUIStrings() {
         
         elements.backupLink.textContent = t('backup_link');
         elements.backupLink.href = backupUrl.toString();
+        */
+        elements.backupLink.textContent = t('backup_not_ready');
+        elements.backupLink.style.color = "var(--text-secondary)";
+        elements.backupLink.style.cursor = "default";
+        elements.backupLink.onclick = (e) => e.preventDefault();
     }
 
     document.getElementById('ui-label-name').textContent = t('label_name');

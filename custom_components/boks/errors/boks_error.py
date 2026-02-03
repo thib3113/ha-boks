@@ -1,6 +1,8 @@
 """Base exception class for Boks errors."""
 from homeassistant.exceptions import HomeAssistantError
+
 from ..const import DOMAIN
+
 
 class BoksError(HomeAssistantError):
     """Base class for Boks errors."""

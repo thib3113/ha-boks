@@ -17,6 +17,8 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.util import dt as dt_util
 
 from .ble import BoksBluetoothDevice
+from .codes.codes_controller import BoksCodesController
+from .commands.commands_controller import BoksCommandsController
 from .const import (
     BOKS_HARDWARE_INFO,
     CONF_ANONYMIZE_LOGS,
@@ -30,7 +32,9 @@ from .const import (
 from .errors import BoksError
 from .logic.anonymizer import BoksAnonymizer
 from .logic.log_processor import BoksLogProcessor
+from .nfc.nfc_controller import BoksNfcController
 from .packets.base import BoksRXPacket
+from .parcels.parcels_controller import BoksParcelsController
 from .updates.logic import BoksUpdateController
 from .util import process_device_info
 
@@ -48,6 +52,10 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             anonymize_logs=entry.options.get(CONF_ANONYMIZE_LOGS, False)
         )
         self.updates = BoksUpdateController(hass, self)
+        self.nfc = BoksNfcController(hass, self)
+        self.codes = BoksCodesController(hass, self)
+        self.parcels = BoksParcelsController(hass, self)
+        self.commands = BoksCommandsController(hass, self)
         # Initialize log processor
         self.log_processor = BoksLogProcessor(hass, entry.data[CONF_ADDRESS])
 
@@ -93,10 +101,10 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
     def get_text(self, category: str, key: str, **kwargs) -> str:
         """Get a translated string."""
         base_key = f"component.{DOMAIN}.{category}.{key}"
-        
+
         # Try direct key first
         text = self._translations.get(base_key)
-        
+
         # If not found (common for exceptions which have nested 'message'), try appending .message
         if not text:
             text = self._translations.get(f"{base_key}.message")
@@ -147,7 +155,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             if device_entry:
                 if not info["sw_version"]:
                     info["sw_version"] = device_entry.sw_version
-                
+
                 if not info["hw_version"]:
                     info["hw_version"] = device_entry.hw_version
 
@@ -158,7 +166,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                             info["internal_revision"] = rev_id
                             _LOGGER.info("Offline recovery: Deduced internal revision '%s' from registry hardware version '%s'", rev_id, info["hw_version"])
                             break
-        
+
         return info
 
     async def async_enrich_log_entry(self, log: BoksRXPacket | dict, translations: dict[str, str] = None) -> dict:
@@ -303,9 +311,15 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         # Enrich logs
         enriched_logs, has_power_on = await self._enrich_logs(valid_logs)
 
-        # Fire event
+        # Resolve real Device ID from registry
+        device_registry = dr.async_get(self.hass)
+        device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self.entry.data[CONF_ADDRESS])})
+        real_device_id = device_entry.id if device_entry else None
+
+        # Fire event with correct IDs
         event_data = {
-            "device_id": self.entry.entry_id,
+            "device_id": real_device_id,           # Real Device Registry ID
+            "config_entry_id": self.entry.entry_id, # Config Entry ID
             "address": self.entry.data[CONF_ADDRESS],
             "logs": enriched_logs
         }
