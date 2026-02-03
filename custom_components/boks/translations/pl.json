@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "Ten tag NFC jest już zarejestrowany w urządzeniu Boks."
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nie można wygenerować aktualizacji dla wersji {target_version}, ponieważ jest ona starsza niż aktualnie zainstalowana wersja {current_version}. Downgrade nie jest obsługiwany."
+    },
+    "fw_download_failed": {
+      "message": "Pobieranie oprogramowania układowego nie powiodło się: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Nie udało się określić wewnętrznej wersji oprogramowania układowego (identyfikator sprzętu). Upewnij się, że urządzenie jest osiągalne."
+    },
+    "fw_hw_unsupported": {
+      "message": "Nieobsługiwany sprzęt lub nieznana wersja: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "Pakiet aktualizacji dla {target_version} jest gotowy:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Aktualizacja Boks {target_version} gotowa"
+    },
+    "fw_version_not_found": {
+      "message": "Wersja {version} niedostępna dla sprzętu {revision}"
     }
   },
   "options": {
@@ -611,6 +632,16 @@
     "ask_door_status": {
       "name": "Sprawdź status drzwi",
       "description": "Ręcznie odpytaj Boks, aby sprawdzić, czy drzwi są otwarte czy zamknięte."
+    },
+    "generate_update_package": {
+      "name": "Generuj pakiet aktualizacji",
+      "description": "Przygotowuje lokalną stronę internetową do aktualizacji oprogramowania układowego Boks przez Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Wersja docelowa",
+          "description": "Wersja oprogramowania układowego do pobrania (np. 4.3.3)."
+        }
+      }
     }
   }
 }

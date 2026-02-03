@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "Šis NFC tags jau ir reģistrēts Boks."
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nevar ģenerēt atjauninājumu versijai {target_version}, jo tā ir vecāka par pašlaik instalēto versiju {current_version}. Versijas pazemināšana netiek atbalstīta."
+    },
+    "fw_download_failed": {
+      "message": "Neizdevās lejupielādēt aparātprogrammatūru: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Neizdevās noteikt iekšējo aparātprogrammatūras revīziju (aparatūras ID). Pārliecinieties, vai ierīce ir sasniedzama."
+    },
+    "fw_hw_unsupported": {
+      "message": "Neatbalstīta aparatūra vai nezināma revīzija: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "Atjaunināšanas pakotne versijai {target_version} ir gatava:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Boks atjauninājums {target_version} gatavs"
+    },
+    "fw_version_not_found": {
+      "message": "Versija {version} nav pieejama aparatūrai {revision}"
     }
   },
   "options": {
@@ -611,6 +632,16 @@
     "ask_door_status": {
       "name": "Pārbaudīt durvju statusu",
       "description": "Manuāli aptaujāt Boks, lai pārbaudītu, vai durvis ir atvērtas vai aizvērtas."
+    },
+    "generate_update_package": {
+      "name": "Ģenerēt atjaunināšanas pakotni",
+      "description": "Sagatavo vietējo tīmekļa lapu Boks aparātprogrammatūras atjaunināšanai, izmantojot Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Mērķa versija",
+          "description": "Lejupielādējamā aparātprogrammatūras versija (piemēram, 4.3.3)."
+        }
+      }
     }
   }
 }

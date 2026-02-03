@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "Tämä NFC-tunniste on jo rekisteröity Boks-laitteeseen."
+    },
+    "fw_downgrade_blocked": {
+      "message": "Päivitystä versioon {target_version} ei voida luoda, koska se on vanhempi kuin tällä hetkellä asennettu versio {current_version}. Versioiden vaihtamista vanhempaan ei tueta."
+    },
+    "fw_download_failed": {
+      "message": "Laiteohjelmiston lataaminen epäonnistui: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Sisäistä laiteohjelmistoversiota (laitteistotunnus) ei voitu määrittää. Varmista, että laite on tavoitettavissa."
+    },
+    "fw_hw_unsupported": {
+      "message": "Laitteistoa ei tueta tai tuntematon versio: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "Päivityspaketti versiolle {target_version} on valmis:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Boks-päivitys {target_version} valmis"
+    },
+    "fw_version_not_found": {
+      "message": "Versiota {version} ei ole saatavilla laitteistolle {revision}"
     }
   },
   "options": {
@@ -610,6 +631,16 @@
     "ask_door_status": {
       "name": "Tarkista oven tila",
       "description": "Kysy Boksista manuaalisesti, onko ovi auki vai kiinni."
+    },
+    "generate_update_package": {
+      "name": "Luo päivityspaketti",
+      "description": "Valmistelee paikallisen verkkosivun Boks-laiteohjelmiston päivittämiseksi Bluetoothin kautta.",
+      "fields": {
+        "version": {
+          "name": "Kohdeversio",
+          "description": "Ladattava laiteohjelmistoversio (esim. 4.3.3)."
+        }
+      }
     }
   }
 }

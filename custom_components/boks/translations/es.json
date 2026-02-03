@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "Esta etiqueta NFC ya está registrada en el Boks."
+    },
+    "fw_downgrade_blocked": {
+      "message": "No se puede generar la actualización para la versión {target_version} porque es más antigua que la versión instalada actualmente {current_version}. No se admiten degradaciones."
+    },
+    "fw_download_failed": {
+      "message": "Error al descargar el firmware: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "No se pudo determinar la revisión interna del firmware (ID de hardware). Asegúrese de que el dispositivo sea accesible."
+    },
+    "fw_hw_unsupported": {
+      "message": "Hardware no compatible o revisión desconocida: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "El paquete de actualización para {target_version} está listo:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Actualización de Boks {target_version} lista"
+    },
+    "fw_version_not_found": {
+      "message": "Versión {version} no disponible para el hardware {revision}"
     }
   },
   "options": {
@@ -611,6 +632,16 @@
     "ask_door_status": {
       "name": "Verificar estado de la puerta",
       "description": "Consulta manualmente el Boks para comprobar si la puerta está abierta o cerrada."
+    },
+    "generate_update_package": {
+      "name": "Generar paquete de actualización",
+      "description": "Prepara una página web local para actualizar el firmware de Boks a través de Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Versión de destino",
+          "description": "La versión de firmware para descargar (por ejemplo, 4.3.3)."
+        }
+      }
     }
   }
 }

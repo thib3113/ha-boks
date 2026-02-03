@@ -278,6 +278,27 @@
     },
     "maintenance_error_title": {
       "message": "Boks Maintenance Error"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Cannot generate update for version {target_version} because it is older than the currently installed version {current_version}. Downgrades are not supported."
+    },
+    "fw_download_failed": {
+      "message": "Failed to download firmware: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Could not determine internal firmware revision (Hardware ID). Ensure device is reachable."
+    },
+    "fw_hw_unsupported": {
+      "message": "Unsupported Hardware or unknown revision: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "Update package for {target_version} is ready:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Boks Update {target_version} Ready"
+    },
+    "fw_version_not_found": {
+      "message": "Version {version} not available for hardware {revision}"
     }
   },
   "options": {
@@ -610,6 +631,16 @@
     "ask_door_status": {
       "name": "Check Door Status",
       "description": "Manually poll the Boks to check if the door is open or closed."
+    },
+    "generate_update_package": {
+      "name": "Generate Update Package",
+      "description": "Prepares a local webpage to update Boks firmware via Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Target Version",
+          "description": "The firmware version to download (e.g., 4.3.3)."
+        }
+      }
     }
   }
 }

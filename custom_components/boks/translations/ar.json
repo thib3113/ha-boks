@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "علامة NFC هذه مسجلة بالفعل في Boks."
+    },
+    "fw_downgrade_blocked": {
+      "message": "تعذر إنشاء التحديث للإصدار {target_version} لأنه أقدم من الإصدار المثبت حاليًا {current_version}. التراجع عن الإصدارات غير مدعوم."
+    },
+    "fw_download_failed": {
+      "message": "فشل تحميل البرنامج الثابت: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "تعذر تحديد المراجعة الداخلية للبرنامج الثابت (معرف الجهاز). تأكد من إمكانية الوصول إلى الجهاز."
+    },
+    "fw_hw_unsupported": {
+      "message": "جهاز غير مدعوم أو مراجعة غير معروفة: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "حزمة التحديث للإصدار {target_version} جاهزة:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "تحديث Boks {target_version} جاهز"
+    },
+    "fw_version_not_found": {
+      "message": "الإصدار {version} غير متوفر للجهاز {revision}"
     }
   },
   "options": {
@@ -611,6 +632,16 @@
     "ask_door_status": {
       "name": "التحقق من حالة الباب",
       "description": "استطلاع Boks يدويًا للتحقق مما إذا كان الباب مفتوحًا أم مغلقًا."
+    },
+    "generate_update_package": {
+      "name": "إنشاء حزمة تحديث",
+      "description": "تجهيز صفحة ويب محلية لتحديث البرنامج الثابت لـ Boks عبر البلوتوث.",
+      "fields": {
+        "version": {
+          "name": "الإصدار المستهدف",
+          "description": "إصدار البرنامج الثابت المطلوب تحميله (على سبيل المثال 4.3.3)."
+        }
+      }
     }
   }
 }

@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "Acest tag NFC este deja înregistrat în Boks."
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nu se poate genera actualizarea pentru versiunea {target_version} deoarece este mai veche decât versiunea instalată curent {current_version}. Downgrade-ul nu este acceptat."
+    },
+    "fw_download_failed": {
+      "message": "Descărcarea firmware-ului a eșuat: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Nu s-a putut determina revizia internă a firmware-ului (ID hardware). Asigurați-vă că dispozitivul este accesibil."
+    },
+    "fw_hw_unsupported": {
+      "message": "Hardware neacceptat sau revizie necunoscută: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "Pachetul de actualizare pentru {target_version} este gata:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Actualizare Boks {target_version} gata"
+    },
+    "fw_version_not_found": {
+      "message": "Versiunea {version} nu este disponibilă pentru hardware-ul {revision}"
     }
   },
   "options": {
@@ -610,6 +631,16 @@
     "ask_door_status": {
       "name": "Verifică starea ușii",
       "description": "Interoghează manual Boks pentru a verifica dacă ușa este deschisă sau închisă."
+    },
+    "generate_update_package": {
+      "name": "Generați pachetul de actualizare",
+      "description": "Pregătește o pagină web locală pentru a actualiza firmware-ul Boks prin Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Versiune țintă",
+          "description": "Versiunea de firmware de descărcat (de ex. 4.3.3)."
+        }
+      }
     }
   }
 }

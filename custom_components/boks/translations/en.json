@@ -108,70 +108,198 @@
     }
   },
   "exceptions": {
-    "cannot_connect": { "message": "Unable to connect to Boks API." },
-    "invalid_auth": { "message": "Invalid email or password." },
-    "boks_not_found": { "message": "No Boks found on this account matching the MAC address." },
-    "cannot_retrieve_key": { "message": "Could not retrieve the configuration key from the cloud." },
-    "device_not_found": { "message": "Device not found in the list." },
-    "device_not_in_cache": { "message": "Device not found in Bluetooth cache. No connectable path available." },
-    "no_devices_found": { "message": "No Boks devices found on this account." },
-    "connection_error": { "message": "Connection error while fetching devices." },
-    "invalid_credential_format": { "message": "Invalid credential format. Must be 8/64 hex chars" },
-    "invalid_master_code_format": { "message": "Invalid master code format. Must be a 6-digit code (0-9, A, B)." },
-    "unknown": { "message": "An unknown error occurred." },
-    "pin_code_invalid_length": { "message": "PIN code must be 6 characters" },
-    "pin_code_invalid": { "message": "Invalid PIN code" },
-    "unauthorized": { "message": "Unauthorized" },
-    "config_key_required": { "message": "Configuration Key required for this operation" },
-    "invalid_code_format": { "message": "Invalid Code format (must be 6 characters from 0-9, A, B)" },
-    "create_code_failed": { "message": "Failed to create code (Device returned error)" },
-    "change_master_code_failed": { "message": "Failed to change master code (Device returned error)" },
-    "unknown_code_type": { "message": "Unknown code type" },
-    "unknown_device": { "message": "Device not seen by Bluetooth adapter." },
-    "not_connectable": { "message": "The detected device is not connectable (probably via a passive proxy)." },
-    "todo_entity_not_found_for_device": { "message": "No Todo entity found for device {target_device_id}" },
-    "target_devices_not_boks": { "message": "Target device(s) {device_ids} are not Boks devices." },
-    "target_entities_not_boks": { "message": "Target entity(s) {entity_ids} belong to non-Boks devices." },
-    "target_device_missing": { "message": "Target Boks device not found or not specified. Please specify a device_id or entity_id." },
-    "multiple_devices_found": { "message": "Multiple Boks devices found. Please specify a target entity or device." },
-    "no_devices_configured": { "message": "No Boks devices configured." },
-    "cannot_resolve_todo": { "message": "Could not resolve a target Boks Todo list." },
-    "todo_integration_not_loaded": { "message": "Todo integration not loaded." },
-    "todo_entity_not_found": { "message": "Todo entity {target_entity_id} not found or not loaded." },
-    "config_key_invalid_length": { "message": "Config key must be exactly 8 characters long." },
-    "ble_client_none": { "message": "BLE client is None, cannot send command" },
-    "timeout_waiting_response": { "message": "Timeout waiting for response to opcode {opcode}" },
-    "ble_error": { "message": "BLE Error: {error}" },
-    "ble_internal_error": { "message": "BLE Internal Error: {error}" },
-    "entity_not_parcel_list": { "message": "Entity {target_entity_id} is not a Boks Parcel List." },
-    "maintenance_already_running": { "message": "A maintenance task is already in progress. Please wait for it to finish." },
-    "delete_code_failed": { "message": "Failed to delete code (Device returned error)" },
-    "set_configuration_failed": { "message": "Failed to set configuration {config_type} (Device returned error)" },
-    "laposte_firmware_version_required": { "message": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}" },
-    "firmware_version_required": { "message": "Firmware version must be greater than {required_version} to use this feature. Current version: {current_version}" },
-    "firmware_update_failed": { "message": "Failed to trigger firmware update for version {version}" },
-    "door_opened_recently": { "message": "Door was opened recently. Please wait {seconds} seconds before opening again." },
-    "opening_failed_no_code": { "message": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN." },
-    "opening_failed_no_code_no_key": { "message": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available)." },
-    "hardware_unsupported": { "message": "The {feature} feature requires Boks v{required_hw} or higher. Your current version is v{current_hw}." },
-    "firmware_update_required": { "message": "The {feature} feature requires firmware version {required_sw}. Your current version is {current_sw}." },
-    "item_not_found": { "message": "Item not found" },
-    "operation_timed_out": { "message": "The operation timed out after {seconds} seconds" },
-    "busy": { "message": "Device busy: Another operation is already listening for notifications." },
-    "lock_entity_not_found": { "message": "Lock entity not found for this device." },
-    "invalid_uid_format": { "message": "Invalid NFC UID format." },
-    "invalid_master_code_index": { "message": "Invalid master code index (must be between 0 and 255)." },
-    "nfc_tag_already_exists": { "message": "This NFC tag is already registered in the Boks." },
-    "maintenance_failed_msg": { "message": "Maintenance Failed: {error}" },
-    "maintenance_error_title": { "message": "Boks Maintenance Error" },
-    "maintenance_error_msg": { "message": "Master Code Cleaning Failed at index {current_idx}.\nError: {error}" },
-    "fw_hw_rev_unknown": { "message": "Could not determine internal firmware revision (Hardware ID). Ensure device is reachable." },
-    "fw_hw_unsupported": { "message": "Unsupported Hardware or unknown revision: {revision}" },
-    "fw_version_not_found": { "message": "Version {version} not available for hardware {revision}" },
-    "fw_download_failed": { "message": "Failed to download firmware: {status}" },
-    "fw_downgrade_blocked": { "message": "Cannot generate update for version {target_version} because it is older than the currently installed version {current_version}. Downgrades are not supported." },
-    "fw_update_package_ready_msg": { "message": "Update package for {target_version} is ready:\n{url}" },
-    "fw_update_package_ready_title": { "message": "Boks Update {target_version} Ready" }
+    "cannot_connect": {
+      "message": "Unable to connect to Boks API."
+    },
+    "invalid_auth": {
+      "message": "Invalid email or password."
+    },
+    "boks_not_found": {
+      "message": "No Boks found on this account matching the MAC address."
+    },
+    "cannot_retrieve_key": {
+      "message": "Could not retrieve the configuration key from the cloud."
+    },
+    "device_not_found": {
+      "message": "Device not found in the list."
+    },
+    "device_not_in_cache": {
+      "message": "Device not found in Bluetooth cache. No connectable path available."
+    },
+    "no_devices_found": {
+      "message": "No Boks devices found on this account."
+    },
+    "connection_error": {
+      "message": "Connection error while fetching devices."
+    },
+    "invalid_credential_format": {
+      "message": "Invalid credential format. Must be 8/64 hex chars"
+    },
+    "invalid_master_code_format": {
+      "message": "Invalid master code format. Must be a 6-digit code (0-9, A, B)."
+    },
+    "unknown": {
+      "message": "An unknown error occurred."
+    },
+    "pin_code_invalid_length": {
+      "message": "PIN code must be 6 characters"
+    },
+    "pin_code_invalid": {
+      "message": "Invalid PIN code"
+    },
+    "unauthorized": {
+      "message": "Unauthorized"
+    },
+    "config_key_required": {
+      "message": "Configuration Key required for this operation"
+    },
+    "invalid_code_format": {
+      "message": "Invalid Code format (must be 6 characters from 0-9, A, B)"
+    },
+    "create_code_failed": {
+      "message": "Failed to create code (Device returned error)"
+    },
+    "change_master_code_failed": {
+      "message": "Failed to change master code (Device returned error)"
+    },
+    "unknown_code_type": {
+      "message": "Unknown code type"
+    },
+    "unknown_device": {
+      "message": "Device not seen by Bluetooth adapter."
+    },
+    "not_connectable": {
+      "message": "The detected device is not connectable (probably via a passive proxy)."
+    },
+    "todo_entity_not_found_for_device": {
+      "message": "No Todo entity found for device {target_device_id}"
+    },
+    "target_devices_not_boks": {
+      "message": "Target device(s) {device_ids} are not Boks devices."
+    },
+    "target_entities_not_boks": {
+      "message": "Target entity(s) {entity_ids} belong to non-Boks devices."
+    },
+    "target_device_missing": {
+      "message": "Target Boks device not found or not specified. Please specify a device_id or entity_id."
+    },
+    "multiple_devices_found": {
+      "message": "Multiple Boks devices found. Please specify a target entity or device."
+    },
+    "no_devices_configured": {
+      "message": "No Boks devices configured."
+    },
+    "cannot_resolve_todo": {
+      "message": "Could not resolve a target Boks Todo list."
+    },
+    "todo_integration_not_loaded": {
+      "message": "Todo integration not loaded."
+    },
+    "todo_entity_not_found": {
+      "message": "Todo entity {target_entity_id} not found or not loaded."
+    },
+    "config_key_invalid_length": {
+      "message": "Config key must be exactly 8 characters long."
+    },
+    "ble_client_none": {
+      "message": "BLE client is None, cannot send command"
+    },
+    "timeout_waiting_response": {
+      "message": "Timeout waiting for response to opcode {opcode}"
+    },
+    "ble_error": {
+      "message": "BLE Error: {error}"
+    },
+    "ble_internal_error": {
+      "message": "BLE Internal Error: {error}"
+    },
+    "entity_not_parcel_list": {
+      "message": "Entity {target_entity_id} is not a Boks Parcel List."
+    },
+    "maintenance_already_running": {
+      "message": "A maintenance task is already in progress. Please wait for it to finish."
+    },
+    "delete_code_failed": {
+      "message": "Failed to delete code (Device returned error)"
+    },
+    "set_configuration_failed": {
+      "message": "Failed to set configuration {config_type} (Device returned error)"
+    },
+    "laposte_firmware_version_required": {
+      "message": "Firmware version must be greater than {required_version} to enable La Poste feature. Current version: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "Firmware version must be greater than {required_version} to use this feature. Current version: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Failed to trigger firmware update for version {version}"
+    },
+    "door_opened_recently": {
+      "message": "Door was opened recently. Please wait {seconds} seconds before opening again."
+    },
+    "opening_failed_no_code": {
+      "message": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Opening failed: No PIN code provided, no Master Code stored, and could not generate a single-use PIN (No Config Key available)."
+    },
+    "hardware_unsupported": {
+      "message": "The {feature} feature requires Boks v{required_hw} or higher. Your current version is v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "The {feature} feature requires firmware version {required_sw}. Your current version is {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Item not found"
+    },
+    "operation_timed_out": {
+      "message": "The operation timed out after {seconds} seconds"
+    },
+    "busy": {
+      "message": "Device busy: Another operation is already listening for notifications."
+    },
+    "lock_entity_not_found": {
+      "message": "Lock entity not found for this device."
+    },
+    "invalid_uid_format": {
+      "message": "Invalid NFC UID format."
+    },
+    "invalid_master_code_index": {
+      "message": "Invalid master code index (must be between 0 and 255)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "This NFC tag is already registered in the Boks."
+    },
+    "maintenance_failed_msg": {
+      "message": "Maintenance Failed: {error}"
+    },
+    "maintenance_error_title": {
+      "message": "Boks Maintenance Error"
+    },
+    "maintenance_error_msg": {
+      "message": "Master Code Cleaning Failed at index {current_idx}.\nError: {error}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Could not determine internal firmware revision (Hardware ID). Ensure device is reachable."
+    },
+    "fw_hw_unsupported": {
+      "message": "Unsupported Hardware or unknown revision: {revision}"
+    },
+    "fw_version_not_found": {
+      "message": "Version {version} not available for hardware {revision}"
+    },
+    "fw_download_failed": {
+      "message": "Failed to download firmware: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Cannot generate update for version {target_version} because it is older than the currently installed version {current_version}. Downgrades are not supported."
+    },
+    "fw_update_package_ready_msg": {
+      "message": "Update package for {target_version} is ready:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Boks Update {target_version} Ready"
+    }
   },
   "options": {
     "step": {
@@ -196,14 +324,22 @@
   },
   "entity": {
     "button": {
-      "sync_logs": { "name": "Sync Logs" }
+      "sync_logs": {
+        "name": "Sync Logs"
+      }
     },
     "lock": {
-      "door": { "name": "Door" }
+      "door": {
+        "name": "Door"
+      }
     },
     "sensor": {
-      "battery": { "name": "Battery" },
-      "last_connection": { "name": "Last Connection" },
+      "battery": {
+        "name": "Battery"
+      },
+      "last_connection": {
+        "name": "Last Connection"
+      },
       "last_event": {
         "name": "Last event",
         "state": {
@@ -244,8 +380,12 @@
           "power_off_reason_8": "LPCOMP wakeup"
         }
       },
-      "master_codes_count": { "name": "Master codes" },
-      "single_use_codes_count": { "name": "Single use codes" },
+      "master_codes_count": {
+        "name": "Master codes"
+      },
+      "single_use_codes_count": {
+        "name": "Single use codes"
+      },
       "battery_format": {
         "name": "Battery Format",
         "state": {
@@ -265,14 +405,30 @@
           "other": "Other"
         }
       },
-      "battery_level_first": { "name": "Battery Voltage (First)" },
-      "battery_level_min": { "name": "Battery Voltage (Min)" },
-      "battery_level_mean": { "name": "Battery Voltage (Mean)" },
-      "battery_level_max": { "name": "Battery Voltage (Max)" },
-      "battery_level_last": { "name": "Battery Voltage (Last)" },
-      "battery_level_t1": { "name": "Battery Voltage (T1)" },
-      "battery_level_t5": { "name": "Battery Voltage (T5)" },
-      "battery_level_t10": { "name": "Battery Voltage (T10)" },
+      "battery_level_first": {
+        "name": "Battery Voltage (First)"
+      },
+      "battery_level_min": {
+        "name": "Battery Voltage (Min)"
+      },
+      "battery_level_mean": {
+        "name": "Battery Voltage (Mean)"
+      },
+      "battery_level_max": {
+        "name": "Battery Voltage (Max)"
+      },
+      "battery_level_last": {
+        "name": "Battery Voltage (Last)"
+      },
+      "battery_level_t1": {
+        "name": "Battery Voltage (T1)"
+      },
+      "battery_level_t5": {
+        "name": "Battery Voltage (T5)"
+      },
+      "battery_level_t10": {
+        "name": "Battery Voltage (T10)"
+      },
       "maintenance_status": {
         "name": "Maintenance Status",
         "state": {
@@ -280,10 +436,14 @@
           "cleaning": "Cleaning Master Codes"
         }
       },
-      "log_count": { "name": "Log Count" }
+      "log_count": {
+        "name": "Log Count"
+      }
     },
     "todo": {
-      "parcels": { "name": "Parcels" }
+      "parcels": {
+        "name": "Parcels"
+      }
     },
     "event": {
       "logs": {
@@ -452,7 +612,10 @@
           "name": "Tag UID",
           "description": "The Unique ID of the tag (e.g. A1B2C3D4)."
         },
-        "name": { "name": "Friendly Name", "description": "Optional name to save in HA Tag Registry." }
+        "name": {
+          "name": "Friendly Name",
+          "description": "Optional name to save in HA Tag Registry."
+        }
       }
     },
     "nfc_unregister_tag": {
@@ -465,20 +628,19 @@
         }
       }
     },
-        "ask_door_status": {
-          "name": "Check Door Status",
-          "description": "Manually poll the Boks to check if the door is open or closed."
-        },
-        "generate_update_package": {
-          "name": "Generate Update Package",
-          "description": "Prepares a local webpage to update Boks firmware via Bluetooth.",
-          "fields": {
-            "version": {
-              "name": "Target Version",
-              "description": "The firmware version to download (e.g., 4.3.3)."
-            }
-          }
+    "ask_door_status": {
+      "name": "Check Door Status",
+      "description": "Manually poll the Boks to check if the door is open or closed."
+    },
+    "generate_update_package": {
+      "name": "Generate Update Package",
+      "description": "Prepares a local webpage to update Boks firmware via Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Target Version",
+          "description": "The firmware version to download (e.g., 4.3.3)."
         }
       }
     }
-    
+  }
+}

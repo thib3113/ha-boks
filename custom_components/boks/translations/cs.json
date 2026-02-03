@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "Tento NFC tag je již na Boks zaregistrován."
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nelze generovat aktualizaci pro verzi {target_version}, protože je starší než aktuálně nainstalovaná verze {current_version}. Downgrade není podporován."
+    },
+    "fw_download_failed": {
+      "message": "Stažení firmwaru se nezdařilo: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Nepodařilo se určit interní revizi firmwaru (ID hardwaru). Ujistěte se, že je zařízení dostupné."
+    },
+    "fw_hw_unsupported": {
+      "message": "Nepodporovaný hardware nebo neznámá revize: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "Aktualizační balíček pro verzi {target_version} je připraven:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Aktualizace Boks {target_version} připravena"
+    },
+    "fw_version_not_found": {
+      "message": "Verze {version} není k dispozici pro hardware {revision}"
     }
   },
   "options": {
@@ -611,6 +632,16 @@
     "ask_door_status": {
       "name": "Zkontrolovat stav dveří",
       "description": "Ručně se dotázat Boks, zda jsou dveře otevřené nebo zavřené."
+    },
+    "generate_update_package": {
+      "name": "Generovat aktualizační balíček",
+      "description": "Připraví místní webovou stránku pro aktualizaci firmwaru Boks přes Bluetooth.",
+      "fields": {
+        "version": {
+          "name": "Cílová verze",
+          "description": "Verze firmwaru ke stažení (např. 4.3.3)."
+        }
+      }
     }
   }
 }

@@ -278,6 +278,27 @@
     },
     "nfc_tag_already_exists": {
       "message": "Ez az NFC kártya már regisztrálva van a Bokszban."
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nem hozható létre frissítés a(z) {target_version} verzióhoz, mert az régebbi, mint a jelenleg telepített {current_version} verzió. A korábbi verzióra való visszaállás nem támogatott."
+    },
+    "fw_download_failed": {
+      "message": "A firmware letöltése sikertelen: {status}"
+    },
+    "fw_hw_rev_unknown": {
+      "message": "Nem sikerült meghatározni a belső firmware verziót (Hardware ID). Győződjön meg arról, hogy az eszköz elérhető."
+    },
+    "fw_hw_unsupported": {
+      "message": "Nem támogatott hardver vagy ismeretlen verzió: {revision}"
+    },
+    "fw_update_package_ready_msg": {
+      "message": "A frissítési csomag a(z) {target_version} verzióhoz elkészült:\n{url}"
+    },
+    "fw_update_package_ready_title": {
+      "message": "Boks frissítés {target_version} kész"
+    },
+    "fw_version_not_found": {
+      "message": "A(z) {version} verzió nem érhető el a(z) {revision} hardverhez"
     }
   },
   "options": {
@@ -611,6 +632,16 @@
     "ask_door_status": {
       "name": "Ajtó állapotának ellenőrzése",
       "description": "Manuálisan lekérdezi a Boks-ot, hogy ellenőrizze, az ajtó nyitva van-e vagy csukva."
+    },
+    "generate_update_package": {
+      "name": "Frissítési csomag létrehozása",
+      "description": "Helyi weboldalt készít a Boks firmware Bluetooth-on keresztüli frissítéséhez.",
+      "fields": {
+        "version": {
+          "name": "Célverzió",
+          "description": "A letöltendő firmware verziója (pl. 4.3.3)."
+        }
+      }
     }
   }
 }
