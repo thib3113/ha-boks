@@ -806,6 +806,15 @@ class BoksBluetoothDevice:
         """Delete a PIN code."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
+
+        initial_single_count = None
+        if type in ("single", "multi"):
+             try:
+                 counts = await self.get_code_counts()
+                 initial_single_count = counts.get("single_use")
+             except Exception as e:
+                 _LOGGER.debug("Could not fetch initial counts for deletion workaround: %s", e)
+
         if type == "master":
             from ..packets.tx.delete_master_code import DeleteMasterCodePacket
             packet = DeleteMasterCodePacket(self._config_key_str, int(index_or_code))
@@ -816,6 +825,21 @@ class BoksBluetoothDevice:
             from ..packets.tx.delete_multi_code import DeleteMultiUseCodePacket
             packet = DeleteMultiUseCodePacket(self._config_key_str, str(index_or_code))
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
+
+        if resp and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
+            return True
+
+        if resp and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_ERROR and type in ("single", "multi") and initial_single_count is not None:
+             _LOGGER.debug("Firmware reported error for %s deletion, verifying counts...", type)
+             try:
+                 new_counts = await self.get_code_counts()
+                 new_single_count = new_counts.get("single_use")
+                 if new_single_count is not None and new_single_count < initial_single_count:
+                     _LOGGER.info("Code deletion confirmed via count decrease (from %d to %d) despite firmware error report.", initial_single_count, new_single_count)
+                     return True
+             except Exception as e:
+                 _LOGGER.debug("Could not fetch final counts for deletion workaround: %s", e)
+
         return resp is not None and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS
 
     async def set_configuration(self, config_type: int, value: bool) -> bool:
