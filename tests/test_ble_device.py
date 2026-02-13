@@ -50,6 +50,9 @@ async def test_device_connect_success(hass: HomeAssistant):
 
         assert device.is_connected
         mock_client.start_notify.assert_called()
+        
+        # Cleanup timer for tests
+        device._stop_autokill_timer()
 
 async def test_device_disconnect(hass: HomeAssistant):
     """Test disconnect."""
@@ -149,6 +152,9 @@ async def test_notification_handler_door_status(hass: HomeAssistant):
 
     assert device._door_status is True
     callback.assert_called_with({"door_open": True})
+    
+    # Cleanup timer for tests
+    device._stop_autokill_timer()
 
 async def test_set_configuration_success(hass: HomeAssistant):
     """Test successful set_configuration."""
