@@ -42,6 +42,10 @@ from .const import (
 )
 from .protocol import BoksProtocol
 
+# Pre-compute history events set for performance
+BOKS_HISTORY_EVENTS_SET = set(BoksHistoryEvent)
+
+
 _LOGGER = logging.getLogger(__name__)
 
 class BoksBluetoothDevice:
@@ -840,7 +844,7 @@ class BoksBluetoothDevice:
         def log_callback(opcode, data):
             if opcode == BoksHistoryEvent.LOG_END_HISTORY:
                 logs_received_event.set()
-            elif opcode in list(BoksHistoryEvent):
+            elif opcode in BOKS_HISTORY_EVENTS_SET:
                 p = PacketFactory.from_rx_data(data)
                 if p:
                     logs.append({"opcode": p.opcode, "payload": p.payload, "timestamp": int(time.time()) - getattr(p, 'age', 0), "event_type": p.event_type, "description": p.opcode.name.lower() if hasattr(p.opcode, 'name') else "unknown", "extra_data": p.extra_data})
