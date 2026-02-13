@@ -15,6 +15,7 @@ Ce guide est divisé en plusieurs sections pour vous accompagner de l'installati
 *   **[Installation](installation.md)** : Guide pas à pas (HACS ou Manuel).
 *   **[Configuration](configuration.md)** : Comment paramétrer l'intégration et activer les fonctions avancées.
 *   **[Utilisation (Événements & Automatisations)](usage.md)** : Exemples pour créer des automatisations basées sur les ouvertures de colis.
+*   **[Mises à jour](UPDATE.md)** : Informations sur le système de mise à jour et précautions de sécurité.
 *   **[Dépannage](troubleshooting.md)** : Résolution des problèmes courants et activation des logs.
 
 ---
