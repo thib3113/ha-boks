@@ -1,6 +1,7 @@
 """Base packet definitions for Boks."""
 from abc import ABC, abstractmethod
 from typing import Any
+
 from ..ble.const import BoksCommandOpcode, BoksHistoryEvent, BoksNotificationOpcode
 
 
