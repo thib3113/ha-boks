@@ -1,6 +1,7 @@
 """Base packet definitions for Boks."""
 from abc import ABC, abstractmethod
 from typing import Any
+from ..ble.const import BoksCommandOpcode, BoksHistoryEvent, BoksNotificationOpcode
 
 
 class BoksPacket(ABC):
@@ -12,7 +13,6 @@ class BoksPacket(ABC):
 
     def get_opcode_name(self) -> str:
         """Return a readable name for the opcode."""
-        from ..ble.const import BoksCommandOpcode, BoksHistoryEvent, BoksNotificationOpcode
         for enum_class in [BoksCommandOpcode, BoksNotificationOpcode, BoksHistoryEvent]:
             try:
                 return enum_class(self.opcode).name
