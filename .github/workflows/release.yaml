@@ -121,6 +121,13 @@ jobs:
             // 3. Update body with the official attestation link
             const footer = `
             ---
+            ### ❤️ Support the project
+            If you find this integration useful, consider supporting its development!
+
+            [![Buy Me a Coffee](https://www.buymeacoffee.com/assets/img/custom_images/yellow_img.png)](https://www.buymeacoffee.com/thib3113)
+            [![Sponsor](https://img.shields.io/badge/Sponsor-thib3113-EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/thib3113)
+
+            ---
             ### 🛡️ Security & Provenance
             This release includes signed build provenance attestations.
             - **Official Attestation**: [Verify on GitHub](${ATTESTATION_URL})

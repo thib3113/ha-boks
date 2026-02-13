@@ -18,6 +18,11 @@ Techniquement, il s'agit des **8 derniers caractères** de la **Master Key** (un
 
 Un script Python est fourni dans le dossier `scripts/` de cette intégration. Il se connecte à votre compte Boks (via l'API cloud) pour récupérer vos appareils et leurs clefs.
 
+**⚠️ Note sur le blocage de l'application :**
+Cette méthode utilise les mêmes serveurs que l'application officielle. 
+*   Si votre compte est bloqué dans l'application (en attente de migration), le script ne pourra **pas** récupérer la clef (elle apparaîtra vide).
+*   Cette méthode ne fonctionne donc que si votre compte a été migré.
+
 **Avantage :** Pas besoin d'accès physique à la Boks, ni d'Android, ni de câbles. Fonctionne avec votre email et mot de passe Boks.
 
 ### Prérequis
@@ -34,9 +39,9 @@ cd scripts
 python get_config_key.py
 ```
 
-3.  Entrez votre **Email** et votre **Mot de Passe** de compte Boks quand demandé.
+1. Entrez votre **Email** et votre **Mot de Passe** de compte Boks quand demandé.
     *   *Note de confidentialité : Vos identifiants sont utilisés uniquement pour cette session afin d'interroger l'API Boks. Ils ne sont ni enregistrés ni envoyés ailleurs.*
-4.  Le script affichera la liste de vos Boks avec leurs **Configuration Keys**.
+2. Le script affichera la liste de vos Boks avec leurs **Configuration Keys**.
 
 Copiez la clé (8 caractères) et collez-la dans la configuration de l'intégration Home Assistant.
 
@@ -72,3 +77,59 @@ Vous devriez trouver une structure JSON contenant :
 `"configurationKey":"XXXXXXXX"`
 
 C'est cette valeur `XXXXXXXX` (8 caractères) qu'il vous faut.
+
+## Méthode 3 : Extraction Manuelle (iOS - Avancé)
+
+Si vous possédez un iPhone et que vous avez utilisé l'application Boks dessus, vous pouvez extraire la clef depuis une sauvegarde.
+
+### 1. Récupérer les données
+
+**Prérequis :**
+*   Un ordinateur (Windows ou Mac).
+*   **iMazing** (la version gratuite permet de faire des sauvegardes).
+*   **iBackupBot** (ou tout autre explorateur de sauvegarde iOS comme iExplorer).
+
+**Étapes :**
+1.  **Backup** : Créez une sauvegarde locale **non-chiffrée** avec iMazing. *Il est impératif que le chiffrement soit désactivé pour accéder aux fichiers.*
+2.  **Navigation** : Utilisez iBackupBot pour explorer la sauvegarde et allez dans :
+    `User App Files` > `com.boks.app` > `Library` > `WebKit` > `WebsiteData` > `Default` > `IndexedDB`.
+3.  **Cible** : Identifiez le dossier contenant la base la plus lourde (environ 120 KB) et localisez le fichier `IndexedDB.sqlite3`.
+4.  **Export** : Extrayez ce fichier sur votre ordinateur.
+
+### 2. Analyser les données
+
+**Méthode Automatisée (iOS 15+) :**
+WebKit utilise un format SQLite spécifique à partir d'iOS 15, géré par l'outil **dfindexeddb**.
+
+1.  Installez l'outil : `pip install dfindexeddb`
+2.  Lancez l'analyse :
+    ```bash
+    dfindexeddb db -s IndexedDB.sqlite3 --format safari
+    ```
+3.  Cherchez `"configurationKey"` dans le résultat JSON.
+
+**Méthode de Secours (iOS 14 ou inférieur) :**
+Si le script renvoie une erreur `ParserError: 10 is not the expected CurrentVersion`, la version de WebKit est plus ancienne.
+
+1.  Ouvrez le fichier `IndexedDB.sqlite3` avec un éditeur hexadécimal (ex: **WinHex**, **Hex Fiend**).
+2.  Recherchez la chaîne ANSI `configurationKey`.
+3.  La clé se trouve juste après l'une des occurrences.
+    *   *Note : L'encodage peut être en UTF-16 (un octet `00` entre chaque caractère).*
+
+## Que faire si aucune méthode ne fonctionne ? (Dernier recours)
+
+Si la Méthode 1 (Cloud) vous renvoie une erreur ou une clé vide, et que vous n'avez pas de sauvegarde locale (Méthodes 2 & 3), voici les causes probables et les solutions :
+
+### 1. Votre compte n'est pas "Migré"
+Boks a imposé une migration payante pour continuer à utiliser leurs services Cloud. Si vous n'avez pas payé cette migration, l'API Cloud ne renverra pas votre `Configuration Key`.
+*   **Vérification** : Ouvrez l'application officielle Boks. Si elle vous demande de payer pour accéder à vos boks ou si vos boks n'apparaissent plus, vous n'êtes pas migré.
+*   **Solution** : Vous devez effectuer cette migration au moins une fois pour débloquer l'accès API officiel et permettre au script de récupération de fonctionner.
+
+### 2. La clé n'est pas "remontée" sur le Cloud
+Parfois, même avec un compte migré, l'API ne renvoie pas la clé si aucune action récente n'a "forcé" sa synchronisation.
+*   **Astuce** : Dans l'application officielle, créez un **nouveau code permanent** (vous pourrez le supprimer juste après). Cette action force souvent l'application à synchroniser les clés de sécurité avec le serveur. Relancez ensuite le script de la **Méthode 1**.
+
+### Pourquoi faire cet effort ? (Indépendance Totale)
+Une fois que vous avez récupéré cette **Configuration Key** (8 caractères) :
+1.  **Sauvegardez-la précieusement.**
+2.  **Devenez indépendant** : Vous n'aurez **plus jamais** besoin des serveurs Boks (au cas où l'entreprise fasse faillite, une nouvelle fois...) ni de l'application officielle pour piloter votre Boks. Cette clé permet d'utiliser n'importe quelle application tierce (comme cette intégration Home Assistant) pour générer des codes et communiquer directement en Bluetooth.
