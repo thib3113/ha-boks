@@ -36,3 +36,13 @@ La page de mise à jour nécessite une connexion à votre instance Home Assistan
 1.  **Télécharger le fichier ZIP :** Avant de vous rendre à l'emplacement de la Boks, accédez à la page de mise à jour et téléchargez le fichier `.zip` du firmware (généralement disponible via un lien sur la page ou à `/local/boks/v<version>/firmware.zip`).
 2.  **Utiliser une Application Mobile :** Installez l'application **nRF Connect for Mobile** (disponible sur Android et iOS).
 3.  **Flasher Manuellement :** Utilisez l'application nRF Connect pour vous connecter à votre Boks et téléverser manuellement le fichier `.zip` téléchargé.
+
+
+### 4. Mode "Page en Cache" (Processus en deux étapes)
+Alternativement, vous pouvez utiliser la page web même si vous n'avez pas d'accès internet *à l'emplacement de la Boks*, sans avoir besoin de l'application nRF Connect.
+
+1.  **Étape 1 (En Ligne) :** Ouvrez la page de mise à jour (`/local/boks/index.html`) sur votre smartphone tant que vous êtes **connecté au WiFi** (ou avez de la 4G).
+    *   La page va automatiquement télécharger le fichier firmware et le stocker dans la mémoire de votre navigateur (cache).
+    *   Attendez que la page soit complètement chargée.
+2.  **Étape 2 (Hors Ligne) :** **Ne fermez pas l'onglet.** Déplacez-vous jusqu'à votre Boks (même si vous perdez la connexion WiFi/4G).
+3.  **Étape 3 (Flash) :** Puisque le firmware est déjà chargé dans la page, vous pouvez cliquer sur "Connecter" et effectuer la mise à jour comme si vous étiez en ligne.

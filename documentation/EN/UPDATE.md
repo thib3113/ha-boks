@@ -36,3 +36,12 @@ The update page requires a connection to your Home Assistant instance to load.
 1.  **Download the Firmware ZIP:** Before going to the Boks location, access the update page and download the firmware `.zip` file (usually available via a link on the page or at `/local/boks/v<version>/firmware.zip`).
 2.  **Use a Mobile App:** Install the **nRF Connect for Mobile** app (available on Android and iOS).
 3.  **Flash Manually:** Use the nRF Connect app to connect to your Boks and upload the downloaded `.zip` file manually.
+
+### 4. "Cached Page" Mode (Two-Step Process)
+Alternatively, you can use the web page even if you don't have internet access *at the Boks location*, without needing the nRF Connect app.
+
+1.  **Step 1 (Online):** Open the update page (`/local/boks/index.html`) on your smartphone while you are **connected to WiFi** (or have 4G).
+    *   The page will automatically download the firmware file and store it in your browser's memory (cache).
+    *   Wait until the page is fully loaded.
+2.  **Step 2 (Offline):** **Do not close the tab.** Walk to your Boks (even if you lose WiFi/4G connection).
+3.  **Step 3 (Flash):** Since the firmware is already loaded in the page, you can click "Connect" and perform the update as if you were online.
