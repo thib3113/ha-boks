@@ -58,7 +58,7 @@ DELAY_BATTERY_UPDATE = 1.0 # Wait before updating battery after door events
 DELAY_LOG_COUNT_COLLECTION = 2.0 # Time to collect log count notifications
 DELAY_RETRY = 0.5 # Delay between retries
 DELAY_RETRY_LONG = 2.0 # Longer delay for retries (e.g. generating code)
-MIN_DELAY_BETWEEN_CONNECTIONS = 2.0 # Wait between disconnect and next connect for ESP proxy stability
+MIN_DELAY_BETWEEN_CONNECTIONS = 0.5 # Wait between disconnect and next connect for ESP proxy stability
 
 # Retry Limits
 MAX_RETRIES_CODE_GENERATION = 2

@@ -120,7 +120,9 @@ def _get_coordinator_by_device_id(hass: HomeAssistant, device_ids: str | list[st
                 config_entry = hass.config_entries.async_get_entry(entry_id)
                 if config_entry and config_entry.domain == DOMAIN:
                     _LOGGER.debug("Integration not loaded for device %s, creating temporary coordinator", device_id)
-                    return BoksDataUpdateCoordinator(hass, config_entry)
+                    coord = BoksDataUpdateCoordinator(hass, config_entry)
+                    coord.update_interval = None # Disable background polling leaks
+                    return coord
 
     raise HomeAssistantError(
         translation_domain=DOMAIN,
@@ -146,7 +148,9 @@ def _get_coordinator_by_entity_id(hass: HomeAssistant, entity_ids: str | list[st
             config_entry = hass.config_entries.async_get_entry(entry.config_entry_id)
             if config_entry and config_entry.domain == DOMAIN:
                 _LOGGER.debug("Integration not loaded for entity %s, creating temporary coordinator", entity_id)
-                return BoksDataUpdateCoordinator(hass, config_entry)
+                coord = BoksDataUpdateCoordinator(hass, config_entry)
+                coord.update_interval = None # Disable background polling leaks
+                return coord
 
     raise HomeAssistantError(
         translation_domain=DOMAIN,

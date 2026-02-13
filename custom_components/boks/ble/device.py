@@ -17,6 +17,7 @@ from homeassistant.core import HomeAssistant
 from ..const import (
     DELAY_RETRY,
     DOMAIN,
+    MIN_DELAY_BETWEEN_CONNECTIONS,
     TIMEOUT_COMMAND_RESPONSE,
     TIMEOUT_DOOR_CLOSE,
     TIMEOUT_LOG_COUNT_STABILIZATION,
@@ -77,8 +78,9 @@ class BoksBluetoothDevice:
         self._refresh_needed = False
         self._last_door_close_time: float | None = None
         self._last_door_open_time: float | None = None
-        self._last_log_count_value: int | None = None
         self._last_log_count_ts: float = 0.0
+        self._last_disconnect_time: float = 0.0
+        self._autokill_task: asyncio.TimerHandle | None = None
 
     @property
     def config_key_str(self) -> str:
@@ -132,13 +134,26 @@ class BoksBluetoothDevice:
         if self.is_connected:
             return
 
+        # Enforce minimum delay between physical connections for stability (especially for ESP proxies)
+        if self._last_disconnect_time > 0:
+            elapsed = time.time() - self._last_disconnect_time
+            if elapsed < MIN_DELAY_BETWEEN_CONNECTIONS:
+                wait_needed = MIN_DELAY_BETWEEN_CONNECTIONS - elapsed
+                _LOGGER.debug("Waiting %.1fs before reconnecting (cooldown)", wait_needed)
+                await asyncio.sleep(wait_needed)
+
         if _LOGGER.isEnabledFor(logging.DEBUG):
             _LOGGER.debug("Connecting to Boks %s (Subscribed: %s)",
                           BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs),
                           self._notifications_subscribed)
 
         if device is None:
-            device = await self._find_best_device()
+            try:
+                device = await self._find_best_device()
+            except Exception:
+                # If finding device fails, we must decrement users since it won't reach the main try/except
+                self._connection_users = max(0, self._connection_users - 1)
+                raise
 
         if device:
              self._update_last_rssi(device)
@@ -149,9 +164,15 @@ class BoksBluetoothDevice:
             await asyncio.sleep(1.0)
             ble_device_to_connect = getattr(device, "ble_device", device)
 
-            self._client = await establish_connection(BleakClient, ble_device_to_connect, self.address)
+            self._client = await establish_connection(
+                BleakClient,
+                ble_device_to_connect,
+                self.address,
+                disconnected_callback=self._on_disconnected
+            )
             _LOGGER.debug("Physical BLE Connection Established to %s",
                           BoksAnonymizer.anonymize_mac(self.address, self.anonymize_logs))
+            self._reset_autokill_timer()
             await self._ensure_notifications()
         except Exception as e:
             await self._handle_connect_error(device, e)
@@ -198,6 +219,32 @@ class BoksBluetoothDevice:
             _LOGGER.debug("BLE Device to use: %s",
                           BoksAnonymizer.format_scanner_info(device, self.anonymize_logs, fallback_rssi=self._last_rssi_log))
 
+    def _on_disconnected(self, client: BleakClient) -> None:
+        """Handle unexpected disconnection from the device side."""
+        _LOGGER.debug("Remote side (Boks) closed the connection for %s", self.address)
+        self._notifications_subscribed = False
+        self._stop_autokill_timer()
+        # If we had active sessions, they will now fail on the next TX/RX which is correct
+        self._client = None
+
+    def _reset_autokill_timer(self) -> None:
+        """Reset the inactivity timer (Watchdog)."""
+        self._stop_autokill_timer()
+        # Kill connection after 60s of silence
+        self._autokill_task = self.hass.loop.call_later(60.0, self._handle_autokill)
+
+    def _stop_autokill_timer(self) -> None:
+        """Stop the inactivity timer."""
+        if self._autokill_task:
+            self._autokill_task.cancel()
+            self._autokill_task = None
+
+    def _handle_autokill(self) -> None:
+        """Executed when the inactivity timer expires."""
+        if self.is_connected:
+            _LOGGER.warning("Inactivity timeout (60s) for Boks %s. Forcing disconnection.", self.address)
+            self.hass.async_create_task(self.force_disconnect())
+
     def _report_no_connectable_adapter(self):
         """Log details about available non-connectable scanners."""
         scanners = bluetooth.async_scanner_devices_by_address(self.hass, self.address, connectable=False)
@@ -215,7 +262,6 @@ class BoksBluetoothDevice:
 
     async def _handle_connect_error(self, device: BLEDevice, error: Exception):
         """Handle connection failure and log details."""
-        self._connection_users = max(0, self._connection_users - 1)
         fallback_rssi = getattr(self, "_last_rssi_log", None)
         sc_info = BoksAnonymizer.format_scanner_info(device, self.anonymize_logs, fallback_rssi=fallback_rssi)
         error_msg = BoksAnonymizer.anonymize_log_message(str(error), self.anonymize_logs)
@@ -254,11 +300,23 @@ class BoksBluetoothDevice:
             await self._perform_final_refresh()
             self._refresh_needed = False
 
-        if self._client and self._client.is_connected:
-            await asyncio.shield(self._client.disconnect())
-        self._client = None
-        self._notifications_subscribed = False
-        _LOGGER.info("Physical BLE Connection Closed (Disconnected from Boks)")
+        if self._client:
+            if self._client.is_connected:
+                _LOGGER.info("Closing physical BLE Connection to Boks...")
+                try:
+                    # We use a timeout to avoid hanging the lock if the proxy is unresponsive
+                    # but we shield the call so it still finishes in background
+                    async with asyncio.timeout(10.0):
+                        await asyncio.shield(self._client.disconnect())
+                except Exception as e:
+                    _LOGGER.warning("Error during physical disconnect: %s", e)
+
+            # Always clear client and state
+            self._client = None
+            self._notifications_subscribed = False
+            self._last_disconnect_time = time.time()
+            self._stop_autokill_timer()
+            _LOGGER.info("Physical BLE Connection Closed (Disconnected from Boks)")
 
     async def _perform_final_refresh(self) -> None:
         """Perform a final data refresh before disconnecting (expects no lock or internal calls)."""
@@ -271,6 +329,9 @@ class BoksBluetoothDevice:
 
             # 2. Logs
             update_data.update(await self._get_final_logs())
+
+            # 3. Code counts
+            update_data.update(await self._get_final_code_counts())
 
             if update_data and self._status_callback:
                 self._status_callback(update_data)
@@ -315,12 +376,13 @@ class BoksBluetoothDevice:
             if self._client and self._client.is_connected:
                 try:
                     async with asyncio.timeout(5):
-                        await self._client.disconnect()
+                        await asyncio.shield(self._client.disconnect())
                 except Exception as e:
                     _LOGGER.debug("Error during force disconnect: %s", e)
 
             self._client = None
             self._notifications_subscribed = False
+            self._last_disconnect_time = time.time()
             _LOGGER.info("Force disconnected from Boks")
 
     def _log_packet(self, direction: str, packet: BoksTXPacket | BoksRXPacket):
@@ -349,6 +411,7 @@ class BoksBluetoothDevice:
                 self._response_futures[future_key] = future
 
             self._log_packet("TX", packet)
+            self._reset_autokill_timer()
             await self._client.write_gatt_char(BoksServiceUUID.WRITE_CHARACTERISTIC, raw_bytes, response=False)
 
             if future:
@@ -411,6 +474,7 @@ class BoksBluetoothDevice:
 
     def _notification_handler(self, _sender: int, data: bytearray):
         """Handle incoming notifications."""
+        self._reset_autokill_timer()
         rx_packet = PacketFactory.from_rx_data(data)
         self._log_packet("RX", rx_packet)
 
@@ -676,13 +740,30 @@ class BoksBluetoothDevice:
 
     async def get_code_counts(self) -> dict:
         """Get code counts."""
+        async with self._lock:
+            await self._connect()
+            try:
+                return await self._get_code_counts()
+            finally:
+                await self._disconnect()
+
+    async def _get_code_counts(self) -> dict:
+        """Internal get code counts (no lock)."""
         from ..packets.rx.code_counts import CodeCountsPacket
         from ..packets.tx.count_codes import CountCodesPacket
         packet = CountCodesPacket()
-        resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_CODES_COUNT])
+        resp = await self._send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_CODES_COUNT])
         if isinstance(resp, CodeCountsPacket):
             return {"master": resp.master_count, "single_use": resp.single_use_count}
         return {}
+
+    async def _get_final_code_counts(self) -> dict:
+        """Fetch code counts for final refresh (no lock)."""
+        try:
+            return await self._get_code_counts()
+        except Exception as e:
+            _LOGGER.debug("Failed to fetch final code counts: %s", e)
+            return {}
 
     async def get_logs_count(self) -> int:
         """Get logs count."""
@@ -797,6 +878,7 @@ class BoksBluetoothDevice:
             packet = CreateMultiUseCodePacket(self._config_key_str, code)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
         if resp and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
+            self._refresh_needed = True
             return code
         elif resp and resp.opcode == BoksNotificationOpcode.ERROR_UNAUTHORIZED:
              raise BoksAuthError("unauthorized")
@@ -827,12 +909,14 @@ class BoksBluetoothDevice:
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
 
         if resp and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
+            self._refresh_needed = True
             return True
 
         if resp and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_ERROR and type in ("single", "multi") and initial_single_count is not None:
              _LOGGER.debug("Firmware reported error for %s deletion, verifying counts...", type)
              try:
                  new_counts = await self.get_code_counts()
+                 self._refresh_needed = True
                  new_single_count = new_counts.get("single_use")
                  if new_single_count is not None and new_single_count < initial_single_count:
                      _LOGGER.info("Code deletion confirmed via count decrease (from %d to %d) despite firmware error report.", initial_single_count, new_single_count)
@@ -951,6 +1035,7 @@ class BoksBluetoothDevice:
         packet = RegisterNfcTagPacket(self._config_key_str, uid)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED, BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
         if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED:
+            self._refresh_needed = True
             return True
         elif resp and resp.opcode == BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER:
             raise BoksError("nfc_tag_already_exists")
@@ -965,4 +1050,7 @@ class BoksBluetoothDevice:
         from ..packets.tx.nfc_unregister_tag import NfcUnregisterTagPacket
         packet = NfcUnregisterTagPacket(self._config_key_str, uid)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
-        return resp is not None and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED
+        if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED:
+            self._refresh_needed = True
+            return True
+        return False

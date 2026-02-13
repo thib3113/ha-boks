@@ -17,7 +17,9 @@ async def test_get_code_counts_success(hass: HomeAssistant):
     mock_resp.master_count = 1
     mock_resp.single_use_count = 2
 
-    with patch.object(device, "send_packet", new_callable=AsyncMock, return_value=mock_resp):
+    with patch.object(device, "_send_packet", new_callable=AsyncMock, return_value=mock_resp), \
+         patch.object(device, "_connect", new_callable=AsyncMock), \
+         patch.object(device, "_disconnect", new_callable=AsyncMock):
         result = await device.get_code_counts()
         assert result["master"] == 1
         assert result["single_use"] == 2
@@ -26,7 +28,9 @@ async def test_get_code_counts_timeout(hass: HomeAssistant):
     """Test get code counts timeout."""
     device = BoksBluetoothDevice(hass, "AA:BB:CC:DD:EE:FF", "12345678")
     
-    with patch.object(device, "send_packet", new_callable=AsyncMock, side_effect=BoksError("timeout_waiting_response")):
+    with patch.object(device, "_send_packet", new_callable=AsyncMock, side_effect=BoksError("timeout_waiting_response")), \
+         patch.object(device, "_connect", new_callable=AsyncMock), \
+         patch.object(device, "_disconnect", new_callable=AsyncMock):
         with pytest.raises(BoksError, match="timeout_waiting_response"):
             await device.get_code_counts()
 
@@ -34,8 +38,10 @@ async def test_get_code_counts_invalid_response(hass: HomeAssistant):
     """Test get code counts with invalid response (None or wrong type)."""
     device = BoksBluetoothDevice(hass, "AA:BB:CC:DD:EE:FF", "12345678")
     
-    # send_packet returns None if nothing matched
-    with patch.object(device, "send_packet", new_callable=AsyncMock, return_value=None):
+    # _send_packet returns None if nothing matched
+    with patch.object(device, "_send_packet", new_callable=AsyncMock, return_value=None), \
+         patch.object(device, "_connect", new_callable=AsyncMock), \
+         patch.object(device, "_disconnect", new_callable=AsyncMock):
         result = await device.get_code_counts()
         assert result == {}
 
