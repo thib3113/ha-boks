@@ -15,6 +15,7 @@ This guide is divided into several sections to assist you from installation to a
 *   **[Installation](installation.md)**: Step-by-step guide (HACS or Manual).
 *   **[Configuration](configuration.md)**: How to set up the integration and enable advanced features.
 *   **[Usage (Events & Automations)](usage.md)**: Examples for creating automations based on parcel deliveries.
+*   **[Updates](UPDATE.md)**: Information about the Boks update system and safety precautions.
 *   **[Troubleshooting](troubleshooting.md)**: Solving common issues and enabling logs.
 
 ---
