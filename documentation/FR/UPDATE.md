@@ -27,6 +27,7 @@ Le processus de mise à jour est conçu en deux étapes pour s'adapter aux Boks 
     *   Idéalement, restez chez vous connecté en **WiFi**.
     *   Ouvrez le lien de la page de mise à jour fourni par l'intégration :
         `http://<adresse-ip-home-assistant>:<port>/local/boks/index.html`
+    *   **Note de compatibilité :** Si votre connexion n'est pas sécurisée (HTTP) ou si vous utilisez un iPhone/iPad, la page le détectera automatiquement et vous proposera un lien vers un outil de secours en ligne sécurisé permettant de faire la mise à jour.
     *   **Attendez que la page soit complètement chargée.** Le fichier firmware est téléchargé automatiquement et stocké dans la mémoire de votre navigateur.
     *   *Ne fermez pas l'onglet.*
 

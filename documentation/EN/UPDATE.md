@@ -27,6 +27,7 @@ The update process is designed to work in two steps to accommodate Boks located 
     *   Ideally, stay at home connected to your **WiFi**.
     *   Open the update page link provided by the integration:
         `http://<your-home-assistant-ip>:<port>/local/boks/index.html`
+    *   **Compatibility Note:** If your connection is not secure (HTTP) or if you are using an iPhone/iPad, the page will automatically detect it and provide a link to a secure online tool that can perform the update for you.
     *   **Wait for the page to load completely.** The firmware file is automatically downloaded and stored in your browser's memory.
     *   *Do not close the tab.*
 
