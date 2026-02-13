@@ -17,32 +17,30 @@ Ce comportement est différent des **Boks NFC** (V4 / nRF52833), qui elles redé
 
 L'intégration simplifie la procédure de mise à jour en générant une page web dédiée pour flasher votre Boks.
 
-### 1. Accéder à la Page de Mise à Jour
-Une fois qu'une mise à jour est préparée, l'intégration génère une page accessible à l'adresse suivante :
-`http://<adresse-ip-home-assistant>:<port>/local/boks/index.html`
+**Aucune application externe n'est requise.** La page web gère tout le processus, même si votre Boks se trouve dans une zone sans couverture (ex : sous-sol).
 
-*(Remarque : Remplacez `<adresse-ip-home-assistant>` par l'IP locale ou le nom de domaine de votre Home Assistant)*
+### Workflow Standard (Fonctionne Hors Ligne)
 
-### 2. Effectuer la Mise à Jour
-*   Ouvrez cette page sur un appareil doté de **capacités Bluetooth** (smartphone, ordinateur portable).
-*   Assurez-vous d'être **physiquement proche** de votre Boks.
-*   Suivez les instructions à l'écran pour connecter et flasher le nouveau firmware.
+Le processus de mise à jour est conçu en deux étapes pour s'adapter aux Boks situées en zones blanches (sans WiFi/4G) :
 
-### 3. Zones Blanches / Pas de Réseau
-La page de mise à jour nécessite une connexion à votre instance Home Assistant pour se charger.
+1.  **Étape 1 : Préparation (En Ligne)**
+    *   Idéalement, restez chez vous connecté en **WiFi**.
+    *   Ouvrez le lien de la page de mise à jour fourni par l'intégration :
+        `http://<adresse-ip-home-assistant>:<port>/local/boks/index.html`
+    *   **Attendez que la page soit complètement chargée.** Le fichier firmware est téléchargé automatiquement et stocké dans la mémoire de votre navigateur.
+    *   *Ne fermez pas l'onglet.*
 
-**Si votre Boks est située dans une zone sans couverture réseau (ex : sous-sol sans WiFi/4G) :**
+2.  **Étape 2 : Flash (Sur Place)**
+    *   Marchez jusqu'à l'emplacement de votre Boks. **Vous n'avez plus besoin de connexion internet.**
+    *   Assurez-vous que le Bluetooth est activé sur votre appareil.
+    *   Cliquez sur le bouton **"Connecter"** sur la page.
+    *   Sélectionnez votre Boks dans la liste.
+    *   Suivez les instructions à l'écran pour lancer la mise à jour.
 
-1.  **Télécharger le fichier ZIP :** Avant de vous rendre à l'emplacement de la Boks, accédez à la page de mise à jour et téléchargez le fichier `.zip` du firmware (généralement disponible via un lien sur la page ou à `/local/boks/v<version>/firmware.zip`).
-2.  **Utiliser une Application Mobile :** Installez l'application **nRF Connect for Mobile** (disponible sur Android et iOS).
-3.  **Flasher Manuellement :** Utilisez l'application nRF Connect pour vous connecter à votre Boks et téléverser manuellement le fichier `.zip` téléchargé.
+### Dépannage / Fallback Manuel
 
+Si vous ne pouvez pas utiliser l'interface web (ex : navigateur incompatible ou restrictions iOS), vous pouvez effectuer une mise à jour manuelle :
 
-### 4. Mode "Page en Cache" (Processus en deux étapes)
-Alternativement, vous pouvez utiliser la page web même si vous n'avez pas d'accès internet *à l'emplacement de la Boks*, sans avoir besoin de l'application nRF Connect.
-
-1.  **Étape 1 (En Ligne) :** Ouvrez la page de mise à jour (`/local/boks/index.html`) sur votre smartphone tant que vous êtes **connecté au WiFi** (ou avez de la 4G).
-    *   La page va automatiquement télécharger le fichier firmware et le stocker dans la mémoire de votre navigateur (cache).
-    *   Attendez que la page soit complètement chargée.
-2.  **Étape 2 (Hors Ligne) :** **Ne fermez pas l'onglet.** Déplacez-vous jusqu'à votre Boks (même si vous perdez la connexion WiFi/4G).
-3.  **Étape 3 (Flash) :** Puisque le firmware est déjà chargé dans la page, vous pouvez cliquer sur "Connecter" et effectuer la mise à jour comme si vous étiez en ligne.
+1.  **Télécharger le fichier ZIP :** Sur la page de mise à jour, cherchez le lien de téléchargement pour récupérer le fichier `.zip`.
+2.  **Utiliser nRF Connect :** Installez l'application **nRF Connect for Mobile** (Android/iOS).
+3.  **Flasher Manuellement :** Utilisez l'application pour vous connecter à votre Boks et téléverser le fichier `.zip`.

@@ -17,31 +17,30 @@ This behavior is different from the **NFC Boks** (V4 / nRF52833), which will saf
 
 The integration simplifies the update process by generating a dedicated web page for flashing your Boks device.
 
-### 1. Accessing the Update Page
-When an update is prepared, the integration generates a webpage accessible at:
-`http://<your-home-assistant-ip>:<port>/local/boks/index.html`
+**No external application is required.** The web page handles everything, even if your Boks is in a location without internet coverage (e.g., a basement).
 
-*(Note: Replace `<your-home-assistant-ip>` with your Home Assistant's local IP address or domain name)*
+### Standard Workflow (Works Offline)
 
-### 2. Performing the Update
-*   Open this page on a device with **Bluetooth capabilities** (smartphone, laptop).
-*   Ensure you are **physically close** to your Boks.
-*   Follow the on-screen instructions to connect and flash the new firmware.
+The update process is designed to work in two steps to accommodate Boks located in "dead zones" (no WiFi/4G):
 
-### 3. Offline Locations (No Network Coverage)
-The update page requires a connection to your Home Assistant instance to load.
+1.  **Step 1: Preparation (Online)**
+    *   Ideally, stay at home connected to your **WiFi**.
+    *   Open the update page link provided by the integration:
+        `http://<your-home-assistant-ip>:<port>/local/boks/index.html`
+    *   **Wait for the page to load completely.** The firmware file is automatically downloaded and stored in your browser's memory.
+    *   *Do not close the tab.*
 
-**If your Boks is located in an area with no network coverage (e.g., basement with no WiFi/4G):**
+2.  **Step 2: Flashing (At the Boks)**
+    *   Walk to your Boks location. **You do not need an internet connection anymore.**
+    *   Ensure Bluetooth is enabled on your device.
+    *   Click the **"Connect"** button on the page.
+    *   Select your Boks device from the list.
+    *   Follow the on-screen instructions to start the update.
 
-1.  **Download the Firmware ZIP:** Before going to the Boks location, access the update page and download the firmware `.zip` file (usually available via a link on the page or at `/local/boks/v<version>/firmware.zip`).
-2.  **Use a Mobile App:** Install the **nRF Connect for Mobile** app (available on Android and iOS).
-3.  **Flash Manually:** Use the nRF Connect app to connect to your Boks and upload the downloaded `.zip` file manually.
+### Troubleshooting / Manual Fallback
 
-### 4. "Cached Page" Mode (Two-Step Process)
-Alternatively, you can use the web page even if you don't have internet access *at the Boks location*, without needing the nRF Connect app.
+If you are unable to use the web interface (e.g., incompatible browser or iOS restrictions), you can perform a manual update:
 
-1.  **Step 1 (Online):** Open the update page (`/local/boks/index.html`) on your smartphone while you are **connected to WiFi** (or have 4G).
-    *   The page will automatically download the firmware file and store it in your browser's memory (cache).
-    *   Wait until the page is fully loaded.
-2.  **Step 2 (Offline):** **Do not close the tab.** Walk to your Boks (even if you lose WiFi/4G connection).
-3.  **Step 3 (Flash):** Since the firmware is already loaded in the page, you can click "Connect" and perform the update as if you were online.
+1.  **Download the Firmware ZIP:** On the update page, look for the download link to get the firmware `.zip` file.
+2.  **Use nRF Connect:** Install the **nRF Connect for Mobile** app (Android/iOS).
+3.  **Flash Manually:** Use the app to connect to your Boks and upload the `.zip` file.
