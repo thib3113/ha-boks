@@ -59,4 +59,11 @@ Après avoir ajouté cela, redémarrez votre instance Home Assistant. Une fois r
 
 **A:** "Il faut maintenir la porte fermée, puis taper un code permanent (master code en anglais), la serrure va refaire son cycle complet, et ensuite on devrait pouvoir la fermer correctement."
 
+### 7. Problèmes Connus (Bugs Firmware)
+
+*   **Suppression multiple de codes à usage unique (Single Use)** :
+    Il existe un bug dans le firmware de la Boks qui permet de supprimer plusieurs fois le même code à usage unique valide (par exemple, si vous créez le code `11223344`, vous pouvez envoyer la commande de suppression plusieurs fois avec succès).
+    Ce comportement se produit uniquement lorsque la Boks contient **plus de 3 326 codes à usage unique**. En dessous de ce seuil, la Boks retourne correctement une erreur si l'on tente de supprimer un code déjà supprimé.
+    *Note : Bien que statistiquement improbable, ce comportement est anormal et suggère un problème de gestion de la mémoire qui pourrait potentiellement affecter ou supprimer d'autres codes enregistrés.*
+
 Si vous continuez à rencontrer des problèmes après avoir suivi ces étapes et examiné les journaux de débogage, veuillez ouvrir une issue sur le [dépôt GitHub](https://github.com/thib3113/ha-boks/issues), en fournissant vos journaux de débogage (expurgés des informations sensibles) et une description détaillée du problème.
