@@ -51,6 +51,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             config_key=entry.data.get(CONF_CONFIG_KEY),
             anonymize_logs=entry.options.get(CONF_ANONYMIZE_LOGS, False)
         )
+        self.ble_device.set_coordinator(self)
         self.updates = BoksUpdateController(hass, self)
         self.nfc = BoksNfcController(hass, self)
         self.codes = BoksCodesController(hass, self)
