@@ -85,6 +85,11 @@ class BoksBluetoothDevice:
         self._last_log_count_ts: float = 0.0
         self._last_disconnect_time: float = 0.0
         self._autokill_task: asyncio.TimerHandle | None = None
+        self._coordinator: Any = None
+
+    def set_coordinator(self, coordinator: Any) -> None:
+        """Set the coordinator reference."""
+        self._coordinator = coordinator
 
     @property
     def config_key_str(self) -> str:
@@ -976,12 +981,15 @@ class BoksBluetoothDevice:
 
     async def _async_handle_scanned_tag(self, uid: str | None, status: str):
         """Async handle scanned tag."""
-        coordinator = None
-        for _entry_id, coord in self.hass.data.get(DOMAIN, {}).items():
-            if hasattr(coord, "ble_device") and coord.ble_device == self:
-                coordinator = coord
-                break
-                break
+        coordinator = self._coordinator
+
+        # Fallback to iteration if coordinator is not set directly
+        if coordinator is None:
+            for _entry_id, coord in self.hass.data.get(DOMAIN, {}).items():
+                if hasattr(coord, "ble_device") and coord.ble_device == self:
+                    coordinator = coord
+                    break
+
         if not coordinator:
             _LOGGER.warning("Could not find coordinator for NFC notification")
             return
