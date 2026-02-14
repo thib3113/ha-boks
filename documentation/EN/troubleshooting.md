@@ -59,4 +59,11 @@ After adding this, restart your Home Assistant instance. Once restarted, check y
 
 **A:** "You need to keep the door closed, then enter a permanent code (master code in English), the lock will restart its complete cycle, and then you should be able to close it properly."
 
+### 7. Known Issues (Firmware Bugs)
+
+*   **Multiple deletion of single-use codes**:
+    There is a bug in the Boks firmware that allows the same valid single-use code to be deleted multiple times (e.g., if you create code `11223344`, you can successfully send the delete command multiple times).
+    This behavior only occurs when the Boks stores **more than 3,326 single-use codes**. Below this threshold, the Boks correctly returns an error if attempting to delete an already deleted code.
+    *Note: While statistically unlikely, this behavior is abnormal and suggests a memory management issue that could potentially affect or delete other stored codes.*
+
 If you continue to experience issues after following these steps and reviewing debug logs, please open an issue on the [GitHub repository](https://github.com/thib3113/ha-boks/issues), providing your debug logs (sanitized of sensitive information) and a detailed description of the problem.
