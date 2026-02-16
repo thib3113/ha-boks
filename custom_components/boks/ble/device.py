@@ -35,6 +35,23 @@ from ..packets.rx.error_response import ErrorResponsePacket
 from ..packets.rx.key_opening import KeyOpeningPacket
 from ..packets.rx.nfc_opening import NfcOpeningPacket
 from ..packets.rx.nfc_scan_result import NfcScanResultPacket
+from ..packets.rx.code_counts import CodeCountsPacket
+from ..packets.rx.log_count import LogCountPacket
+from ..packets.tx.ask_door_status import AskDoorStatusPacket
+from ..packets.tx.count_codes import CountCodesPacket
+from ..packets.tx.create_master_code import CreateMasterCodePacket
+from ..packets.tx.create_multi_code import CreateMultiUseCodePacket
+from ..packets.tx.create_single_code import CreateSingleUseCodePacket
+from ..packets.tx.delete_master_code import DeleteMasterCodePacket
+from ..packets.tx.delete_multi_code import DeleteMultiUseCodePacket
+from ..packets.tx.delete_single_code import DeleteSingleUseCodePacket
+from ..packets.tx.get_logs_count import GetLogsCountPacket
+from ..packets.tx.nfc_scan_start import NfcScanStartPacket
+from ..packets.tx.nfc_unregister_tag import NfcUnregisterTagPacket
+from ..packets.tx.open_door import OpenDoorPacket
+from ..packets.tx.register_nfc_tag import RegisterNfcTagPacket
+from ..packets.tx.request_logs import RequestLogsPacket
+from ..packets.tx.set_configuration import SetConfigurationPacket
 from .const import (
     BoksHistoryEvent,
     BoksNotificationOpcode,
@@ -677,8 +694,6 @@ class BoksBluetoothDevice:
 
     async def get_door_status(self) -> bool:
         """Get current door status."""
-        from ..packets.rx.door_status import DoorStatusPacket
-        from ..packets.tx.ask_door_status import AskDoorStatusPacket
         packet = AskDoorStatusPacket()
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_DOOR_STATUS, BoksNotificationOpcode.ANSWER_DOOR_STATUS])
         if isinstance(resp, DoorStatusPacket):
@@ -737,7 +752,6 @@ class BoksBluetoothDevice:
         if code:
             code = self._validate_pin(code)
 
-        from ..packets.tx.open_door import OpenDoorPacket
         packet = OpenDoorPacket(code or "")
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.VALID_OPEN_CODE, BoksNotificationOpcode.INVALID_OPEN_CODE, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
         if resp and resp.opcode == BoksNotificationOpcode.VALID_OPEN_CODE:
@@ -758,8 +772,6 @@ class BoksBluetoothDevice:
 
     async def _get_code_counts(self) -> dict:
         """Internal get code counts (no lock)."""
-        from ..packets.rx.code_counts import CodeCountsPacket
-        from ..packets.tx.count_codes import CountCodesPacket
         packet = CountCodesPacket()
         resp = await self._send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_CODES_COUNT])
         if isinstance(resp, CodeCountsPacket):
@@ -785,8 +797,6 @@ class BoksBluetoothDevice:
 
     async def _get_logs_count(self) -> int:
         """Internal get logs count with stabilization."""
-        from ..packets.rx.log_count import LogCountPacket
-        from ..packets.tx.get_logs_count import GetLogsCountPacket
 
         # Check cache first
         if self._last_log_count_value is not None and (time.time() - self._last_log_count_ts) < 3.0:
@@ -840,7 +850,6 @@ class BoksBluetoothDevice:
 
     async def _get_logs(self, count: int) -> list[dict]:
         """Internal retrieve logs."""
-        from ..packets.tx.request_logs import RequestLogsPacket
         if count <= 0:
             return []
         packet = RequestLogsPacket()
@@ -877,13 +886,10 @@ class BoksBluetoothDevice:
         code = self._validate_pin(code)
 
         if code_type == "master":
-            from ..packets.tx.create_master_code import CreateMasterCodePacket
             packet = CreateMasterCodePacket(self._config_key_str, code, index)
         elif code_type == "single":
-            from ..packets.tx.create_single_code import CreateSingleUseCodePacket
             packet = CreateSingleUseCodePacket(self._config_key_str, code)
         else:
-            from ..packets.tx.create_multi_code import CreateMultiUseCodePacket
             packet = CreateMultiUseCodePacket(self._config_key_str, code)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
         if resp and resp.opcode == BoksNotificationOpcode.CODE_OPERATION_SUCCESS:
@@ -907,13 +913,10 @@ class BoksBluetoothDevice:
                  _LOGGER.debug("Could not fetch initial counts for deletion workaround: %s", e)
 
         if type == "master":
-            from ..packets.tx.delete_master_code import DeleteMasterCodePacket
             packet = DeleteMasterCodePacket(self._config_key_str, int(index_or_code))
         elif type == "single":
-            from ..packets.tx.delete_single_code import DeleteSingleUseCodePacket
             packet = DeleteSingleUseCodePacket(self._config_key_str, str(index_or_code))
         else:
-            from ..packets.tx.delete_multi_code import DeleteMultiUseCodePacket
             packet = DeleteMultiUseCodePacket(self._config_key_str, str(index_or_code))
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.CODE_OPERATION_SUCCESS, BoksNotificationOpcode.CODE_OPERATION_ERROR, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
 
@@ -939,7 +942,6 @@ class BoksBluetoothDevice:
         """Set device configuration."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
-        from ..packets.tx.set_configuration import SetConfigurationPacket
         packet = SetConfigurationPacket(self._config_key_str, config_type, value)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
         if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_SET_CONFIGURATION_SUCCESS:
@@ -952,7 +954,6 @@ class BoksBluetoothDevice:
         """Start NFC scan mode."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
-        from ..packets.tx.nfc_scan_start import NfcScanStartPacket
         packet = NfcScanStartPacket(self._config_key_str)
         # We wait for success ACK OR immediate result (if tag already on reader)
         resp = await self.send_packet(
@@ -1043,7 +1044,6 @@ class BoksBluetoothDevice:
         """Register NFC tag."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
-        from ..packets.tx.register_nfc_tag import RegisterNfcTagPacket
         packet = RegisterNfcTagPacket(self._config_key_str, uid)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED, BoksNotificationOpcode.ERROR_NFC_TAG_ALREADY_EXISTS_REGISTER, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
         if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_REGISTERED:
@@ -1059,7 +1059,6 @@ class BoksBluetoothDevice:
         """Unregister NFC tag."""
         if not self._config_key_str:
             raise BoksAuthError("config_key_required")
-        from ..packets.tx.nfc_unregister_tag import NfcUnregisterTagPacket
         packet = NfcUnregisterTagPacket(self._config_key_str, uid)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED, BoksNotificationOpcode.ERROR_UNAUTHORIZED, BoksNotificationOpcode.ERROR_BAD_REQUEST])
         if resp and resp.opcode == BoksNotificationOpcode.NOTIFY_NFC_TAG_UNREGISTERED:
