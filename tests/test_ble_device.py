@@ -95,7 +95,7 @@ async def test_send_packet_retry_success(hass: HomeAssistant):
             device._client = None
         mock_force_disconnect.side_effect = side_effect_force_disconnect
 
-        # Fix: ignore args and use outer scope variable 'device' or just access mock_client
+        # Ignore arguments (using *args/**kwargs) to avoid shadowing the outer 'device' variable, allowing us to restore the mock client.
         async def side_effect_connect(*args, **kwargs):
             device._client = mock_client
         mock_connect.side_effect = side_effect_connect
