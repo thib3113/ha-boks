@@ -4,6 +4,7 @@ import logging
 
 import voluptuous as vol
 from aiohttp import web
+from homeassistant.components import webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -52,7 +53,7 @@ async def async_setup(hass: HomeAssistant, _config: dict) -> bool:
         await manager.async_delete_package(version_num)
         return web.Response(status=200)
 
-    hass.components.webhook.async_register(
+    webhook.async_register(hass,
         DOMAIN,
         "Boks Delete Update Package",
         WEBHOOK_DELETE_PACKAGE,
