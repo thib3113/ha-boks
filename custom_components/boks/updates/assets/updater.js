@@ -45,7 +45,8 @@ const elements = {
     btnDisconnect: document.getElementById('btn-disconnect'),
     btnClear: document.getElementById('btn-clear'),
     explanation: document.getElementById('dfu-explanation'),
-    backupLink: document.getElementById('ui-backup-link')
+    backupLink: document.getElementById('ui-backup-link'),
+    topDownloadLink: document.getElementById('ui-top-download-link')
 };
 
 let firmwareBlob = null;
@@ -63,6 +64,7 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 function updateUIStrings() {
+    if (elements.topDownloadLink) { elements.topDownloadLink.textContent = t('download_short'); elements.topDownloadLink.href = CONFIG.firmwareFile; }
     document.title = t('title');
     document.getElementById('ui-title').textContent = t('title');
     document.getElementById('ui-version-badge').textContent = t('target_version', { version: CONFIG.targetVersion });
@@ -72,7 +74,6 @@ function updateUIStrings() {
     document.getElementById('ui-download-link').href = CONFIG.firmwareFile;
 
     if (elements.backupLink) {
-        /* 
         const backupUrl = new URL("https://thib3113.github.io/bwb/index.html");
         // Add page target for the SPA router
         backupUrl.searchParams.set("page", "update");
@@ -83,11 +84,6 @@ function updateUIStrings() {
         
         elements.backupLink.textContent = t('backup_link');
         elements.backupLink.href = backupUrl.toString();
-        */
-        elements.backupLink.textContent = t('backup_not_ready');
-        elements.backupLink.style.color = "var(--text-secondary)";
-        elements.backupLink.style.cursor = "default";
-        elements.backupLink.onclick = (e) => e.preventDefault();
     }
 
     document.getElementById('ui-label-name').textContent = t('label_name');
@@ -98,150 +94,163 @@ function updateUIStrings() {
     if (elements.explanation) elements.explanation.innerHTML = t('dfu_explanation');
 
     elements.btnConnect.textContent = t('btn_connect');
-    elements.instruction.textContent = t('step_1');
-    elements.status.textContent = t('status_ready');
 }
 
-function buf2hex(buffer) {
-    return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join(' ');
-}
-
-async function debugWrite(characteristic, value, label) {
-    const hex = buf2hex(value.buffer || value);
-    log(`[BLE TX] ${label}: ${hex}`, 'info');
-    return await characteristic.writeValue(value);
-}
-
-async function debugRead(characteristic, label) {
-    const value = await characteristic.readValue();
-    log(`[BLE RX] ${label}: ${buf2hex(value.buffer)}`, 'info');
-    return value;
-}
-
-function log(msg, level = 'info') {
-    const div = document.createElement('div');
-    div.className = `log-entry ${level}`;
-    const timestamp = new Date().toLocaleTimeString();
-    
-    let text = "";
-    if (typeof msg === 'string') text = msg;
-    else if (msg && msg.message) text = msg.message;
-    else if (msg) text = JSON.stringify(msg);
-    else text = "Log event";
-
-    div.textContent = `[${timestamp}] ${text}`;
-    elements.logs.appendChild(div);
+function log(msg, type = 'info') {
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    const time = new Date().toLocaleTimeString();
+    entry.textContent = `[${time}] ${msg}`;
+    elements.logs.appendChild(entry);
     elements.logs.scrollTop = elements.logs.scrollHeight;
-    console.log(`[${level.toUpperCase()}] ${text}`);
+    console.log(`[${type.toUpperCase()}] ${msg}`);
 }
 
-function setStatus(msg, type = '') {
+function setStatus(msg, type = 'info') {
     elements.status.textContent = msg;
-    elements.status.className = 'status ' + type;
+    elements.status.className = `status ${type}`;
+}
+
+async function debugWrite(char, value, label) {
+    log(`Writing ${label}: ${value}`, 'debug');
+    await char.writeValue(value);
 }
 
 async function loadFirmware() {
-    if (firmwareBlob) return;
     try {
-        const response = await fetch(CONFIG.firmwareFile);
-        firmwareBlob = await response.arrayBuffer();
-        log(`Firmware loaded: ${firmwareBlob.byteLength} bytes`);
-    } catch (e) { 
-        setStatus(t('error_fw'), "error");
-        log(`Failed to load firmware: ${e.message}`, 'error');
+        log(`Loading firmware: ${CONFIG.firmwareFile}...`);
+        const resp = await fetch(CONFIG.firmwareFile);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        firmwareBlob = await resp.blob();
+        log(`Firmware loaded (${firmwareBlob.size} bytes)`, 'success');
+    } catch (e) {
+        log(t('error_fw') + " " + e.message, 'error');
+        setStatus(t('error_fw'), 'error');
+        elements.btnConnect.disabled = true;
     }
-}
-
-async function readInfo(server) {
-    elements.deviceInfo.classList.remove('hidden');
-    const deviceName = bluetoothDevice.name || "Unknown";
-    if (deviceName.includes("DfuTarg")) {
-        elements.infoName.textContent = t('device_in_dfu');
-        elements.infoName.className = "info-value val-error";
-        isDfuModeActive = true;
-    } else {
-        elements.infoName.textContent = deviceName;
-        elements.infoName.className = "info-value";
-        isDfuModeActive = false;
-    }
-    
-    let batteryOk = true;
-    let versionMatch = false;
-    let hwOk = true;
-
-    try {
-        const batSvc = await server.getPrimaryService(CONFIG.batteryService);
-        const batChar = await batSvc.getCharacteristic(0x2A19);
-        const val = await debugRead(batChar, "Battery");
-        const level = val.getUint8(0);
-        elements.infoBattery.textContent = `${level}%`;
-        if (level < CONFIG.batteryThreshold) {
-            elements.infoBattery.className = "info-value val-error";
-            batteryOk = false;
-        }
-    } catch(e) { 
-        elements.infoBattery.textContent = "N/A";
-        log("Battery info unavailable", isDfuModeActive ? 'debug' : 'info');
-    }
-    
-    try {
-        const infoSvc = await server.getPrimaryService(CONFIG.deviceInfoService);
-        const swChar = await infoSvc.getCharacteristic(CONFIG.swRevChar);
-        const val = await debugRead(swChar, "SW Version");
-        const currentVer = new TextDecoder().decode(val).trim();
-        elements.infoVersion.textContent = currentVer;
-        if (currentVer === CONFIG.targetVersion) versionMatch = true;
-    } catch(e) { 
-        elements.infoVersion.textContent = t('dfu_unknown');
-    }
-
-    try {
-        const infoSvc = await server.getPrimaryService(CONFIG.deviceInfoService);
-        const hwChar = await infoSvc.getCharacteristic(CONFIG.hwRevChar);
-        const val = await debugRead(hwChar, "HW Version");
-        const currentHw = new TextDecoder().decode(val).trim();
-        elements.infoHw.textContent = `${CONFIG.expectedHw} (${currentHw})`;
-        if (currentHw !== CONFIG.expectedInternalRev) hwOk = false;
-    } catch(e) { 
-        if (!isDfuModeActive) {
-            elements.infoHw.textContent = CONFIG.expectedHw + " (?)";
-        }
-    }
-
-    return { batteryOk, versionMatch, hwOk };
 }
 
 async function connect() {
     try {
-        elements.btnConnect.disabled = true;
         setStatus(t('status_searching'), "active");
 
-        const device = await navigator.bluetooth.requestDevice({
-            filters: [{ services: [CONFIG.boksService] }, { services: [CONFIG.dfuService] }],
-            optionalServices: [CONFIG.boksService, CONFIG.dfuService, CONFIG.batteryService, CONFIG.deviceInfoService]
+        bluetoothDevice = await navigator.bluetooth.requestDevice({
+            filters: [
+                { services: [CONFIG.boksService] },
+                { services: [CONFIG.dfuService] },
+                { namePrefix: 'Boks' },
+                { name: 'DfuTarg' }
+            ],
+            optionalServices: [
+                CONFIG.boksService,
+                CONFIG.dfuService,
+                CONFIG.batteryService,
+                CONFIG.deviceInfoService
+            ]
         });
 
-        log(`Connected to ${device.name}`);
-        bluetoothDevice = device;
-        const server = await device.gatt.connect();
+        bluetoothDevice.addEventListener('gattserverdisconnected', () => {
+            log("Device disconnected", 'warning');
+            if (isFlashing) {
+                setStatus("Disconnected during flash! Reconnecting...", "warning");
+            } else {
+                setStatus("Disconnected", "error");
+                elements.btnConnect.classList.remove('hidden');
+                elements.btnStart.classList.add('hidden');
+                elements.deviceInfo.classList.add('hidden');
+                elements.btnConnect.disabled = false;
+            }
+        });
 
-        let isRealDfu = false;
+        log(`Connecting to ${bluetoothDevice.name}...`);
+        const server = await bluetoothDevice.gatt.connect();
+        log("Connected!", "success");
+
+        // 1. Check if we are already in DFU/Bootloader mode
+        const services = await server.getPrimaryServices();
+        const hasDfu = services.some(s => s.uuid == CONFIG.dfuService || s.uuid.includes(CONFIG.dfuService.toString(16)));
+        const hasBoks = services.some(s => s.uuid == CONFIG.boksService || s.uuid.includes(CONFIG.boksService));
+
         let isButtonless = false;
 
-        try {
-            const dfuSvc = await server.getPrimaryService(CONFIG.dfuService);
-            const chars = await dfuSvc.getCharacteristics();
-            isRealDfu = chars.length > 1;
-            isButtonless = chars.length === 1;
-        } catch(e) {}
+        // Collect Device Info
+        const checks = { batteryOk: true, hwOk: true, versionMatch: false };
 
-        const checks = await readInfo(server);
+        if (hasBoks) {
+            log("Device in Application Mode");
+            isButtonless = true;
+
+            try {
+                const infoSvc = await server.getPrimaryService(CONFIG.deviceInfoService);
+
+                // HW Check
+                try {
+                    const hwChar = await infoSvc.getCharacteristic(CONFIG.hwRevChar);
+                    const hwVal = await hwChar.readValue();
+                    const hwStr = new TextDecoder().decode(hwVal);
+                    elements.infoHw.textContent = hwStr;
+                    log(`Hardware: ${hwStr} (Expected: ${CONFIG.expectedHw})`);
+
+                    if (!hwStr.includes(CONFIG.expectedHw)) {
+                        log(t('error_hw'), 'error');
+                        checks.hwOk = false;
+                        elements.infoHw.style.color = "red";
+                    }
+                } catch(e) { log("Could not read HW Revision", 'warning'); }
+
+                // SW Check
+                try {
+                    const swChar = await infoSvc.getCharacteristic(CONFIG.swRevChar);
+                    const swVal = await swChar.readValue();
+                    const swStr = new TextDecoder().decode(swVal);
+                    elements.infoVersion.textContent = swStr;
+                    log(`Current SW: ${swStr} (Target: ${CONFIG.targetVersion})`);
+                    if (swStr.trim() === CONFIG.targetVersion.trim()) {
+                        checks.versionMatch = true;
+                    }
+                } catch(e) { log("Could not read SW Revision", 'warning'); }
+
+            } catch(e) { log("Device Info Service not found", 'warning'); }
+
+            // Battery Check
+            try {
+                const battSvc = await server.getPrimaryService(CONFIG.batteryService);
+                const battChar = await battSvc.getCharacteristic(0x2A19); // Battery Level
+                const battVal = await battChar.readValue();
+                const level = battVal.getUint8(0);
+                elements.infoBattery.textContent = `${level}%`;
+                log(`Battery: ${level}%`);
+
+                if (level < CONFIG.batteryThreshold) {
+                    const msg = t('error_battery', { level: CONFIG.batteryThreshold });
+                    log(msg, 'error');
+                    checks.batteryOk = false;
+                    elements.infoBattery.style.color = "red";
+                }
+            } catch(e) { log("Could not read Battery", 'warning'); }
+
+            elements.infoName.textContent = bluetoothDevice.name;
+            elements.deviceInfo.classList.remove('hidden');
+
+        } else if (hasDfu) {
+            log("Device is in DFU Bootloader Mode");
+            elements.infoName.textContent = t('device_in_dfu');
+            elements.infoBattery.textContent = "?";
+            elements.infoVersion.textContent = t('dfu_bootloader');
+            elements.infoHw.textContent = "?";
+            elements.deviceInfo.classList.remove('hidden');
+        } else {
+            log("Unknown device state", 'error');
+            return;
+        }
+
         elements.btnConnect.classList.add('hidden');
         elements.btnStart.classList.remove('hidden');
         elements.btnStart.disabled = false;
 
-        if (isRealDfu) {
-            log("Real DFU mode detected.");
+        if (hasDfu) {
+            // Already in bootloader, ready to flash
+            log("Ready to flash.");
             setStatus(t('step_3'), "success");
             elements.instruction.textContent = t('step_3');
             elements.btnStart.textContent = t('btn_flash');

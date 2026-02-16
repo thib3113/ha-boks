@@ -4,6 +4,7 @@ const LANG = navigator.language.startsWith('fr') ? 'fr' : 'en';
 const TEXTS = {
     fr: {
         title: "Mise à jour Boks",
+        download_short: "Télécharger le firmware (.zip)",
         target_version: "Version Cible : {version}",
         https_title: "Attention :",
         https_msg: "Le Bluetooth Web ne fonctionne qu'en HTTPS.",
@@ -41,6 +42,7 @@ const TEXTS = {
     },
     en: {
         title: "Boks Update",
+        download_short: "Download firmware (.zip)",
         target_version: "Target Version: {version}",
         https_title: "Warning:",
         https_msg: "Web Bluetooth requires HTTPS.",

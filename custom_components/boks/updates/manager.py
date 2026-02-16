@@ -80,7 +80,7 @@ class BoksUpdateManager:
         os.makedirs(version_dir, exist_ok=True)
 
         # 1. Write Firmware binary
-        fw_filename = "firmware.zip"
+        fw_filename = f"boks_{chipset}_{version}.zip"
         with open(os.path.join(version_dir, fw_filename), "wb") as f:
             f.write(fw_content)
 
