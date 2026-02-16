@@ -641,6 +641,16 @@
           "description": "A versão do firmware a descarregar (ex: 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Delete Update Package",
+      "description": "Deletes the firmware file and update interface for a specific version.",
+      "fields": {
+        "version": {
+          "name": "Version",
+          "description": "The firmware version to delete (e.g., 4.2.0)"
+        }
+      }
     }
   }
 }
