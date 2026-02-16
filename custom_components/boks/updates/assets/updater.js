@@ -45,7 +45,7 @@ const elements = {
     btnDisconnect: document.getElementById('btn-disconnect'),
     btnClear: document.getElementById('btn-clear'),
     explanation: document.getElementById('dfu-explanation'),
-    backupLink: document.getElementById('ui-backup-link')
+    backupLink: document.getElementById('ui-backup-link'), topDownloadLink: document.getElementById('ui-top-download-link')
 };
 
 let firmwareBlob = null;
@@ -63,6 +63,7 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 function updateUIStrings() {
+    if (elements.topDownloadLink) { elements.topDownloadLink.textContent = t('download_short'); elements.topDownloadLink.href = CONFIG.firmwareFile; }
     document.title = t('title');
     document.getElementById('ui-title').textContent = t('title');
     document.getElementById('ui-version-badge').textContent = t('target_version', { version: CONFIG.targetVersion });
