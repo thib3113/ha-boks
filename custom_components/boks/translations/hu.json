@@ -644,12 +644,12 @@
       }
     },
     "delete_update_package": {
-      "name": "Delete Update Package",
-      "description": "Deletes the firmware file and update interface for a specific version.",
+      "name": "Frissítési csomag törlése",
+      "description": "Törli a firmware fájlt és a frissítési felületet egy adott verzióhoz.",
       "fields": {
         "version": {
-          "name": "Version",
-          "description": "The firmware version to delete (e.g., 4.2.0)"
+          "name": "Verzió",
+          "description": "A törlendő firmware verzió (pl. 4.2.0)"
         }
       }
     }

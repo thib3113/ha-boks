@@ -643,12 +643,12 @@
       }
     },
     "delete_update_package": {
-      "name": "Delete Update Package",
-      "description": "Deletes the firmware file and update interface for a specific version.",
+      "name": "Poista päivityspaketti",
+      "description": "Poistaa laiteohjelmistotiedoston ja päivityskäyttöliittymän tietylle versiolle.",
       "fields": {
         "version": {
-          "name": "Version",
-          "description": "The firmware version to delete (e.g., 4.2.0)"
+          "name": "Versio",
+          "description": "Poistettava laiteohjelmistoversio (esim. 4.2.0)"
         }
       }
     }

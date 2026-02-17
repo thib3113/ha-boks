@@ -643,12 +643,12 @@
       }
     },
     "delete_update_package": {
-      "name": "Delete Update Package",
-      "description": "Deletes the firmware file and update interface for a specific version.",
+      "name": "Excluir pacote de atualização",
+      "description": "Exclui o arquivo de firmware e a interface de atualização para uma versão específica.",
       "fields": {
         "version": {
-          "name": "Version",
-          "description": "The firmware version to delete (e.g., 4.2.0)"
+          "name": "Versão",
+          "description": "A versão do firmware a ser excluída (ex: 4.2.0)"
         }
       }
     }

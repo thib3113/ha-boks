@@ -644,12 +644,12 @@
       }
     },
     "delete_update_package": {
-      "name": "Delete Update Package",
-      "description": "Deletes the firmware file and update interface for a specific version.",
+      "name": "Smazat aktualizační balíček",
+      "description": "Smaže soubor firmwaru a rozhraní aktualizace pro konkrétní verzi.",
       "fields": {
         "version": {
-          "name": "Version",
-          "description": "The firmware version to delete (e.g., 4.2.0)"
+          "name": "Verze",
+          "description": "Verze firmwaru ke smazání (např. 4.2.0)"
         }
       }
     }

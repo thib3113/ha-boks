@@ -644,12 +644,12 @@
       }
     },
     "delete_update_package": {
-      "name": "Delete Update Package",
-      "description": "Deletes the firmware file and update interface for a specific version.",
+      "name": "حذف حزمة التحديث",
+      "description": "يحذف ملف البرنامج الثابت وواجهة التحديث لنسخة محددة.",
       "fields": {
         "version": {
-          "name": "Version",
-          "description": "The firmware version to delete (e.g., 4.2.0)"
+          "name": "الإصدار",
+          "description": "إصدار البرنامج الثابت المراد حذfe (مثال: 4.2.0)"
         }
       }
     }

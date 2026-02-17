@@ -643,12 +643,12 @@
       }
     },
     "delete_update_package": {
-      "name": "Delete Update Package",
-      "description": "Deletes the firmware file and update interface for a specific version.",
+      "name": "Șterge pachetul de actualizare",
+      "description": "Șterge fișierul firmware și interfața de actualizare pentru o anumită versiune.",
       "fields": {
         "version": {
-          "name": "Version",
-          "description": "The firmware version to delete (e.g., 4.2.0)"
+          "name": "Versiune",
+          "description": "Versiunea firmware de șters (ex: 4.2.0)"
         }
       }
     }
