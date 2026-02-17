@@ -641,6 +641,16 @@
           "description": "A versão do firmware a descarregar (ex: 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Excluir pacote de atualização",
+      "description": "Exclui o arquivo de firmware e a interface de atualização para uma versão específica.",
+      "fields": {
+        "version": {
+          "name": "Versão",
+          "description": "A versão do firmware a ser excluída (ex: 4.2.0)"
+        }
+      }
     }
   }
 }

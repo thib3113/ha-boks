@@ -252,3 +252,17 @@ generate_update_package:
       required: true
       selector:
         text:
+delete_update_package:
+  name: translation::services.delete_update_package.name
+  description: translation::services.delete_update_package.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    version:
+      name: translation::services.delete_update_package.fields.version.name
+      description: translation::services.delete_update_package.fields.version.description
+      required: true
+      selector:
+        text:

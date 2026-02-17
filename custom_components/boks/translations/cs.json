@@ -642,6 +642,16 @@
           "description": "Verze firmwaru ke stažení (např. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Smazat aktualizační balíček",
+      "description": "Smaže soubor firmwaru a rozhraní aktualizace pro konkrétní verzi.",
+      "fields": {
+        "version": {
+          "name": "Verze",
+          "description": "Verze firmwaru ke smazání (např. 4.2.0)"
+        }
+      }
     }
   }
 }

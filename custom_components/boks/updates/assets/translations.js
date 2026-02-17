@@ -38,7 +38,10 @@ const TEXTS = {
         device_in_dfu: "Mode Récupération (DfuTarg)",
         timeout_note: "Note : Si aucun flash n'est lancé, la Boks redémarrera seule en mode normal (bip sonore) après quelques minutes.",
         reboot_manual: "Le transfert est fini. Si l'appareil ne redémarre pas, utilisez les boutons de secours ci-dessous.",
-        dfu_explanation: "<strong>Note sur la progression :</strong> Pour garantir une sécurité maximale et éviter toute corruption, la Boks valide chaque bloc de données reçu. Il est normal de voir des messages 'Sync check' ou d'avoir l'impression que la barre de progression recule légèrement : cela signifie simplement qu'un petit morceau est renvoyé pour être corrigé afin d'être parfait. L'essentiel est que le pourcentage global continue d'avancer."
+        dfu_explanation: "<strong>Note sur la progression :</strong> Pour garantir une sécurité maximale et éviter toute corruption, la Boks valide chaque bloc de données reçu. Il est normal de voir des messages 'Sync check' ou d'avoir l'impression que la barre de progression recule légèrement : cela signifie simplement qu'un petit morceau est renvoyé pour être corrigé afin d'être parfait. L'essentiel est que le pourcentage global continue d'avancer.",
+        btn_delete: "Supprimer le package de mise à jour",
+        delete_success: "Package supprimé avec succès.",
+        delete_error: "Erreur lors de la suppression."
     },
     en: {
         title: "Boks Update",
@@ -76,7 +79,10 @@ const TEXTS = {
         device_in_dfu: "Recovery Mode (DfuTarg)",
         timeout_note: "Note: If no flash is started, the Boks will reboot to normal mode (beep) after a few minutes.",
         reboot_manual: "Transfer finished. If the device does not reboot, use the recovery buttons below.",
-        dfu_explanation: "<strong>Note on progress:</strong> To ensure maximum safety and prevent corruption, the Boks validates every data block received. It is normal to see 'Sync check' messages or feel that the progress bar jumps back slightly: this simply means a small part is being re-sent to ensure it's perfect. As long as the overall percentage advances, the process is working correctly."
+        dfu_explanation: "<strong>Note on progress:</strong> To ensure maximum safety and prevent corruption, the Boks validates every data block received. It is normal to see 'Sync check' messages or feel that the progress bar jumps back slightly: this simply means a small part is being re-sent to ensure it's perfect. As long as the overall percentage advances, the process is working correctly.",
+        btn_delete: "Delete Update Package",
+        delete_success: "Update package deleted successfully.",
+        delete_error: "Error deleting package."
     }
 };
 

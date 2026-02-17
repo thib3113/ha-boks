@@ -642,6 +642,16 @@
           "description": "A letöltendő firmware verziója (pl. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Frissítési csomag törlése",
+      "description": "Törli a firmware fájlt és a frissítési felületet egy adott verzióhoz.",
+      "fields": {
+        "version": {
+          "name": "Verzió",
+          "description": "A törlendő firmware verzió (pl. 4.2.0)"
+        }
+      }
     }
   }
 }

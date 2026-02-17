@@ -3,12 +3,14 @@ import json
 import logging
 import os
 import shutil
+import uuid
 
 import aiohttp
 from homeassistant.core import HomeAssistant
 
 from ..const import (
     BOKS_HARDWARE_INFO,
+    TPL_DELETE_TOKEN,
     TPL_EXPECTED_HW,
     TPL_FW_FILENAME,
     TPL_INTERNAL_REV,
@@ -71,6 +73,27 @@ class BoksUpdateManager:
 
         return f"/local/{UPDATE_WWW_DIR}/v{target_version}/{UPDATE_INDEX_FILENAME}"
 
+    async def async_delete_package(self, version: str) -> None:
+        """Delete a specific update package."""
+        await self.hass.async_add_executor_job(self._delete_package_sync, version)
+
+    def _delete_package_sync(self, version: str) -> None:
+        """Synchronously delete package files and update catalog."""
+        version_dir = os.path.join(self.www_path, f"v{version}")
+
+        # 1. Remove Directory
+        if os.path.exists(version_dir):
+            try:
+                shutil.rmtree(version_dir)
+                _LOGGER.info("Deleted update package for version %s", version)
+            except Exception as e:
+                _LOGGER.error("Failed to delete directory %s: %s", version_dir, e)
+        else:
+            _LOGGER.warning("Update package %s not found at %s", version, version_dir)
+
+        # 2. Update Catalog
+        self._remove_from_json_catalog(version)
+
     def _sync_files(self, version: str, internal_rev: str, chipset: str, fw_content: bytes, lib_content: str):
         """Perform all filesystem operations for a specific version."""
         # Ensure base directory exists
@@ -79,21 +102,24 @@ class BoksUpdateManager:
         version_dir = os.path.join(self.www_path, f"v{version}")
         os.makedirs(version_dir, exist_ok=True)
 
+        # Generate a unique delete token
+        delete_token = uuid.uuid4().hex
+
         # 1. Write Firmware binary
         fw_filename = f"boks_{chipset}_{version}.zip"
         with open(os.path.join(version_dir, fw_filename), "wb") as f:
             f.write(fw_content)
 
         # 2. Generate the version-specific index.html (self-contained flasher)
-        self._generate_version_index(version_dir, version, internal_rev, chipset, fw_filename, lib_content)
+        self._generate_version_index(version_dir, version, internal_rev, chipset, fw_filename, lib_content, delete_token)
 
         # 3. Update the root versions.json catalog
-        self._update_json_catalog(version, internal_rev, str(chipset))
+        self._update_json_catalog(version, internal_rev, str(chipset), delete_token)
 
         # 4. Copy/Update the root portal index.html
         self._copy_portal_index()
 
-    def _generate_version_index(self, target_dir, version, internal_rev, chipset, fw_filename, lib_content):
+    def _generate_version_index(self, target_dir, version, internal_rev, chipset, fw_filename, lib_content, delete_token):
         """Generate a flasher HTML for a specific version using templates and assets."""
         def read_asset(name):
             with open(os.path.join(self.assets_source_path, name), encoding="utf-8") as f:
@@ -115,11 +141,12 @@ class BoksUpdateManager:
         final_html = final_html.replace(TPL_EXPECTED_HW, str(chipset))
         final_html = final_html.replace(TPL_INTERNAL_REV, internal_rev)
         final_html = final_html.replace(TPL_FW_FILENAME, fw_filename)
+        final_html = final_html.replace(TPL_DELETE_TOKEN, delete_token)
 
         with open(os.path.join(target_dir, UPDATE_INDEX_FILENAME), "w", encoding="utf-8") as f:
             f.write(final_html)
 
-    def _update_json_catalog(self, version: str, internal_rev: str, chipset: str):
+    def _update_json_catalog(self, version: str, internal_rev: str, chipset: str, delete_token: str):
         """Update the JSON catalog with the new version info."""
         data = {"versions": {}}
         if os.path.exists(self.json_path):
@@ -132,11 +159,44 @@ class BoksUpdateManager:
         data["versions"][version] = {
             "chipset": chipset,
             "internal_rev": internal_rev,
-            "path": f"v{version}/{UPDATE_INDEX_FILENAME}"
+            "path": f"v{version}/{UPDATE_INDEX_FILENAME}",
+            "delete_token": delete_token
         }
 
         with open(self.json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
+
+    def _remove_from_json_catalog(self, version: str):
+        """Remove a version from the JSON catalog."""
+        if not os.path.exists(self.json_path):
+            return
+
+        try:
+            with open(self.json_path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            if version in data.get("versions", {}):
+                del data["versions"][version]
+                with open(self.json_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+                _LOGGER.debug("Removed version %s from catalog", version)
+        except Exception as e:
+            _LOGGER.warning("Failed to update versions.json: %s", e)
+
+    def verify_token(self, version: str, token: str) -> bool:
+        """Verify the delete token for a version."""
+        if not os.path.exists(self.json_path):
+            return False
+        try:
+            with open(self.json_path, encoding="utf-8") as f:
+                data = json.load(f)
+
+            stored_info = data.get("versions", {}).get(version)
+            if stored_info and stored_info.get("delete_token") == token:
+                return True
+        except Exception:
+            pass
+        return False
 
     def _copy_portal_index(self):
         """Copy the portal.html asset to the root index.html."""
