@@ -642,6 +642,16 @@
           "description": "Wersja oprogramowania układowego do pobrania (np. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Usuń pakiet aktualizacji",
+      "description": "Usuwa plik oprogramowania układowego i interfejs aktualizacji dla określonej wersji.",
+      "fields": {
+        "version": {
+          "name": "Wersja",
+          "description": "Wersja oprogramowania do usunięcia (np. 4.2.0)"
+        }
+      }
     }
   }
 }

@@ -159,6 +159,9 @@ def _get_coordinator_by_entity_id(hass: HomeAssistant, entity_ids: str | list[st
     )
 
 
+
+SERVICE_DELETE_UPDATE_PACKAGE_SCHEMA = vol.Schema({vol.Required("version"): cv.string})
+
 async def async_setup_services(hass: HomeAssistant):
     """Register services for the Boks integration."""
 
@@ -432,4 +435,22 @@ async def async_setup_services(hass: HomeAssistant):
         "generate_update_package",
         handle_generate_update_package,
         schema=SERVICE_GENERATE_UPDATE_PACKAGE_SCHEMA
+    )
+
+    # --- Service: Delete Update Package ---
+    async def handle_delete_update_package(call: ServiceCall):
+        """Handle deleting the update package."""
+        coordinator = get_coordinator_from_call(hass, call)
+        target_version = call.data["version"]
+        try:
+            await coordinator.updates.async_delete_package(target_version)
+        except Exception as e:
+            _LOGGER.error("Failed to delete update package via service: %s", e)
+            raise HomeAssistantError(f"Failed to delete update package: {e}") from e
+
+    hass.services.async_register(
+        DOMAIN,
+        "delete_update_package",
+        handle_delete_update_package,
+        schema=SERVICE_DELETE_UPDATE_PACKAGE_SCHEMA
     )

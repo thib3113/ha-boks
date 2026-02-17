@@ -641,6 +641,16 @@
           "description": "Versiunea de firmware de descărcat (de ex. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Șterge pachetul de actualizare",
+      "description": "Șterge fișierul firmware și interfața de actualizare pentru o anumită versiune.",
+      "fields": {
+        "version": {
+          "name": "Versiune",
+          "description": "Versiunea firmware de șters (ex: 4.2.0)"
+        }
+      }
     }
   }
 }

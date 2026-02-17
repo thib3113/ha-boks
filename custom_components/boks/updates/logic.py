@@ -140,3 +140,13 @@ class BoksUpdateController:
                 "notification_id": f"{UPDATE_NOTIFICATION_ID_PREFIX}{target_version}"
             }
         )
+
+    async def async_delete_package(self, version: str) -> None:
+        """Delete an update package."""
+        manager = BoksUpdateManager(self.hass)
+        await manager.async_delete_package(version)
+
+        # Dismiss notification if it exists
+        self.hass.components.persistent_notification.async_dismiss(
+            f"{UPDATE_NOTIFICATION_ID_PREFIX}{version}"
+        )

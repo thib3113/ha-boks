@@ -641,6 +641,16 @@
           "description": "La versione del firmware da scaricare (es. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Elimina pacchetto aggiornamento",
+      "description": "Elimina il file firmware e l'interfaccia di aggiornamento per una versione specifica.",
+      "fields": {
+        "version": {
+          "name": "Versione",
+          "description": "La versione del firmware da eliminare (es. 4.2.0)"
+        }
+      }
     }
   }
 }

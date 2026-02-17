@@ -3,14 +3,17 @@ import importlib
 import logging
 
 import voluptuous as vol
+from aiohttp import web
+from homeassistant.components import webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from .const import DOMAIN
+from .const import DOMAIN, WEBHOOK_DELETE_PACKAGE
 from .coordinator import BoksDataUpdateCoordinator
 from .services import async_setup_services
+from .updates.manager import BoksUpdateManager
 
 # Define the CONFIG_SCHEMA as an empty schema for config entries only
 CONFIG_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
@@ -24,6 +27,38 @@ async def async_setup(hass: HomeAssistant, _config: dict) -> bool:
 
     # Register all services
     await async_setup_services(hass)
+
+    async def handle_webhook(hass, webhook_id, request):
+        try:
+            data = await request.json()
+        except ValueError:
+            return web.Response(status=400)
+
+        version_num = data.get("version")
+        token = data.get("token")
+
+        if not version_num or not token:
+             return web.Response(status=400)
+
+        manager = BoksUpdateManager(hass)
+        # Verify token synchronously (fast JSON check) or async wrapper?
+        # verify_token is sync, calling it directly is fine as it's just a file read (fast enough for small file)
+        # But best practice is to offload file I/O.
+        valid = await hass.async_add_executor_job(manager.verify_token, version_num, token)
+
+        if not valid:
+             _LOGGER.warning("Invalid token for deleting update package %s", version_num)
+             return web.Response(status=403)
+
+        await manager.async_delete_package(version_num)
+        return web.Response(status=200)
+
+    webhook.async_register(hass,
+        DOMAIN,
+        "Boks Delete Update Package",
+        WEBHOOK_DELETE_PACKAGE,
+        handle_webhook
+    )
 
     return True
 

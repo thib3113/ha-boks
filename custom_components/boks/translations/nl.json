@@ -641,6 +641,16 @@
           "description": "De te downloaden firmwareversie (bijv. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Updatepakket verwijderen",
+      "description": "Verwijdert het firmwarebestand en de update-interface voor een specifieke versie.",
+      "fields": {
+        "version": {
+          "name": "Versie",
+          "description": "De te verwijderen firmwareversie (bijv. 4.2.0)"
+        }
+      }
     }
   }
 }

@@ -27,6 +27,7 @@ const DFU_ERRORS = {
 const elements = {
     btnConnect: document.getElementById('btn-connect'),
     btnStart: document.getElementById('btn-start'),
+    btnDelete: document.getElementById('btn-delete'),
     status: document.getElementById('status-text'),
     progressSent: document.getElementById('progress-sent'),
     progressSentText: document.getElementById('progress-sent-text'),
@@ -383,6 +384,7 @@ async function performFlash() {
                     setStatus(t('status_success'), "success");
                     elements.instruction.textContent = t('reboot_manual');
                     elements.btnStart.classList.add('hidden');
+                    if(elements.btnDelete) elements.btnDelete.classList.remove('hidden');
 
                     if (bluetoothDevice && bluetoothDevice.gatt.connected) {
                         log("Disconnecting...", "info");
@@ -430,6 +432,38 @@ async function performFlash() {
     }
 }
 
+
+async function deletePackage() {
+    if (!confirm("Are you sure you want to delete this update package?")) return;
+
+    setStatus("Deleting package...", "active");
+    elements.btnDelete.disabled = true;
+
+    try {
+        const response = await fetch('/api/webhook/boks_delete_update_package', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                version: BOKS_PARAMS.targetVersion,
+                token: BOKS_PARAMS.deleteToken
+            })
+        });
+
+        if (response.ok) {
+            setStatus(t('delete_success'), "success");
+            elements.btnDelete.classList.add('hidden');
+            elements.btnConnect.classList.add('hidden');
+            elements.instruction.textContent = t('delete_success');
+        } else {
+            throw new Error(response.statusText);
+        }
+    } catch (e) {
+        log(, 'error');
+        setStatus(t('delete_error') + " " + e.message, "error");
+        elements.btnDelete.disabled = false;
+    }
+}
+
 async function sendDfuRaw(opcode, label) {
     try {
         log(`Sending manual opcode ${label}...`);
@@ -445,6 +479,8 @@ async function sendDfuRaw(opcode, label) {
 }
 
 elements.btnConnect.addEventListener('click', connect);
+elements.btnDelete.onclick = deletePackage;
+    if(elements.btnDelete) elements.btnDelete.textContent = t('btn_delete');
 elements.btnFinalize.onclick = () => sendDfuRaw(0x04, "Manual Execute");
 elements.btnDisconnect.onclick = async () => {
     if (bluetoothDevice && bluetoothDevice.gatt.connected) {

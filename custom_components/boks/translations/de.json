@@ -641,6 +641,16 @@
           "description": "Die herunterzuladende Firmware-Version (z. B. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Update-Paket löschen",
+      "description": "Löscht die Firmware-Datei und die Update-Schnittstelle für eine bestimmte Version.",
+      "fields": {
+        "version": {
+          "name": "Version",
+          "description": "Die zu löschende Firmware-Version (z. B. 4.2.0)"
+        }
+      }
     }
   }
 }

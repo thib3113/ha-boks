@@ -642,6 +642,16 @@
           "description": "Verzia firmvéru na stiahnutie (napr. 4.3.3)."
         }
       }
+    },
+    "delete_update_package": {
+      "name": "Vymazať aktualizačný balík",
+      "description": "Vymaže súbor firmvéru a rozhranie aktualizácie pre konkrétnu verziu.",
+      "fields": {
+        "version": {
+          "name": "Verzia",
+          "description": "Verzia firmvéru na vymazanie (napr. 4.2.0)"
+        }
+      }
     }
   }
 }
