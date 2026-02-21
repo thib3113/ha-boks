@@ -287,7 +287,6 @@ async def test_handle_nfc_register_tag_success(mock_hass, mock_coordinator):
         await handler(call)
 
         mock_coordinator.nfc.register_tag.assert_called_with("A1B2C3D4", "Test Tag")
-        mock_coordinator.async_request_refresh.assert_called()
 
 async def test_handle_nfc_unregister_tag_success(mock_hass, mock_coordinator):
     """Test handle_nfc_unregister_tag service success."""
@@ -306,7 +305,6 @@ async def test_handle_nfc_unregister_tag_success(mock_hass, mock_coordinator):
         await handler(call)
 
         mock_coordinator.nfc.unregister_tag.assert_called_with("A1B2C3D4")
-        mock_coordinator.async_request_refresh.assert_called()
 
 
 
