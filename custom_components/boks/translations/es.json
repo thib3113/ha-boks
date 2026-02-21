@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Código PIN no válido."
     },
+    "master_key_required": {
+      "message": "Se requiere la Llave Maestra para generar códigos PIN. Por favor, verifique la configuración de la integración."
+    },
+    "master_key_invalid": {
+      "message": "La Llave Maestra configurada no es válida (debe ser de 32 bytes hex)."
+    },
     "unauthorized": {
       "message": "No autorizado."
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "No hay dispositivos Boks configurados."
     },
-    "opening_failed_no_code": {
-      "message": "Error al abrir: no se proporcionó ningún código PIN, no hay ningún código maestro guardado y no se pudo generar un PIN de un solo uso."
-    },
-    "opening_failed_no_code_no_key": {
-      "message": "Error al abrir: no se proporcionó ningún código PIN, no hay ningún código maestro guardado y no se pudo generar un PIN de un solo uso (no hay llave de configuración disponible)."
-    },
-    "operation_timed_out": {
-      "message": "La operación se agotó después de {seconds} segundos."
-    },
-    "set_configuration_failed": {
-      "message": "Error al establecer la configuración {config_type} (el dispositivo devolvió un error)."
-    },
-    "timeout_waiting_response": {
-      "message": "Tiempo de espera agotado esperando la respuesta al opcode {opcode}."
-    },
-    "todo_entity_not_found": {
-      "message": "Entidad Todo {target_entity_id} no encontrada o no cargada."
+    "cannot_resolve_todo": {
+      "message": "No se pudo resolver una lista de tareas Boks de destino."
     },
     "todo_integration_not_loaded": {
       "message": "La integración Todo no está cargada."
     },
+    "todo_entity_not_found": {
+      "message": "Entidad Todo {target_entity_id} no encontrada o no cargada."
+    },
+    "config_key_invalid_length": {
+      "message": "La llave de configuración debe tener exactamente 8 caracteres."
+    },
     "ble_client_none": {
       "message": "El cliente BLE es nulo, no se puede enviar el comando."
+    },
+    "timeout_waiting_response": {
+      "message": "Tiempo de espera agotado esperando la respuesta al opcode {opcode}."
     },
     "ble_error": {
       "message": "Error de BLE: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "Error interno de BLE: {error}"
     },
-    "busy": {
-      "message": "Dispositivo ocupado: otra operación ya está escuchando notificaciones."
-    },
-    "cannot_resolve_todo": {
-      "message": "No se pudo resolver una lista de tareas Boks de destino."
-    },
-    "config_key_invalid_length": {
-      "message": "La llave de configuración debe tener exactamente 8 caracteres."
-    },
-    "delete_code_failed": {
-      "message": "Error al eliminar el código (el dispositivo devolvió un error)."
-    },
-    "door_opened_recently": {
-      "message": "La puerta se abrió recientemente. Por favor, espere {seconds} segundos antes de abrirla de nuevo."
-    },
     "entity_not_parcel_list": {
       "message": "La entidad {target_entity_id} no es una lista de paquetes Boks."
-    },
-    "firmware_update_failed": {
-      "message": "Error al activar la actualización del firmware para la versión {version}"
-    },
-    "firmware_update_required": {
-      "message": "La función {feature} requiere la versión de firmware {required_sw}. Su versión actual es {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "La versión del firmware debe ser superior a {required_version} para usar esta función. Versión actual: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "La función {feature} requiere un Boks v{required_hw} o superior. Su versión actual es v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "Índice de código maestro no válido (debe estar entre 0 y 255)."
-    },
-    "invalid_uid_format": {
-      "message": "Formato de UID NFC no válido."
-    },
-    "item_not_found": {
-      "message": "Elemento no encontrado"
-    },
-    "laposte_firmware_version_required": {
-      "message": "La versión del firmware debe ser superior a {required_version} para habilitar la función La Poste. Versión actual: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "Entidad de bloqueo no encontrada para este dispositivo."
     },
     "maintenance_already_running": {
       "message": "Ya hay una tarea de mantenimiento en curso. Por favor, espere a que termine."
     },
-    "maintenance_error_msg": {
-      "message": "Limpieza de códigos maestros fallida en el índice {current_idx}.\nError: {error}"
+    "delete_code_failed": {
+      "message": "Error al eliminar el código (el dispositivo devolvió un error)."
+    },
+    "set_configuration_failed": {
+      "message": "Error al establecer la configuración {config_type} (el dispositivo devolvió un error)."
+    },
+    "laposte_firmware_version_required": {
+      "message": "La versión del firmware debe ser superior a {required_version} para habilitar la función La Poste. Versión actual: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "La versión del firmware debe ser superior a {required_version} para usar esta función. Versión actual: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Error al activar la actualización del firmware para la versión {version}"
+    },
+    "door_opened_recently": {
+      "message": "La puerta se abrió recientemente. Por favor, espere {seconds} segundos antes de abrirla de nuevo."
+    },
+    "opening_failed_no_code": {
+      "message": "Error al abrir: no se proporcionó ningún código PIN, no hay ningún código maestro guardado y no se pudo generar un PIN de un solo uso."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Error al abrir: no se proporcionó ningún código PIN, no hay ningún código maestro guardado y no se pudo generar un PIN de un solo uso (no hay llave de configuración disponible)."
+    },
+    "hardware_unsupported": {
+      "message": "La función {feature} requiere un Boks v{required_hw} o superior. Su versión actual es v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "La función {feature} requiere la versión de firmware {required_sw}. Su versión actual es {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Elemento no encontrado"
+    },
+    "operation_timed_out": {
+      "message": "La operación se agotó después de {seconds} segundos."
+    },
+    "busy": {
+      "message": "Dispositivo ocupado: otra operación ya está escuchando notificaciones."
+    },
+    "lock_entity_not_found": {
+      "message": "Entidad de bloqueo no encontrada para este dispositivo."
+    },
+    "invalid_uid_format": {
+      "message": "Formato de UID NFC no válido."
+    },
+    "invalid_master_code_index": {
+      "message": "Índice de código maestro no válido (debe estar entre 0 y 255)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "Esta etiqueta NFC ya está registrada en el Boks."
     },
     "maintenance_failed_msg": {
       "message": "Mantenimiento fallido: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "Error de mantenimiento de Boks"
     },
-    "nfc_tag_already_exists": {
-      "message": "Esta etiqueta NFC ya está registrada en el Boks."
-    },
-    "fw_downgrade_blocked": {
-      "message": "No se puede generar la actualización para la versión {target_version} porque es más antigua que la versión instalada actualmente {current_version}. No se admiten degradaciones."
-    },
-    "fw_download_failed": {
-      "message": "Error al descargar el firmware: {status}"
+    "maintenance_error_msg": {
+      "message": "Limpieza de códigos maestros fallida en el índice {current_idx}.\nError: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "No se pudo determinar la revisión interna del firmware (ID de hardware). Asegúrese de que el dispositivo sea accesible."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "Hardware no compatible o revisión desconocida: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "Versión {version} no disponible para el hardware {revision}"
+    },
+    "fw_download_failed": {
+      "message": "Error al descargar el firmware: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "No se puede generar la actualización para la versión {target_version} porque es más antigua que la versión instalada actualmente {current_version}. No se admiten degradaciones."
+    },
     "fw_update_package_ready_msg": {
       "message": "El paquete de actualización para {target_version} está listo:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "Actualización de Boks {target_version} lista"
-    },
-    "fw_version_not_found": {
-      "message": "Versión {version} no disponible para el hardware {revision}"
     }
   },
   "options": {
@@ -610,8 +616,7 @@
       "fields": {
         "uid": {
           "name": "UID de etiqueta",
-          "description": "El ID único de la etiqueta (p. ej. A1B2C3D4).",
-          "example": "A1B2C3D4"
+          "description": "El ID único de la etiqueta (p. ej. A1B2C3D4)."
         },
         "name": {
           "name": "Nombre amigable",
@@ -650,6 +655,20 @@
         "version": {
           "name": "Versión",
           "description": "La versión del firmware a eliminar (ej: 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Generar código PIN",
+      "description": "Genera un código PIN utilizando el algoritmo propietario de Boks.",
+      "fields": {
+        "type": {
+          "name": "Tipo de código",
+          "description": "El tipo de código a generar (maestro, único, multi)."
+        },
+        "index": {
+          "name": "Índice",
+          "description": "El índice de generación (comienza en 0)."
         }
       }
     }

@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Ongeldige pincode."
     },
+    "master_key_required": {
+      "message": "De hoofdsleutel is vereist om pincodes te genereren. Controleer uw integratieconfiguratie."
+    },
+    "master_key_invalid": {
+      "message": "De geconfigureerde hoofdsleutel is ongeldig (moet 32 bytes hex zijn)."
+    },
     "unauthorized": {
       "message": "Niet geautoriseerd."
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "Geen Boks-apparaten geconfigureerd."
     },
-    "opening_failed_no_code": {
-      "message": "Openen mislukt: geen pincode opgegeven, geen Master Code opgeslagen en kon geen eenmalige pincode genereren."
-    },
-    "opening_failed_no_code_no_key": {
-      "message": "Openen mislukt: geen pincode opgegeven, geen Master Code opgeslagen en kon geen eenmalige pincode genereren (geen Config Key beschikbaar)."
-    },
-    "operation_timed_out": {
-      "message": "De bewerking is na {seconds} seconden verlopen."
-    },
-    "set_configuration_failed": {
-      "message": "Configuratie {config_type} instellen mislukt (Apparaat gaf een foutmelding)."
-    },
-    "timeout_waiting_response": {
-      "message": "Timeout bij het wachten op antwoord voor opcode {opcode}.\n"
-    },
-    "todo_entity_not_found": {
-      "message": "Todo-entiteit {target_entity_id} niet gevonden of niet geladen."
+    "cannot_resolve_todo": {
+      "message": "Kon geen doel Boks Todo-lijst vinden."
     },
     "todo_integration_not_loaded": {
       "message": "Todo-integratie niet geladen."
     },
+    "todo_entity_not_found": {
+      "message": "Todo-entiteit {target_entity_id} niet gevonden of niet geladen."
+    },
+    "config_key_invalid_length": {
+      "message": "Configuratiesleutel moet precies 8 tekens lang zijn."
+    },
     "ble_client_none": {
       "message": "BLE-client is None, kan commando niet verzenden."
+    },
+    "timeout_waiting_response": {
+      "message": "Timeout bij het wachten op antwoord voor opcode {opcode}.\n"
     },
     "ble_error": {
       "message": "BLE-fout: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "Interne BLE-fout: {error}"
     },
-    "busy": {
-      "message": "Apparaat bezig: een andere bewerking luistert al naar meldingen."
-    },
-    "cannot_resolve_todo": {
-      "message": "Kon geen doel Boks Todo-lijst vinden."
-    },
-    "config_key_invalid_length": {
-      "message": "Configuratiesleutel moet precies 8 tekens lang zijn."
-    },
-    "delete_code_failed": {
-      "message": "Code verwijderen mislukt (Apparaat gaf een foutmelding)."
-    },
-    "door_opened_recently": {
-      "message": "De deur is onlangs geopend. Wacht {seconds} seconden voordat u deze weer opent."
-    },
     "entity_not_parcel_list": {
       "message": "Entiteit {target_entity_id} is geen Boks Pakketlijst."
-    },
-    "firmware_update_failed": {
-      "message": "Starten van firmware-update voor versie {version} mislukt."
-    },
-    "firmware_update_required": {
-      "message": "De functie {feature} vereist firmwareversie {required_sw}. Uw huidige versie is {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "Firmwareversie moet hoger zijn dan {required_version} om deze functie te gebruiken. Huidige versie: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "De functie {feature} vereist een Boks v{required_hw} of hoger. Uw huidige versie is v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "Ongeldige index voor mastercode (moet tussen 0 en 255 zijn)."
-    },
-    "invalid_uid_format": {
-      "message": "Ongeldig NFC UID-formaat."
-    },
-    "item_not_found": {
-      "message": "Element niet gevonden"
-    },
-    "laposte_firmware_version_required": {
-      "message": "Firmwareversie moet hoger zijn dan {required_version} om de La Poste functie in te schakelen. Huidige versie: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "Slotentiteit niet gevonden voor dit apparaat."
     },
     "maintenance_already_running": {
       "message": "Er is al een onderhoudstaak bezig. Wacht tot deze klaar is."
     },
-    "maintenance_error_msg": {
-      "message": "Schoonmaken van mastercodes mislukt op index {current_idx}.\nFout: {error}"
+    "delete_code_failed": {
+      "message": "Code verwijderen mislukt (Apparaat gaf een foutmelding)."
+    },
+    "set_configuration_failed": {
+      "message": "Configuratie {config_type} instellen mislukt (Apparaat gaf een foutmelding)."
+    },
+    "laposte_firmware_version_required": {
+      "message": "Firmwareversie moet hoger zijn dan {required_version} om de La Poste functie in te schakelen. Huidige versie: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "Firmwareversie moet hoger zijn dan {required_version} om deze functie te gebruiken. Huidige versie: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Starten van firmware-update voor versie {version} mislukt."
+    },
+    "door_opened_recently": {
+      "message": "De deur is onlangs geopend. Wacht {seconds} seconden voordat u deze weer opent."
+    },
+    "opening_failed_no_code": {
+      "message": "Openen mislukt: geen pincode opgegeven, geen Master Code opgeslagen en kon geen eenmalige pincode genereren."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Openen mislukt: geen pincode opgegeven, geen Master Code opgeslagen en kon geen eenmalige pincode genereren (geen Config Key beschikbaar)."
+    },
+    "hardware_unsupported": {
+      "message": "De functie {feature} vereist een Boks v{required_hw} of hoger. Uw huidige versie is v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "De functie {feature} vereist firmwareversie {required_sw}. Uw huidige versie is {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Element niet gevonden"
+    },
+    "operation_timed_out": {
+      "message": "De bewerking is na {seconds} seconden verlopen."
+    },
+    "busy": {
+      "message": "Apparaat bezig: een andere bewerking luistert al naar meldingen."
+    },
+    "lock_entity_not_found": {
+      "message": "Slotentiteit niet gevonden voor dit apparaat."
+    },
+    "invalid_uid_format": {
+      "message": "Ongeldig NFC UID-formaat."
+    },
+    "invalid_master_code_index": {
+      "message": "Ongeldige index voor mastercode (moet tussen 0 en 255 zijn)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "Deze NFC-tag is al geregistreerd in de Boks."
     },
     "maintenance_failed_msg": {
       "message": "Onderhoud mislukt: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "Boks Onderhoudsfout"
     },
-    "nfc_tag_already_exists": {
-      "message": "Deze NFC-tag is al geregistreerd in de Boks."
-    },
-    "fw_downgrade_blocked": {
-      "message": "Kan update voor versie {target_version} niet genereren omdat deze ouder is dan de momenteel geïnstalleerde versie {current_version}. Downgrades worden niet ondersteund."
-    },
-    "fw_download_failed": {
-      "message": "Downloaden van firmware mislukt: {status}"
+    "maintenance_error_msg": {
+      "message": "Schoonmaken van mastercodes mislukt op index {current_idx}.\nFout: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "Kon interne firmware-revisie (Hardware ID) niet bepalen. Zorg ervoor dat het apparaat bereikbaar is."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "Niet-ondersteunde hardware of onbekende revisie: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "Versie {version} niet beschikbaar voor hardware {revision}"
+    },
+    "fw_download_failed": {
+      "message": "Downloaden van firmware mislukt: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Kan update voor versie {target_version} niet genereren omdat deze ouder is dan de momenteel geïnstalleerde versie {current_version}. Downgrades worden niet ondersteund."
+    },
     "fw_update_package_ready_msg": {
       "message": "Updatepakket voor {target_version} is gereed:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "Boks Update {target_version} Gereed"
-    },
-    "fw_version_not_found": {
-      "message": "Versie {version} niet beschikbaar voor hardware {revision}"
     }
   },
   "options": {
@@ -649,6 +655,20 @@
         "version": {
           "name": "Versie",
           "description": "De te verwijderen firmwareversie (bijv. 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Pincode genereren",
+      "description": "Genereert een pincode met behulp van het eigen Boks-algoritme.",
+      "fields": {
+        "type": {
+          "name": "Codetype",
+          "description": "Het type code dat moet worden gegenereerd (master, enkel, multi)."
+        },
+        "index": {
+          "name": "Index",
+          "description": "De generatie-index (begint bij 0)."
         }
       }
     }
