@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Nederīgs PIN kods."
     },
+    "master_key_required": {
+      "message": "Galvenā atslēga ir nepieciešama PIN kodu ģenerēšanai. Lūdzu, pārbaudiet integrācijas konfigurāciju."
+    },
+    "master_key_invalid": {
+      "message": "Konfigurētā galvenā atslēga ir nederīga (jābūt 32 baitiem hex)."
+    },
     "unauthorized": {
       "message": "Neautorizēta piekļuve."
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "Nav konfigurēta neviena Boks ierīce."
     },
-    "opening_failed_no_code": {
-      "message": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu."
-    },
-    "opening_failed_no_code_no_key": {
-      "message": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu (nav pieejama konfigurācijas atslēga)."
-    },
-    "operation_timed_out": {
-      "message": "Operācija beidzās pēc {seconds} sekundēm."
-    },
-    "set_configuration_failed": {
-      "message": "Konfigurācijas {config_type} iestatīšana neizdevās (ierīce atgrieza kļūdu)."
-    },
-    "timeout_waiting_response": {
-      "message": "Noilgums, gaidot atbildi uz opcode {opcode}."
-    },
-    "todo_entity_not_found": {
-      "message": "Todo entitāte {target_entity_id} nav atrasta vai nav ielādēta."
+    "cannot_resolve_todo": {
+      "message": "Neizdevās atrisināt mērķa Boks darāmo darbu sarakstu."
     },
     "todo_integration_not_loaded": {
       "message": "Todo integrācija nav ielādēta."
     },
+    "todo_entity_not_found": {
+      "message": "Todo entitāte {target_entity_id} nav atrasta vai nav ielādēta."
+    },
+    "config_key_invalid_length": {
+      "message": "Konfigurācijas atslēgai jābūt tieši 8 rakstzīmēm."
+    },
     "ble_client_none": {
       "message": "BLE klients ir None, nevar nosūtīt komandu."
+    },
+    "timeout_waiting_response": {
+      "message": "Noilgums, gaidot atbildi uz opcode {opcode}."
     },
     "ble_error": {
       "message": "BLE kļūda: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "Iekšējā BLE kļūda: {error}"
     },
-    "busy": {
-      "message": "Ierīce aizņemta: cita operācija jau gaida paziņojumus."
-    },
-    "cannot_resolve_todo": {
-      "message": "Neizdevās atrisināt mērķa Boks darāmo darbu sarakstu."
-    },
-    "config_key_invalid_length": {
-      "message": "Konfigurācijas atslēgai jābūt tieši 8 rakstzīmēm."
-    },
-    "delete_code_failed": {
-      "message": "Koda dzēšana neizdevās (ierīce atgrieza kļūdu)."
-    },
-    "door_opened_recently": {
-      "message": "Durvis nesen tika atvērtas. Lūdzu, uzgaidiet {seconds} sekundes, pirms atverat tās vēlreiz."
-    },
     "entity_not_parcel_list": {
       "message": "Entitāte {target_entity_id} nav Boks paku saraksts."
-    },
-    "firmware_update_failed": {
-      "message": "Neizdevās aktivizēt programmaparatūras atjaunināšanu versijai {version}"
-    },
-    "firmware_update_required": {
-      "message": "Funkcijai {feature} nepieciešama programmaparatūras versija {required_sw}. Jūsu pašreizējā versija ir {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai izmantotu šo funkciju. Pašreizējā versija: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "Funkcijai {feature} nepieciešama Boks v{required_hw} vai jaunāka. Jūsu pašreizējā versija ir v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "Nederīgs galvenā koda indekss (jābūt no 0 līdz 255)."
-    },
-    "invalid_uid_format": {
-      "message": "Nederīgs NFC UID formāts."
-    },
-    "item_not_found": {
-      "message": "Vienums nav atrasts"
-    },
-    "laposte_firmware_version_required": {
-      "message": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai iespējotu La Poste funkciju. Pašreizējā versija: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "Šai ierīcei netika atrasta slēdzenes entitāte."
     },
     "maintenance_already_running": {
       "message": "Apkopes uzdevums jau tiek izpildīts. Lūdzu, uzgaidiet, līdz tas tiek pabeigts."
     },
-    "maintenance_error_msg": {
-      "message": "Galveno kodu tīrīšana neizdevās indeksā {current_idx}.\nKļūda: {error}"
+    "delete_code_failed": {
+      "message": "Koda dzēšana neizdevās (ierīce atgrieza kļūdu)."
+    },
+    "set_configuration_failed": {
+      "message": "Konfigurācijas {config_type} iestatīšana neizdevās (ierīce atgrieza kļūdu)."
+    },
+    "laposte_firmware_version_required": {
+      "message": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai iespējotu La Poste funkciju. Pašreizējā versija: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "Programmaparatūras versijai jābūt lielākai par {required_version}, lai izmantotu šo funkciju. Pašreizējā versija: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Neizdevās aktivizēt programmaparatūras atjaunināšanu versijai {version}"
+    },
+    "door_opened_recently": {
+      "message": "Durvis nesen tika atvērtas. Lūdzu, uzgaidiet {seconds} sekundes, pirms atverat tās vēlreiz."
+    },
+    "opening_failed_no_code": {
+      "message": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Atvēršana neizdevās: netika norādīts PIN kods, nav saglabāts neviens galvenais kods un neizdevās ģenerēt vienreizēju PIN kodu (nav pieejama konfigurācijas atslēga)."
+    },
+    "hardware_unsupported": {
+      "message": "Funkcijai {feature} nepieciešama Boks v{required_hw} vai jaunāka. Jūsu pašreizējā versija ir v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "Funkcijai {feature} nepieciešama programmaparatūras versija {required_sw}. Jūsu pašreizējā versija ir {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Vienums nav atrasts"
+    },
+    "operation_timed_out": {
+      "message": "Operācija beidzās pēc {seconds} sekundēm."
+    },
+    "busy": {
+      "message": "Ierīce aizņemta: cita operācija jau gaida paziņojumus."
+    },
+    "lock_entity_not_found": {
+      "message": "Šai ierīcei netika atrasta slēdzenes entitāte."
+    },
+    "invalid_uid_format": {
+      "message": "Nederīgs NFC UID formāts."
+    },
+    "invalid_master_code_index": {
+      "message": "Nederīgs galvenā koda indekss (jābūt no 0 līdz 255)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "Šis NFC tags jau ir reģistrēts Boks."
     },
     "maintenance_failed_msg": {
       "message": "Apkope neizdevās: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "Boks apkopes kļūda"
     },
-    "nfc_tag_already_exists": {
-      "message": "Šis NFC tags jau ir reģistrēts Boks."
-    },
-    "fw_downgrade_blocked": {
-      "message": "Nevar ģenerēt atjauninājumu versijai {target_version}, jo tā ir vecāka par pašlaik instalēto versiju {current_version}. Versijas pazemināšana netiek atbalstīta."
-    },
-    "fw_download_failed": {
-      "message": "Neizdevās lejupielādēt aparātprogrammatūru: {status}"
+    "maintenance_error_msg": {
+      "message": "Galveno kodu tīrīšana neizdevās indeksā {current_idx}.\nKļūda: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "Neizdevās noteikt iekšējo aparātprogrammatūras revīziju (aparatūras ID). Pārliecinieties, vai ierīce ir sasniedzama."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "Neatbalstīta aparatūra vai nezināma revīzija: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "Versija {version} nav pieejama aparatūrai {revision}"
+    },
+    "fw_download_failed": {
+      "message": "Neizdevās lejupielādēt aparātprogrammatūru: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nevar ģenerēt atjauninājumu versijai {target_version}, jo tā ir vecāka par pašlaik instalēto versiju {current_version}. Versijas pazemināšana netiek atbalstīta."
+    },
     "fw_update_package_ready_msg": {
       "message": "Atjaunināšanas pakotne versijai {target_version} ir gatava:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "Boks atjauninājums {target_version} gatavs"
-    },
-    "fw_version_not_found": {
-      "message": "Versija {version} nav pieejama aparatūrai {revision}"
     }
   },
   "options": {
@@ -610,8 +616,7 @@
       "fields": {
         "uid": {
           "name": "Taga UID",
-          "description": "Taga unikālais ID (piem., A1B2C3D4).",
-          "example": "A1B2C3D4"
+          "description": "Taga unikālais ID (piem., A1B2C3D4)."
         },
         "name": {
           "name": "Draudzīgs nosaukums",
@@ -650,6 +655,20 @@
         "version": {
           "name": "Version",
           "description": "The firmware version to delete (e.g., 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Ģenerēt PIN kodu",
+      "description": "Ģenerē PIN kodu, izmantojot Boks īpašumtiesību algoritmu.",
+      "fields": {
+        "type": {
+          "name": "Koda tips",
+          "description": "Ģenerējamā koda tips (galvenais, vienreizējs, vairākkārtējs)."
+        },
+        "index": {
+          "name": "Indekss",
+          "description": "Ģenerēšanas indekss (sākas no 0)."
         }
       }
     }

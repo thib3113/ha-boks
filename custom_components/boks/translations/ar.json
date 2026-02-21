@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "رمز PIN غير صالح"
     },
+    "master_key_required": {
+      "message": "المفتاح الرئيسي مطلوب لتوليد رموز PIN. يرجى التحقق من إعدادات التكامل."
+    },
+    "master_key_invalid": {
+      "message": "المفتاح الرئيسي الذي تم تكوينه غير صالح (يجب أن يكون 32 بايت ست عشري)."
+    },
     "unauthorized": {
       "message": "غير مصرح به"
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "لا توجد أجهزة Boks مهيأة."
     },
-    "opening_failed_no_code": {
-      "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد."
-    },
-    "opening_failed_no_code_no_key": {
-      "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد (لا يوجد مفتاح تكوين متوفر)."
-    },
-    "operation_timed_out": {
-      "message": "انتهت مهلة العملية بعد {seconds} ثانية"
-    },
-    "set_configuration_failed": {
-      "message": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)"
-    },
-    "timeout_waiting_response": {
-      "message": "انتهت مهلة انتظار الاستجابة لـ opcode {opcode}"
-    },
-    "todo_entity_not_found": {
-      "message": "لم يتم العثور على كيان Todo {target_entity_id} أو لم يتم تحميله."
+    "cannot_resolve_todo": {
+      "message": "تعذر حل قائمة Boks Todo المستهدفة."
     },
     "todo_integration_not_loaded": {
       "message": "لم يتم تحميل تكامل Todo."
     },
+    "todo_entity_not_found": {
+      "message": "لم يتم العثور على كيان Todo {target_entity_id} أو لم يتم تحميله."
+    },
+    "config_key_invalid_length": {
+      "message": "يجب أن يكون طول مفتاح التكوين 8 أحرف بالضبط."
+    },
     "ble_client_none": {
       "message": "عميل BLE هو None ، لا يمكن إرسال الأمر"
+    },
+    "timeout_waiting_response": {
+      "message": "انتهت مهلة انتظار الاستجابة لـ opcode {opcode}"
     },
     "ble_error": {
       "message": "خطأ BLE: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "خطأ BLE داخلي: {error}"
     },
-    "busy": {
-      "message": "الجهاز مشغول: هناك عملية أخرى تستمع بالفعل للإشعارات."
-    },
-    "cannot_resolve_todo": {
-      "message": "تعذر حل قائمة Boks Todo المستهدفة."
-    },
-    "config_key_invalid_length": {
-      "message": "يجب أن يكون طول مفتاح التكوين 8 أحرف بالضبط."
-    },
-    "delete_code_failed": {
-      "message": "فشل في حذف الرمز (أرجع الجهاز خطأ)"
-    },
-    "door_opened_recently": {
-      "message": "تم فتح الباب مؤخرًا. يرجى الانتظار {seconds} ثانية قبل الفتح مرة أخرى."
-    },
     "entity_not_parcel_list": {
       "message": "الكيان {target_entity_id} ليس قائمة طرود Boks."
-    },
-    "firmware_update_failed": {
-      "message": "فشل في تشغيل تحديث البرنامج الثابت للإصدار {version}"
-    },
-    "firmware_update_required": {
-      "message": "تتطلب ميزة {feature} إصدار البرنامج الثابت {required_sw}. إصدارك الحالي هو {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لاستخدام هذه الميزة. النسخة الحالية: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "La fonction {feature} nécessite une Boks v{required_hw} ou supérieure. Votre version actuelle est v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "فهرس رمز رئيسي غير صالح (يجب أن يكون بين 0 و 255)."
-    },
-    "invalid_uid_format": {
-      "message": "تنسيق UID NFC غير صالح."
-    },
-    "item_not_found": {
-      "message": "العنصر غير موجود"
-    },
-    "laposte_firmware_version_required": {
-      "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لتمكين ميزة La Poste. النسخة الحالية: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "كيان القفل غير موجود لهذا الجهاز."
     },
     "maintenance_already_running": {
       "message": "مهمة صيانة قيد التقدم بالفعل. يرجى الانتظار حتى تنتهي."
     },
-    "maintenance_error_msg": {
-      "message": "فشل تنظيف الرمز الرئيسي في الفهرس {current_idx}.\nالخطأ: {error}"
+    "delete_code_failed": {
+      "message": "فشل في حذف الرمز (أرجع الجهاز خطأ)"
+    },
+    "set_configuration_failed": {
+      "message": "فشل في تعيين التكوين {config_type} (أرجع الجهاز خطأ)"
+    },
+    "laposte_firmware_version_required": {
+      "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لتمكين ميزة La Poste. النسخة الحالية: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "يجب أن تكون نسخة البرنامج الثابت أكبر من {required_version} لاستخدام هذه الميزة. النسخة الحالية: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "فشل في تشغيل تحديث البرنامج الثابت للإصدار {version}"
+    },
+    "door_opened_recently": {
+      "message": "تم فتح الباب مؤخرًا. يرجى الانتظار {seconds} ثانية قبل الفتح مرة أخرى."
+    },
+    "opening_failed_no_code": {
+      "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "فشل الفتح: لم يتم توفير رمز PIN، ولم يتم تخزين الرمز الرئيسي، وتعذر إنشاء رمز PIN للاستخدام الواحد (لا يوجد مفتاح تكوين متوفر)."
+    },
+    "hardware_unsupported": {
+      "message": "La fonction {feature} nécessite une Boks v{required_hw} ou supérieure. Votre version actuelle est v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "تتطلب ميزة {feature} إصدار البرنامج الثابت {required_sw}. إصدارك الحالي هو {current_sw}."
+    },
+    "item_not_found": {
+      "message": "العنصر غير موجود"
+    },
+    "operation_timed_out": {
+      "message": "انتهت مهلة العملية بعد {seconds} ثانية"
+    },
+    "busy": {
+      "message": "الجهاز مشغول: هناك عملية أخرى تستمع بالفعل للإشعارات."
+    },
+    "lock_entity_not_found": {
+      "message": "كيان القفل غير موجود لهذا الجهاز."
+    },
+    "invalid_uid_format": {
+      "message": "تنسيق UID NFC غير صالح."
+    },
+    "invalid_master_code_index": {
+      "message": "فهرس رمز رئيسي غير صالح (يجب أن يكون بين 0 و 255)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "علامة NFC هذه مسجلة بالفعل في Boks."
     },
     "maintenance_failed_msg": {
       "message": "فشلت الصيانة: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "خطأ في صيانة Boks"
     },
-    "nfc_tag_already_exists": {
-      "message": "علامة NFC هذه مسجلة بالفعل في Boks."
-    },
-    "fw_downgrade_blocked": {
-      "message": "تعذر إنشاء التحديث للإصدار {target_version} لأنه أقدم من الإصدار المثبت حاليًا {current_version}. التراجع عن الإصدارات غير مدعوم."
-    },
-    "fw_download_failed": {
-      "message": "فشل تحميل البرنامج الثابت: {status}"
+    "maintenance_error_msg": {
+      "message": "فشل تنظيف الرمز الرئيسي في الفهرس {current_idx}.\nالخطأ: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "تعذر تحديد المراجعة الداخلية للبرنامج الثابت (معرف الجهاز). تأكد من إمكانية الوصول إلى الجهاز."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "جهاز غير مدعوم أو مراجعة غير معروفة: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "الإصدار {version} غير متوفر للجهاز {revision}"
+    },
+    "fw_download_failed": {
+      "message": "فشل تحميل البرنامج الثابت: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "تعذر إنشاء التحديث للإصدار {target_version} لأنه أقدم من الإصدار المثبت حاليًا {current_version}. التراجع عن الإصدارات غير مدعوم."
+    },
     "fw_update_package_ready_msg": {
       "message": "حزمة التحديث للإصدار {target_version} جاهزة:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "تحديث Boks {target_version} جاهز"
-    },
-    "fw_version_not_found": {
-      "message": "الإصدار {version} غير متوفر للجهاز {revision}"
     }
   },
   "options": {
@@ -610,8 +616,7 @@
       "fields": {
         "uid": {
           "name": "معرف العلامة (UID)",
-          "description": "معرف العلامة الفريد (مثلاً A1B2C3D4).",
-          "example": "A1B2C3D4"
+          "description": "معرف العلامة الفريد (مثلاً A1B2C3D4)."
         },
         "name": {
           "name": "الاسم المألوف",
@@ -650,6 +655,20 @@
         "version": {
           "name": "الإصدار",
           "description": "إصدار البرنامج الثابت المراد حذfe (مثال: 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "توليد رمز PIN",
+      "description": "يولد رمز PIN باستخدام خوارزمية Boks الخاصة.",
+      "fields": {
+        "type": {
+          "name": "نوع الرمز",
+          "description": "نوع الرمز المراد توليده (رئيسي، استخدام واحد، متعدد)."
+        },
+        "index": {
+          "name": "الفهرس",
+          "description": "فهرس التوليد (يبدأ من 0)."
         }
       }
     }

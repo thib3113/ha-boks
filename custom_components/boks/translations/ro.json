@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Cod PIN nevalid."
     },
+    "master_key_required": {
+      "message": "Cheia principală este necesară pentru a genera coduri PIN. Vă rugăm să verificați configurația integrării."
+    },
+    "master_key_invalid": {
+      "message": "Cheia principală configurată este nevalidă (trebuie să fie 32 octeți hex)."
+    },
     "unauthorized": {
       "message": "Neautorizat."
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "Nu există dispozitive Boks configurate."
     },
-    "opening_failed_no_code": {
-      "message": "Deschiderea a eșuat: nu a fost furnizat niciun cod PIN, nu există niciun cod master stocat și nu s-a putut genera un PIN de unică folosință."
-    },
-    "opening_failed_no_code_no_key": {
-      "message": "Deschiderea a eșuat: nu a fost furnizat niciun cod PIN, nu există niciun cod master stocat și nu s-a putut genera un PIN de unică foloință (nicio cheie de configurare disponibilă)."
-    },
-    "operation_timed_out": {
-      "message": "Operațiunea a expirat după {seconds} secunde."
-    },
-    "set_configuration_failed": {
-      "message": "Setarea configurației {config_type} a eșuat (dispozitivul a returnat o eroare)."
-    },
-    "timeout_waiting_response": {
-      "message": "Timp expirat în așteptarea răspunsului pentru opcode {opcode}."
-    },
-    "todo_entity_not_found": {
-      "message": "Entitatea Todo {target_entity_id} nu a fost găsită sau nu este încărcată."
+    "cannot_resolve_todo": {
+      "message": "Nu s-a putut rezolva o listă de sarcini Boks țintă."
     },
     "todo_integration_not_loaded": {
       "message": "Integrarea Todo nu este încărcată."
     },
+    "todo_entity_not_found": {
+      "message": "Entitatea Todo {target_entity_id} nu a fost găsită sau nu este încărcată."
+    },
+    "config_key_invalid_length": {
+      "message": "Cheia de configurare trebuie să aibă exact 8 caractere."
+    },
     "ble_client_none": {
       "message": "Clientul BLE este nul, nu se poate trimite comanda."
+    },
+    "timeout_waiting_response": {
+      "message": "Timp expirat în așteptarea răspunsului pentru opcode {opcode}."
     },
     "ble_error": {
       "message": "Eroare BLE: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "Eroare internă BLE: {error}"
     },
-    "busy": {
-      "message": "Dispozitiv ocupat: o altă operațiune ascultă deja notificările."
-    },
-    "cannot_resolve_todo": {
-      "message": "Nu s-a putut rezolva o listă de sarcini Boks țintă."
-    },
-    "config_key_invalid_length": {
-      "message": "Cheia de configurare trebuie să aibă exact 8 caractere."
-    },
-    "delete_code_failed": {
-      "message": "Ștergerea codului a eșuat (dispozitivul a returnat o eroare)."
-    },
-    "door_opened_recently": {
-      "message": "Ușa a fost deschisă recent. Vă rugăm să așteptați {seconds} secunde înainte de a o deschide din nou."
-    },
     "entity_not_parcel_list": {
       "message": "Entitatea {target_entity_id} nu este o listă de colete Boks."
-    },
-    "firmware_update_failed": {
-      "message": "Nu s-a putut declanșa actualizarea firmware pentru versiunea {version}"
-    },
-    "firmware_update_required": {
-      "message": "Funcția {feature} necesită versiunea firmware {required_sw}. Versiunea dvs. curentă este {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "Versiunea firmware trebuie să fie mai mare de {required_version} pentru a utiliza această funcție. Versiunea curentă: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "Funcția {feature} necesită un Boks v{required_hw} sau mai nou. Versiunea dvs. curentă este v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "Index cod master nevalid (trebuie să fie între 0 și 255)."
-    },
-    "invalid_uid_format": {
-      "message": "Format UID NFC nevalid."
-    },
-    "item_not_found": {
-      "message": "Elementul nu a fost găsit"
-    },
-    "laposte_firmware_version_required": {
-      "message": "Versiunea firmware trebuie să fie mai mare de {required_version} pentru a activa funcția La Poste. Versiunea curentă: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "Entitatea de blocare nu a fost găsită pentru acest dispozitiv."
     },
     "maintenance_already_running": {
       "message": "O sarcină de întreținere este deja în desfășurare. Vă rugăm să așteptați finalizarea acesteia."
     },
-    "maintenance_error_msg": {
-      "message": "Curățarea codurilor master a eșuat la indexul {current_idx}.\nEroare: {error}"
+    "delete_code_failed": {
+      "message": "Ștergerea codului a eșuat (dispozitivul a returnat o eroare)."
+    },
+    "set_configuration_failed": {
+      "message": "Setarea configurației {config_type} a eșuat (dispozitivul a returnat o eroare)."
+    },
+    "laposte_firmware_version_required": {
+      "message": "Versiunea firmware trebuie să fie mai mare de {required_version} pentru a activa funcția La Poste. Versiunea curentă: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "Versiunea firmware trebuie să fie mai mare de {required_version} pentru a utiliza această funcție. Versiunea curentă: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Nu s-a putut declanșa actualizarea firmware pentru versiunea {version}"
+    },
+    "door_opened_recently": {
+      "message": "Ușa a fost deschisă recent. Vă rugăm să așteptați {seconds} secunde înainte de a o deschide din nou."
+    },
+    "opening_failed_no_code": {
+      "message": "Deschiderea a eșuat: nu a fost furnizat niciun cod PIN, nu există niciun cod master stocat și nu s-a putut genera un PIN de unică folosință."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Deschiderea a eșuat: nu a fost furnizat niciun cod PIN, nu există niciun cod master stocat și nu s-a putut genera un PIN de unică foloință (nicio cheie de configurare disponibilă)."
+    },
+    "hardware_unsupported": {
+      "message": "Funcția {feature} necesită un Boks v{required_hw} sau mai nou. Versiunea dvs. curentă este v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "Funcția {feature} necesită versiunea firmware {required_sw}. Versiunea dvs. curentă este {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Elementul nu a fost găsit"
+    },
+    "operation_timed_out": {
+      "message": "Operațiunea a expirat după {seconds} secunde."
+    },
+    "busy": {
+      "message": "Dispozitiv ocupat: o altă operațiune ascultă deja notificările."
+    },
+    "lock_entity_not_found": {
+      "message": "Entitatea de blocare nu a fost găsită pentru acest dispozitiv."
+    },
+    "invalid_uid_format": {
+      "message": "Format UID NFC nevalid."
+    },
+    "invalid_master_code_index": {
+      "message": "Index cod master nevalid (trebuie să fie între 0 și 255)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "Acest tag NFC este deja înregistrat în Boks."
     },
     "maintenance_failed_msg": {
       "message": "Întreținere eșuată: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "Eroare de întreținere Boks"
     },
-    "nfc_tag_already_exists": {
-      "message": "Acest tag NFC este deja înregistrat în Boks."
-    },
-    "fw_downgrade_blocked": {
-      "message": "Nu se poate genera actualizarea pentru versiunea {target_version} deoarece este mai veche decât versiunea instalată curent {current_version}. Downgrade-ul nu este acceptat."
-    },
-    "fw_download_failed": {
-      "message": "Descărcarea firmware-ului a eșuat: {status}"
+    "maintenance_error_msg": {
+      "message": "Curățarea codurilor master a eșuat la indexul {current_idx}.\nEroare: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "Nu s-a putut determina revizia internă a firmware-ului (ID hardware). Asigurați-vă că dispozitivul este accesibil."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "Hardware neacceptat sau revizie necunoscută: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "Versiunea {version} nu este disponibilă pentru hardware-ul {revision}"
+    },
+    "fw_download_failed": {
+      "message": "Descărcarea firmware-ului a eșuat: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nu se poate genera actualizarea pentru versiunea {target_version} deoarece este mai veche decât versiunea instalată curent {current_version}. Downgrade-ul nu este acceptat."
+    },
     "fw_update_package_ready_msg": {
       "message": "Pachetul de actualizare pentru {target_version} este gata:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "Actualizare Boks {target_version} gata"
-    },
-    "fw_version_not_found": {
-      "message": "Versiunea {version} nu este disponibilă pentru hardware-ul {revision}"
     }
   },
   "options": {
@@ -649,6 +655,20 @@
         "version": {
           "name": "Versiune",
           "description": "Versiunea firmware de șters (ex: 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Generare cod PIN",
+      "description": "Generează un cod PIN folosind algoritmul proprietar Boks.",
+      "fields": {
+        "type": {
+          "name": "Tip cod",
+          "description": "Tipul de cod de generat (master, unic, multi)."
+        },
+        "index": {
+          "name": "Index",
+          "description": "Indexul de generare (începe de la 0)."
         }
       }
     }

@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Virheellinen PIN-koodi."
     },
+    "master_key_required": {
+      "message": "Pääavainta tarvitaan PIN-koodien luomiseen. Tarkista integraation asetukset."
+    },
+    "master_key_invalid": {
+      "message": "Määritetty pääavain on virheellinen (oltava 32 tavua hex)."
+    },
     "unauthorized": {
       "message": "Ei valtuuksia."
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "Boks-laitteita ei ole konfiguroitu."
     },
-    "opening_failed_no_code": {
-      "message": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda."
-    },
-    "opening_failed_no_code_no_key": {
-      "message": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda (konfigurointiavainta ei ole saatavilla)."
-    },
-    "operation_timed_out": {
-      "message": "Toiminto aikakatkaistiin {seconds} sekunnin kuluttua."
-    },
-    "set_configuration_failed": {
-      "message": "Konfiguroinnin {config_type} asettaminen epäonnistui (laite palautti virheen)."
-    },
-    "timeout_waiting_response": {
-      "message": "Aikakatkaisu odotettaessa vastausta opkoodille {opcode}."
-    },
-    "todo_entity_not_found": {
-      "message": "Todo-entiteettiä {target_entity_id} ei löytynyt tai sitä ei ole ladattu."
+    "cannot_resolve_todo": {
+      "message": "Kohde-Boks-tehtäväluetteloa ei voitu selvittää."
     },
     "todo_integration_not_loaded": {
       "message": "Todo-integraatiota ei ole ladattu."
     },
+    "todo_entity_not_found": {
+      "message": "Todo-entiteettiä {target_entity_id} ei löytynyt tai sitä ei ole ladattu."
+    },
+    "config_key_invalid_length": {
+      "message": "Konfigurointiavaimen on oltava tasan 8 merkkiä pitkä."
+    },
     "ble_client_none": {
       "message": "BLE-asiakas on None, komentoa ei voida lähettää."
+    },
+    "timeout_waiting_response": {
+      "message": "Aikakatkaisu odotettaessa vastausta opkoodille {opcode}."
     },
     "ble_error": {
       "message": "BLE-virhe: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "Sisäinen BLE-virhe: {error}"
     },
-    "busy": {
-      "message": "Laite varattu: toinen toiminto kuuntelee jo ilmoituksia."
-    },
-    "cannot_resolve_todo": {
-      "message": "Kohde-Boks-tehtäväluetteloa ei voitu selvittää."
-    },
-    "config_key_invalid_length": {
-      "message": "Konfigurointiavaimen on oltava tasan 8 merkkiä pitkä."
-    },
-    "delete_code_failed": {
-      "message": "Koodin poistaminen epäonnistui (laite palautti virheen)."
-    },
-    "door_opened_recently": {
-      "message": "Ovi avattiin äskettäin. Odota {seconds} sekuntia ennen kuin avaat sen uudelleen."
-    },
     "entity_not_parcel_list": {
       "message": "Entiteetti {target_entity_id} ei ole Boks-pakettiluettelo."
-    },
-    "firmware_update_failed": {
-      "message": "Laiteohjelmiston päivityksen käynnistäminen versiolle {version} epäonnistui."
-    },
-    "firmware_update_required": {
-      "message": "Ominaisuus {feature} vaatii laiteohjelmistoversion {required_sw}. Nykyinen versiosi on {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} tämän ominaisuuden käyttämiseksi. Nykyinen versio: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "Ominaisuus {feature} vaatii Boks-version v{required_hw} tai uudemman. Nykyinen versiosi on v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "Virheellinen pääkoodin indeksi (oltava välillä 0-255)."
-    },
-    "invalid_uid_format": {
-      "message": "Virheellinen NFC UID -muoto."
-    },
-    "item_not_found": {
-      "message": "Elementtiä ei löytynyt"
-    },
-    "laposte_firmware_version_required": {
-      "message": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} La Poste -ominaisuuden käyttöönottamiseksi. Nykyinen versio: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "Lukko-entiteettiä ei löytynyt tälle laitteelle."
     },
     "maintenance_already_running": {
       "message": "Huoltotehtävä on jo käynnissä. Odota, kunnes se on valmis."
     },
-    "maintenance_error_msg": {
-      "message": "Pääkoodien puhdistus epäonnistui indeksissä {current_idx}.\nVirhe: {error}"
+    "delete_code_failed": {
+      "message": "Koodin poistaminen epäonnistui (laite palautti virheen)."
+    },
+    "set_configuration_failed": {
+      "message": "Konfiguroinnin {config_type} asettaminen epäonnistui (laite palautti virheen)."
+    },
+    "laposte_firmware_version_required": {
+      "message": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} La Poste -ominaisuuden käyttöönottamiseksi. Nykyinen versio: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "Laiteohjelmistoversion on oltava uudempi kuin {required_version} tämän ominaisuuden käyttämiseksi. Nykyinen versio: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Laiteohjelmiston päivityksen käynnistäminen versiolle {version} epäonnistui."
+    },
+    "door_opened_recently": {
+      "message": "Ovi avattiin äskettäin. Odota {seconds} sekuntia ennen kuin avaat sen uudelleen."
+    },
+    "opening_failed_no_code": {
+      "message": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Avaaminen epäonnistui: PIN-koodia ei annettu, pääkoodia ei ole tallennettu, eikä kertakäyttöistä PIN-koodia voitu luoda (konfigurointiavainta ei ole saatavilla)."
+    },
+    "hardware_unsupported": {
+      "message": "Ominaisuus {feature} vaatii Boks-version v{required_hw} tai uudemman. Nykyinen versiosi on v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "Ominaisuus {feature} vaatii laiteohjelmistoversion {required_sw}. Nykyinen versiosi on {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Elementtiä ei löytynyt"
+    },
+    "operation_timed_out": {
+      "message": "Toiminto aikakatkaistiin {seconds} sekunnin kuluttua."
+    },
+    "busy": {
+      "message": "Laite varattu: toinen toiminto kuuntelee jo ilmoituksia."
+    },
+    "lock_entity_not_found": {
+      "message": "Lukko-entiteettiä ei löytynyt tälle laitteelle."
+    },
+    "invalid_uid_format": {
+      "message": "Virheellinen NFC UID -muoto."
+    },
+    "invalid_master_code_index": {
+      "message": "Virheellinen pääkoodin indeksi (oltava välillä 0-255)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "Tämä NFC-tunniste on jo rekisteröity Boks-laitteeseen."
     },
     "maintenance_failed_msg": {
       "message": "Huolto epäonnistui: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "Boks Huoltovirhe"
     },
-    "nfc_tag_already_exists": {
-      "message": "Tämä NFC-tunniste on jo rekisteröity Boks-laitteeseen."
-    },
-    "fw_downgrade_blocked": {
-      "message": "Päivitystä versioon {target_version} ei voida luoda, koska se on vanhempi kuin tällä hetkellä asennettu versio {current_version}. Versioiden vaihtamista vanhempaan ei tueta."
-    },
-    "fw_download_failed": {
-      "message": "Laiteohjelmiston lataaminen epäonnistui: {status}"
+    "maintenance_error_msg": {
+      "message": "Pääkoodien puhdistus epäonnistui indeksissä {current_idx}.\nVirhe: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "Sisäistä laiteohjelmistoversiota (laitteistotunnus) ei voitu määrittää. Varmista, että laite on tavoitettavissa."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "Laitteistoa ei tueta tai tuntematon versio: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "Versiota {version} ei ole saatavilla laitteistolle {revision}"
+    },
+    "fw_download_failed": {
+      "message": "Laiteohjelmiston lataaminen epäonnistui: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Päivitystä versioon {target_version} ei voida luoda, koska se on vanhempi kuin tällä hetkellä asennettu versio {current_version}. Versioiden vaihtamista vanhempaan ei tueta."
+    },
     "fw_update_package_ready_msg": {
       "message": "Päivityspaketti versiolle {target_version} on valmis:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "Boks-päivitys {target_version} valmis"
-    },
-    "fw_version_not_found": {
-      "message": "Versiota {version} ei ole saatavilla laitteistolle {revision}"
     }
   },
   "options": {
@@ -649,6 +655,20 @@
         "version": {
           "name": "Versio",
           "description": "Poistettava laiteohjelmistoversio (esim. 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Luo PIN-koodi",
+      "description": "Luo PIN-koodin Boks-algoritmilla.",
+      "fields": {
+        "type": {
+          "name": "Koodin tyyppi",
+          "description": "Luotavan koodin tyyppi (pää, kerta, moni)."
+        },
+        "index": {
+          "name": "Indeksi",
+          "description": "Luonti-indeksi (alkaa nollasta)."
         }
       }
     }

@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Érvénytelen PIN kód."
     },
+    "master_key_required": {
+      "message": "A Mesterkulcs szükséges a PIN kódok generálásához. Kérjük, ellenőrizze az integráció konfigurációját."
+    },
+    "master_key_invalid": {
+      "message": "A beállított Mesterkulcs érvénytelen (32 bájt hexadecimálisnak kell lennie)."
+    },
     "unauthorized": {
       "message": "Jogosulatlan hozzáférés."
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "Nincs beállítva Boks eszköz."
     },
-    "opening_failed_no_code": {
-      "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni."
-    },
-    "opening_failed_no_code_no_key": {
-      "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni (nincs konfigurációs kulcs)."
-    },
-    "operation_timed_out": {
-      "message": "A művelet időtúllépés miatt megszakadt {seconds} másodperc után."
-    },
-    "set_configuration_failed": {
-      "message": "A(z) {config_type} konfiguráció beállítása sikertelen (az eszköz hibát jelzett)."
-    },
-    "timeout_waiting_response": {
-      "message": "Időtúllépés a(z) {opcode} műveleti kódra adott válaszra várva."
-    },
-    "todo_entity_not_found": {
-      "message": "A(z) {target_entity_id} Todo entitás nem található vagy nincs betöltve."
+    "cannot_resolve_todo": {
+      "message": "Nem sikerült feloldani a cél Boks Todo listát."
     },
     "todo_integration_not_loaded": {
       "message": "A Todo integráció nincs betöltve."
     },
+    "todo_entity_not_found": {
+      "message": "A(z) {target_entity_id} Todo entitás nem található vagy nincs betöltve."
+    },
+    "config_key_invalid_length": {
+      "message": "A konfigurációs kulcsnak pontosan 8 karakterből kell állnia."
+    },
     "ble_client_none": {
       "message": "A BLE kliens értéke None, nem lehet parancsot küldeni."
+    },
+    "timeout_waiting_response": {
+      "message": "Időtúllépés a(z) {opcode} műveleti kódra adott válaszra várva."
     },
     "ble_error": {
       "message": "BLE hiba: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "Belső BLE hiba: {error}"
     },
-    "busy": {
-      "message": "Eszköz foglalt: egy másik művelet már vár az értesítésekre."
-    },
-    "cannot_resolve_todo": {
-      "message": "Nem sikerült feloldani a cél Boks Todo listát."
-    },
-    "config_key_invalid_length": {
-      "message": "A konfigurációs kulcsnak pontosan 8 karakterből kell állnia."
-    },
-    "delete_code_failed": {
-      "message": "A kód törlése sikertelen (az eszköz hibát jelzett)."
-    },
-    "door_opened_recently": {
-      "message": "Az ajtót nemrég nyitották ki. Kérjük, várjon {seconds} másodpercet az újbóli nyitás előtt."
-    },
     "entity_not_parcel_list": {
       "message": "A(z) {target_entity_id} entitás nem Boks csomaglista."
-    },
-    "firmware_update_failed": {
-      "message": "Nem sikerült elindítani a firmware frissítést a(z) {version} verzióra."
-    },
-    "firmware_update_required": {
-      "message": "A(z) {feature} funkcióhoz {required_sw} firmware verzió szükséges. Az Ön jelenlegi verziója {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "A(z) {feature} funkcióhoz Boks v{required_hw} vagy újabb szükséges. Az Ön jelenlegi verziója v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "Érvénytelen mesterkód index (0 és 255 között kell lennie)."
-    },
-    "invalid_uid_format": {
-      "message": "Érvénytelen NFC UID formátum."
-    },
-    "item_not_found": {
-      "message": "Az elem nem található"
-    },
-    "laposte_firmware_version_required": {
-      "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "Zár entitás nem található ehhez az eszközhöz."
     },
     "maintenance_already_running": {
       "message": "Egy karbantartási feladat már folyamatban van. Kérjük, várja meg, amíg befejeződik."
     },
-    "maintenance_error_msg": {
-      "message": "A mesterkódok tisztítása sikertelen a(z) {current_idx} indexnél.\nHiba: {error}"
+    "delete_code_failed": {
+      "message": "A kód törlése sikertelen (az eszköz hibát jelzett)."
+    },
+    "set_configuration_failed": {
+      "message": "A(z) {config_type} konfiguráció beállítása sikertelen (az eszköz hibát jelzett)."
+    },
+    "laposte_firmware_version_required": {
+      "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "A firmware verziónak nagyobbnak kell lennie, mint {required_version} a La Poste funkció engedélyezéséhez. Jelenlegi verzió: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Nem sikerült elindítani a firmware frissítést a(z) {version} verzióra."
+    },
+    "door_opened_recently": {
+      "message": "Az ajtót nemrég nyitották ki. Kérjük, várjon {seconds} másodpercet az újbóli nyitás előtt."
+    },
+    "opening_failed_no_code": {
+      "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "A nyitás sikertelen: nincs PIN kód megadva, nincs tárolt mesterkód, és nem sikerült egyszer használatos PIN-t generálni (nincs konfigurációs kulcs)."
+    },
+    "hardware_unsupported": {
+      "message": "A(z) {feature} funkcióhoz Boks v{required_hw} vagy újabb szükséges. Az Ön jelenlegi verziója v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "A(z) {feature} funkcióhoz {required_sw} firmware verzió szükséges. Az Ön jelenlegi verziója {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Az elem nem található"
+    },
+    "operation_timed_out": {
+      "message": "A művelet időtúllépés miatt megszakadt {seconds} másodperc után."
+    },
+    "busy": {
+      "message": "Eszköz foglalt: egy másik művelet már vár az értesítésekre."
+    },
+    "lock_entity_not_found": {
+      "message": "Zár entitás nem található ehhez az eszközhöz."
+    },
+    "invalid_uid_format": {
+      "message": "Érvénytelen NFC UID formátum."
+    },
+    "invalid_master_code_index": {
+      "message": "Érvénytelen mesterkód index (0 és 255 között kell lennie)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "Ez az NFC kártya már regisztrálva van a Bokszban."
     },
     "maintenance_failed_msg": {
       "message": "A karbantartás sikertelen: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "Boks karbantartási hiba"
     },
-    "nfc_tag_already_exists": {
-      "message": "Ez az NFC kártya már regisztrálva van a Bokszban."
-    },
-    "fw_downgrade_blocked": {
-      "message": "Nem hozható létre frissítés a(z) {target_version} verzióhoz, mert az régebbi, mint a jelenleg telepített {current_version} verzió. A korábbi verzióra való visszaállás nem támogatott."
-    },
-    "fw_download_failed": {
-      "message": "A firmware letöltése sikertelen: {status}"
+    "maintenance_error_msg": {
+      "message": "A mesterkódok tisztítása sikertelen a(z) {current_idx} indexnél.\nHiba: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "Nem sikerült meghatározni a belső firmware verziót (Hardware ID). Győződjön meg arról, hogy az eszköz elérhető."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "Nem támogatott hardver vagy ismeretlen verzió: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "A(z) {version} verzió nem érhető el a(z) {revision} hardverhez"
+    },
+    "fw_download_failed": {
+      "message": "A firmware letöltése sikertelen: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nem hozható létre frissítés a(z) {target_version} verzióhoz, mert az régebbi, mint a jelenleg telepített {current_version} verzió. A korábbi verzióra való visszaállás nem támogatott."
+    },
     "fw_update_package_ready_msg": {
       "message": "A frissítési csomag a(z) {target_version} verzióhoz elkészült:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "Boks frissítés {target_version} kész"
-    },
-    "fw_version_not_found": {
-      "message": "A(z) {version} verzió nem érhető el a(z) {revision} hardverhez"
     }
   },
   "options": {
@@ -610,8 +616,7 @@
       "fields": {
         "uid": {
           "name": "Kártya UID",
-          "description": "A kártya egyedi azonosítója (pl. A1B2C3D4).",
-          "example": "A1B2C3D4"
+          "description": "A kártya egyedi azonosítója (pl. A1B2C3D4)."
         },
         "name": {
           "name": "Barátságos név",
@@ -650,6 +655,20 @@
         "version": {
           "name": "Verzió",
           "description": "A törlendő firmware verzió (pl. 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "PIN kód generálása",
+      "description": "PIN kódot generál a Boks saját algoritmusával.",
+      "fields": {
+        "type": {
+          "name": "Kód típusa",
+          "description": "A generálandó kód típusa (mester, egyszeri, többszörös)."
+        },
+        "index": {
+          "name": "Index",
+          "description": "A generálási index (0-tól kezdődik)."
         }
       }
     }

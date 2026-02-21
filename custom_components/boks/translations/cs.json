@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Neplatný PIN kód."
     },
+    "master_key_required": {
+      "message": "Pro generování PIN kódů je vyžadován hlavní klíč. Zkontrolujte prosím konfiguraci integrace."
+    },
+    "master_key_invalid": {
+      "message": "Nakonfigurovaný hlavní klíč je neplatný (musí být 32 bajtů hex)."
+    },
     "unauthorized": {
       "message": "Neoprávněný přístup."
     },
@@ -189,29 +195,23 @@
     "no_devices_configured": {
       "message": "Nejsou konfigurována žádná zařízení Boks."
     },
-    "opening_failed_no_code": {
-      "message": "Otevření selhalo: nebyl zadán žádný PIN kód, není uložen žádný hlavní kód a nepodařilo se vygenerovat jednorázový PIN."
+    "cannot_resolve_todo": {
+      "message": "Nepodařilo se vyřešit cílový seznam úkolů Boks."
     },
-    "opening_failed_no_code_no_key": {
-      "message": "Otevření selhalo: nebyl zadán žádný PIN kód, není uložen žádný hlavní kód a nepodařilo se vygenerovat jednorázový PIN (není k dispozici konfigurační klíč)."
-    },
-    "operation_timed_out": {
-      "message": "Operace vypršela po {seconds} sekundách."
-    },
-    "set_configuration_failed": {
-      "message": "Nastavení konfigurace {config_type} selhalo (zařízení vrátilo chybu)."
-    },
-    "timeout_waiting_response": {
-      "message": "Vypršel časový limit čekání na odpověď pro opcode {opcode}."
+    "todo_integration_not_loaded": {
+      "message": "Integrace Todo není načtena."
     },
     "todo_entity_not_found": {
       "message": "Entita Todo {target_entity_id} nebyla nalezena nebo není načtena."
     },
-    "todo_integration_not_loaded": {
-      "message": "Integracja Todo nie została załadowana."
+    "config_key_invalid_length": {
+      "message": "Konfigurační klíč musí mít přesně 8 znaků."
     },
     "ble_client_none": {
       "message": "BLE klient je None, nelze odeslat příkaz."
+    },
+    "timeout_waiting_response": {
+      "message": "Vypršel časový limit čekání na odpověď pro opcode {opcode}."
     },
     "ble_error": {
       "message": "Chyba BLE: {error}"
@@ -219,56 +219,62 @@
     "ble_internal_error": {
       "message": "Interní chyba BLE: {error}"
     },
-    "busy": {
-      "message": "Zařízení zaneprázdněno: jiná operace již naslouchá oznámením."
-    },
-    "cannot_resolve_todo": {
-      "message": "Nepodařilo se vyřešit cílový seznam úkolů Boks."
-    },
-    "config_key_invalid_length": {
-      "message": "Konfigurační klíč musí mít přesně 8 znaků."
-    },
-    "delete_code_failed": {
-      "message": "Smazání kódu selhalo (zařízení vrátilo chybu)."
-    },
-    "door_opened_recently": {
-      "message": "Dveře byly nedávno otevřeny. Počkejte prosím {seconds} sekund před dalším otevřením."
-    },
     "entity_not_parcel_list": {
       "message": "Entita {target_entity_id} není seznam balíků Boks."
-    },
-    "firmware_update_failed": {
-      "message": "Nepodařilo se spustit aktualizaci firmwaru pro verzi {version}"
-    },
-    "firmware_update_required": {
-      "message": "Funkce {feature} vyžaduje verzi firmwaru {required_sw}. Vaše aktuální verze je {current_sw}."
-    },
-    "firmware_version_required": {
-      "message": "Verze firmwaru musí být vyšší než {required_version} pro použití této funkce. Aktuální verze: {current_version}"
-    },
-    "hardware_unsupported": {
-      "message": "Funkce {feature} vyžaduje Boks v{required_hw} nebo vyšší. Vaše aktuální verze je v{current_hw}."
-    },
-    "invalid_master_code_index": {
-      "message": "Neplatný index hlavního kódu (musí být v rozmezí 0 až 255)."
-    },
-    "invalid_uid_format": {
-      "message": "Neplatný formát UID NFC."
-    },
-    "item_not_found": {
-      "message": "Položka nebyla nalezena"
-    },
-    "laposte_firmware_version_required": {
-      "message": "Verze firmwaru musí být vyšší než {required_version} pro povolení funkce La Poste. Aktuální verze: {current_version}"
-    },
-    "lock_entity_not_found": {
-      "message": "Entita zámku nebyla pro toto zařízení nalezena."
     },
     "maintenance_already_running": {
       "message": "Úloha údržby již probíhá. Počkejte prosím na její dokončení."
     },
-    "maintenance_error_msg": {
-      "message": "Čištění hlavních kódů selhalo na indexu {current_idx}.\nChyba: {error}"
+    "delete_code_failed": {
+      "message": "Smazání kódu selhalo (zařízení vrátilo chybu)."
+    },
+    "set_configuration_failed": {
+      "message": "Nastavení konfigurace {config_type} selhalo (zařízení vrátilo chybu)."
+    },
+    "laposte_firmware_version_required": {
+      "message": "Verze firmwaru musí být vyšší než {required_version} pro povolení funkce La Poste. Aktuální verze: {current_version}"
+    },
+    "firmware_version_required": {
+      "message": "Verze firmwaru musí být vyšší než {required_version} pro použití této funkce. Aktuální verze: {current_version}"
+    },
+    "firmware_update_failed": {
+      "message": "Nepodařilo se spustit aktualizaci firmwaru pro verzi {version}"
+    },
+    "door_opened_recently": {
+      "message": "Dveře byly nedávno otevřeny. Počkejte prosím {seconds} sekund před dalším otevřením."
+    },
+    "opening_failed_no_code": {
+      "message": "Otevření selhalo: nebyl zadán žádný PIN kód, není uložen žádný hlavní kód a nepodařilo se vygenerovat jednorázový PIN."
+    },
+    "opening_failed_no_code_no_key": {
+      "message": "Otevření selhalo: nebyl zadán žádný PIN kód, není uložen žádný hlavní kód a nepodařilo se vygenerovat jednorázový PIN (není k dispozici konfigurační klíč)."
+    },
+    "hardware_unsupported": {
+      "message": "Funkce {feature} vyžaduje Boks v{required_hw} nebo vyšší. Vaše aktuální verze je v{current_hw}."
+    },
+    "firmware_update_required": {
+      "message": "Funkce {feature} vyžaduje verzi firmwaru {required_sw}. Vaše aktuální verze je {current_sw}."
+    },
+    "item_not_found": {
+      "message": "Položka nebyla nalezena"
+    },
+    "operation_timed_out": {
+      "message": "Operace vypršela po {seconds} sekundách."
+    },
+    "busy": {
+      "message": "Zařízení zaneprázdněno: jiná operace již naslouchá oznámením."
+    },
+    "lock_entity_not_found": {
+      "message": "Entita zámku nebyla pro toto zařízení nalezena."
+    },
+    "invalid_uid_format": {
+      "message": "Neplatný formát UID NFC."
+    },
+    "invalid_master_code_index": {
+      "message": "Neplatný index hlavního kódu (musí být v rozmezí 0 až 255)."
+    },
+    "nfc_tag_already_exists": {
+      "message": "Tento NFC tag je již na Boks zaregistrován."
     },
     "maintenance_failed_msg": {
       "message": "Údržba selhala: {error}"
@@ -276,14 +282,8 @@
     "maintenance_error_title": {
       "message": "Chyba údržby Boks"
     },
-    "nfc_tag_already_exists": {
-      "message": "Tento NFC tag je již na Boks zaregistrován."
-    },
-    "fw_downgrade_blocked": {
-      "message": "Nelze generovat aktualizaci pro verzi {target_version}, protože je starší než aktuálně nainstalovaná verze {current_version}. Downgrade není podporován."
-    },
-    "fw_download_failed": {
-      "message": "Stažení firmwaru se nezdařilo: {status}"
+    "maintenance_error_msg": {
+      "message": "Čištění hlavních kódů selhalo na indexu {current_idx}.\nChyba: {error}"
     },
     "fw_hw_rev_unknown": {
       "message": "Nepodařilo se určit interní revizi firmwaru (ID hardwaru). Ujistěte se, že je zařízení dostupné."
@@ -291,14 +291,20 @@
     "fw_hw_unsupported": {
       "message": "Nepodporovaný hardware nebo neznámá revize: {revision}"
     },
+    "fw_version_not_found": {
+      "message": "Verze {version} není k dispozici pro hardware {revision}"
+    },
+    "fw_download_failed": {
+      "message": "Stažení firmwaru se nezdařilo: {status}"
+    },
+    "fw_downgrade_blocked": {
+      "message": "Nelze generovat aktualizaci pro verzi {target_version}, protože je starší než aktuálně nainstalovaná verze {current_version}. Downgrade není podporován."
+    },
     "fw_update_package_ready_msg": {
       "message": "Aktualizační balíček pro verzi {target_version} je připraven:\n{url}"
     },
     "fw_update_package_ready_title": {
       "message": "Aktualizace Boks {target_version} připravena"
-    },
-    "fw_version_not_found": {
-      "message": "Verze {version} není k dispozici pro hardware {revision}"
     }
   },
   "options": {
@@ -610,8 +616,7 @@
       "fields": {
         "uid": {
           "name": "UID tagu",
-          "description": "Unikátní ID tagu (např. A1B2C3D4).",
-          "example": "A1B2C3D4"
+          "description": "Unikátní ID tagu (např. A1B2C3D4)."
         },
         "name": {
           "name": "Přátelský název",
@@ -650,6 +655,20 @@
         "version": {
           "name": "Verze",
           "description": "Verze firmwaru ke smazání (např. 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Vygenerovat PIN kód",
+      "description": "Vygeneruje PIN kód pomocí proprietárního algoritmu Boks.",
+      "fields": {
+        "type": {
+          "name": "Typ kódu",
+          "description": "Typ kódu, který se má vygenerovat (hlavní, jednorázový, vícenásobný)."
+        },
+        "index": {
+          "name": "Index",
+          "description": "Index generování (začíná na 0)."
         }
       }
     }
