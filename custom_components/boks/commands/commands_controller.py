@@ -49,11 +49,11 @@ class BoksCommandsController:
             # Fallback: direct call if entity not found
             try:
                 await self.coordinator.ble_device.connect()
-                
+
                 # Logic mirrored from lock.py
                 if not code_str:
                     code_str = self.coordinator.entry.data.get(CONF_MASTER_CODE)
-                
+
                 if not code_str and self.coordinator.ble_device.config_key_str:
                     try:
                         code_str = await self.coordinator.ble_device.create_pin_code(code_type="single")

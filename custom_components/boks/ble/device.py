@@ -24,9 +24,6 @@ from ..const import (
 )
 from ..errors import BoksAuthError, BoksError
 from ..logic.anonymizer import BoksAnonymizer
-
-MIN_TIME_BETWEEN_SYNCS = 15.0
-
 from ..packets.base import BoksRXPacket, BoksTXPacket
 from ..packets.factory import PacketFactory
 from ..packets.rx.code_ble_valid import CodeBleValidPacket
@@ -65,6 +62,7 @@ from .protocol import BoksProtocol
 # Pre-compute history events set for performance
 BOKS_HISTORY_EVENTS_SET = set(BoksHistoryEvent)
 
+MIN_TIME_BETWEEN_SYNCS = 15.0
 
 _LOGGER = logging.getLogger(__name__)
 
