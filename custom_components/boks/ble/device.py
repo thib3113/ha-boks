@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import random
 import time
 from collections.abc import Callable
 from datetime import datetime, timedelta
@@ -12,6 +13,7 @@ from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
 from bleak_retry_connector import establish_connection
 from homeassistant.components import bluetooth
+from homeassistant.components.tag import async_scan_tag
 from homeassistant.core import HomeAssistant
 
 from ..const import (
@@ -481,7 +483,6 @@ class BoksBluetoothDevice:
                 if is_last_attempt:
                     raise e
 
-                import random
                 await asyncio.sleep(DELAY_RETRY + random.uniform(0, 1.0))
 
             except Exception as e:
@@ -493,7 +494,6 @@ class BoksBluetoothDevice:
                 if is_last_attempt:
                     raise e
 
-                import random
                 await asyncio.sleep(DELAY_RETRY + random.uniform(0, 1.0))
 
         return None
@@ -1000,7 +1000,6 @@ class BoksBluetoothDevice:
             try:
                 tag_id_lookup = uid.replace(":", "").upper()
                 try:
-                    from homeassistant.components.tag import async_scan_tag
                     await async_scan_tag(self.hass, tag_id_lookup, self.address)
                 except Exception as e:
                     _LOGGER.debug("Could not trigger async_scan_tag: %s", e)
