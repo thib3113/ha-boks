@@ -162,6 +162,11 @@ def _get_coordinator_by_entity_id(hass: HomeAssistant, entity_ids: str | list[st
 
 SERVICE_DELETE_UPDATE_PACKAGE_SCHEMA = vol.Schema({vol.Required("version"): cv.string})
 
+SERVICE_GENERATE_PIN_CODE_SCHEMA = vol.Schema({
+    vol.Required("type"): vol.In(["master", "single", "multi"]),
+    vol.Required("index"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+}, extra=vol.ALLOW_EXTRA)
+
 async def async_setup_services(hass: HomeAssistant):
     """Register services for the Boks integration."""
 
@@ -218,7 +223,7 @@ async def async_setup_services(hass: HomeAssistant):
     # --- Service: Add Master Code ---
     async def handle_add_master_code(call: ServiceCall):
         coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.codes.create_code(call.data["code"], "master", call.data["index"])
+        return await coordinator.codes.create_code(call.data["code"], "master", call.data["index"])
 
     hass.services.async_register(
         DOMAIN,
@@ -231,19 +236,20 @@ async def async_setup_services(hass: HomeAssistant):
     # --- Service: Delete Master Code ---
     async def handle_delete_master_code(call: ServiceCall):
         coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.codes.delete_code("master", call.data["index"])
+        return await coordinator.codes.delete_code("master", call.data["index"])
 
     hass.services.async_register(
         DOMAIN,
         "delete_master_code",
         handle_delete_master_code,
-        schema=SERVICE_DELETE_MASTER_CODE_SCHEMA
+        schema=SERVICE_DELETE_MASTER_CODE_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL
     )
 
     # --- Service: Add Single Code ---
     async def handle_add_single_code(call: ServiceCall):
         coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.codes.create_code(call.data["code"], "single")
+        return await coordinator.codes.create_code(call.data["code"], "single")
 
     hass.services.async_register(
         DOMAIN,
@@ -256,19 +262,20 @@ async def async_setup_services(hass: HomeAssistant):
     # --- Service: Delete Single Code ---
     async def handle_delete_single_code(call: ServiceCall):
         coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.codes.delete_code("single", call.data["code"])
+        return await coordinator.codes.delete_code("single", call.data["code"])
 
     hass.services.async_register(
         DOMAIN,
         "delete_single_code",
         handle_delete_single_code,
-        schema=SERVICE_DELETE_SINGLE_CODE_SCHEMA
+        schema=SERVICE_DELETE_SINGLE_CODE_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL
     )
 
     # --- Service: Add Multi Code ---
     async def handle_add_multi_code(call: ServiceCall):
         coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.codes.create_code(call.data["code"], "multi")
+        return await coordinator.codes.create_code(call.data["code"], "multi")
 
     hass.services.async_register(
         DOMAIN,
@@ -281,13 +288,14 @@ async def async_setup_services(hass: HomeAssistant):
     # --- Service: Delete Multi Code ---
     async def handle_delete_multi_code(call: ServiceCall):
         coordinator = get_coordinator_from_call(hass, call)
-        await coordinator.codes.delete_code("multi", call.data["code"])
+        return await coordinator.codes.delete_code("multi", call.data["code"])
 
     hass.services.async_register(
         DOMAIN,
         "delete_multi_code",
         handle_delete_multi_code,
-        schema=SERVICE_DELETE_MULTI_CODE_SCHEMA
+        schema=SERVICE_DELETE_MULTI_CODE_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL
     )
 
     # --- Service: Sync Logs ---
@@ -362,8 +370,8 @@ async def async_setup_services(hass: HomeAssistant):
         name = call.data.get("name")
         coordinator = get_coordinator_from_call(hass, call)
         try:
-            await coordinator.nfc.register_tag(uid, name)
-            await coordinator.async_request_refresh()
+            success = await coordinator.nfc.register_tag(uid, name)
+            return {"success": success, "uid": uid}
         except BoksError as e:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
@@ -378,7 +386,8 @@ async def async_setup_services(hass: HomeAssistant):
         DOMAIN,
         "nfc_register_tag",
         handle_nfc_register_tag,
-        schema=SERVICE_NFC_REGISTER_TAG_SCHEMA
+        schema=SERVICE_NFC_REGISTER_TAG_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL
     )
 
     # --- Service: Unregister NFC Tag ---
@@ -387,8 +396,8 @@ async def async_setup_services(hass: HomeAssistant):
         uid = call.data["uid"]
         coordinator = get_coordinator_from_call(hass, call)
         try:
-            await coordinator.nfc.unregister_tag(uid)
-            await coordinator.async_request_refresh()
+            success = await coordinator.nfc.unregister_tag(uid)
+            return {"success": success, "uid": uid}
         except BoksError as e:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,
@@ -403,7 +412,8 @@ async def async_setup_services(hass: HomeAssistant):
         DOMAIN,
         "nfc_unregister_tag",
         handle_nfc_unregister_tag,
-        schema=SERVICE_NFC_UNREGISTER_TAG_SCHEMA
+        schema=SERVICE_NFC_UNREGISTER_TAG_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL
     )
 
     # --- Service: Ask Door Status ---
@@ -453,4 +463,32 @@ async def async_setup_services(hass: HomeAssistant):
         "delete_update_package",
         handle_delete_update_package,
         schema=SERVICE_DELETE_UPDATE_PACKAGE_SCHEMA
+    )
+
+    # --- Service: Generate PIN Code ---
+    async def handle_generate_pin_code(call: ServiceCall) -> dict:
+        """Handle generating a PIN code."""
+        coordinator = get_coordinator_from_call(hass, call)
+        pin_type = call.data["type"]
+        index = call.data["index"]
+
+        try:
+            pin = coordinator.pin_generator.generate_pin(pin_type, index)
+            return {"pin": pin}
+        except BoksError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key=e.translation_key,
+                translation_placeholders=e.translation_placeholders
+            ) from e
+        except Exception as e:
+            _LOGGER.error("Error generating PIN code: %s", e)
+            raise HomeAssistantError(f"Unexpected error: {e}") from e
+
+    hass.services.async_register(
+        DOMAIN,
+        "generate_pin_code",
+        handle_generate_pin_code,
+        schema=SERVICE_GENERATE_PIN_CODE_SCHEMA,
+        supports_response=SupportsResponse.OPTIONAL
     )

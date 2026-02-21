@@ -7,7 +7,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import entity_registry as er
 
 from ..ble.const import BoksConfigType
-from ..const import DOMAIN
+from ..const import CONF_MASTER_CODE, DOMAIN
 from ..errors import BoksError
 from ..logic.anonymizer import BoksAnonymizer
 
@@ -49,6 +49,20 @@ class BoksCommandsController:
             # Fallback: direct call if entity not found
             try:
                 await self.coordinator.ble_device.connect()
+                
+                # Logic mirrored from lock.py
+                if not code_str:
+                    code_str = self.coordinator.entry.data.get(CONF_MASTER_CODE)
+                
+                if not code_str and self.coordinator.ble_device.config_key_str:
+                    try:
+                        code_str = await self.coordinator.ble_device.create_pin_code(code_type="single")
+                    except Exception as e:
+                        _LOGGER.warning("Fallback generation failed: %s", e)
+
+                if not code_str:
+                     raise BoksError("pin_code_invalid")
+
                 await self.coordinator.ble_device.open_door(code=code_str)
             except Exception as e:
                  # Wrap device errors

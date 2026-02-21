@@ -266,3 +266,33 @@ delete_update_package:
       required: true
       selector:
         text:
+
+generate_pin_code:
+  name: translation::services.generate_pin_code.name
+  description: translation::services.generate_pin_code.description
+  target:
+    entity:
+      integration: boks
+      domain: lock
+  fields:
+    type:
+      name: translation::services.generate_pin_code.fields.type.name
+      description: translation::services.generate_pin_code.fields.type.description
+      required: true
+      selector:
+        select:
+          options:
+            - master
+            - single
+            - multi
+          mode: dropdown
+    index:
+      name: translation::services.generate_pin_code.fields.index.name
+      description: translation::services.generate_pin_code.fields.index.description
+      required: true
+      default: 0
+      selector:
+        number:
+          min: 0
+          step: 1
+          mode: box

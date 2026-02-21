@@ -31,7 +31,6 @@ class BoksCodesController:
             await self.coordinator.ble_device.connect()
             created_code = await self.coordinator.ble_device.create_pin_code(code, code_type, index)
             _LOGGER.info("Code %s (%s) added successfully.", created_code, code_type)
-            await self.coordinator.async_request_refresh()
             return {"code": created_code}
         except BoksError as e:
             raise HomeAssistantError(
@@ -63,7 +62,7 @@ class BoksCodesController:
                  raise BoksError("delete_code_failed")
 
             _LOGGER.info("Code %s (%s) deleted successfully.", identifier, code_type)
-            await self.coordinator.async_request_refresh()
+            return {"success": True, "identifier": identifier}
         except BoksError as e:
             raise HomeAssistantError(
                 translation_domain=DOMAIN,

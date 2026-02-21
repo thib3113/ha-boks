@@ -23,6 +23,7 @@ from .const import (
     BOKS_HARDWARE_INFO,
     CONF_ANONYMIZE_LOGS,
     CONF_CONFIG_KEY,
+    CONF_MASTER_KEY,
     DEFAULT_FULL_REFRESH_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -32,6 +33,7 @@ from .const import (
 from .errors import BoksError
 from .logic.anonymizer import BoksAnonymizer
 from .logic.log_processor import BoksLogProcessor
+from .logic.pin_generator import BoksPinGenerator
 from .nfc.nfc_controller import BoksNfcController
 from .packets.base import BoksRXPacket
 from .parcels.parcels_controller import BoksParcelsController
@@ -57,6 +59,7 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
         self.codes = BoksCodesController(hass, self)
         self.parcels = BoksParcelsController(hass, self)
         self.commands = BoksCommandsController(hass, self)
+        self.pin_generator = BoksPinGenerator(entry.data.get(CONF_MASTER_KEY))
         # Initialize log processor
         self.log_processor = BoksLogProcessor(hass, entry.data[CONF_ADDRESS])
 

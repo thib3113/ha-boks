@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Code PIN invalide"
     },
+    "master_key_required": {
+      "message": "La Clé Maître est requise pour générer des codes PIN. Veuillez vérifier la configuration de l'intégration."
+    },
+    "master_key_invalid": {
+      "message": "La Clé Maître configurée est invalide (doit être 32 octets hex)."
+    },
     "unauthorized": {
       "message": "Non autorisé"
     },
@@ -649,6 +655,20 @@
         "version": {
           "name": "Version",
           "description": "La version du firmware à supprimer (ex: 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Générer un code PIN",
+      "description": "Génère un code PIN utilisant l'algorithme propriétaire Boks.",
+      "fields": {
+        "type": {
+          "name": "Type de code",
+          "description": "Le type de code à générer (master, single, multi)."
+        },
+        "index": {
+          "name": "Index",
+          "description": "L'index de génération (commence à 0)."
         }
       }
     }

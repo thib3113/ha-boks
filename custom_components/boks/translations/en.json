@@ -147,6 +147,12 @@
     "pin_code_invalid": {
       "message": "Invalid PIN code"
     },
+    "master_key_required": {
+      "message": "Master Key is required to generate PIN codes. Please check your integration configuration."
+    },
+    "master_key_invalid": {
+      "message": "The configured Master Key is invalid (must be 32 bytes hex)."
+    },
     "unauthorized": {
       "message": "Unauthorized"
     },
@@ -649,6 +655,20 @@
         "version": {
           "name": "Version",
           "description": "The firmware version to delete (e.g., 4.2.0)"
+        }
+      }
+    },
+    "generate_pin_code": {
+      "name": "Generate PIN Code",
+      "description": "Generates a PIN code using the Boks proprietary algorithm.",
+      "fields": {
+        "type": {
+          "name": "Code Type",
+          "description": "The type of code to generate (master, single, multi)."
+        },
+        "index": {
+          "name": "Index",
+          "description": "The generation index (starts at 0)."
         }
       }
     }

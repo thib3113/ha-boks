@@ -24,6 +24,9 @@ from ..const import (
 )
 from ..errors import BoksAuthError, BoksError
 from ..logic.anonymizer import BoksAnonymizer
+
+MIN_TIME_BETWEEN_SYNCS = 15.0
+
 from ..packets.base import BoksRXPacket, BoksTXPacket
 from ..packets.factory import PacketFactory
 from ..packets.rx.code_ble_valid import CodeBleValidPacket
@@ -101,6 +104,7 @@ class BoksBluetoothDevice:
         self._last_door_open_time: float | None = None
         self._last_log_count_ts: float = 0.0
         self._last_disconnect_time: float = 0.0
+        self._last_sync_time: float = 0.0
         self._autokill_task: asyncio.TimerHandle | None = None
         self._coordinator: Any = None
 
@@ -321,11 +325,19 @@ class BoksBluetoothDevice:
                 if elapsed < MIN_SYNC_DELAY:
                     wait_time = MIN_SYNC_DELAY - elapsed
                     _LOGGER.debug("Waiting %.1fs before final refresh (to stabilize device)", wait_time)
-                    await asyncio.sleep(wait_time)
+                    # We can't wait here synchronously if we want to return fast.
+                    # The background task will handle the wait or we just accept the delay.
+                    # Ideally, the background task should handle this wait.
 
-            await self._perform_final_refresh()
-            self._refresh_needed = False
+            _LOGGER.debug("Offloading final refresh and disconnect to background task.")
+            self.hass.async_create_task(self._run_background_disconnect_logic())
+            return
 
+        # Standard disconnect if no refresh needed
+        await self._execute_physical_disconnect()
+
+    async def _execute_physical_disconnect(self):
+        """Execute the physical disconnection."""
         if self._client:
             if self._client.is_connected:
                 _LOGGER.info("Closing physical BLE Connection to Boks...")
@@ -346,7 +358,12 @@ class BoksBluetoothDevice:
 
     async def _perform_final_refresh(self) -> None:
         """Perform a final data refresh before disconnecting (expects no lock or internal calls)."""
+        if (time.time() - self._last_sync_time) < MIN_TIME_BETWEEN_SYNCS:
+            _LOGGER.debug("Skipping final refresh (Throttled, last sync %.1fs ago)", time.time() - self._last_sync_time)
+            return
+
         _LOGGER.debug("Performing final refresh (battery and logs) before disconnect")
+        self._last_sync_time = time.time()
         try:
             update_data = {}
 
@@ -410,6 +427,36 @@ class BoksBluetoothDevice:
             self._notifications_subscribed = False
             self._last_disconnect_time = time.time()
             _LOGGER.info("Force disconnected from Boks")
+
+    async def _run_background_disconnect_logic(self):
+        """Run the disconnect logic in background (refresh + close)."""
+        # Wait for stabilization if needed (outside lock to yield)
+        last_event_time = max(self._last_door_close_time or 0, self._last_door_open_time or 0)
+        if last_event_time > 0:
+            elapsed = time.time() - last_event_time
+            min_delay = 5.0
+            if elapsed < min_delay:
+                wait_time = min_delay - elapsed
+                _LOGGER.debug("Background Disconnect: Waiting %.1fs for device stabilization...", wait_time)
+                await asyncio.sleep(wait_time)
+
+        async with self._lock:
+            # Re-check conditions under lock to avoid race
+            if self._connection_users > 0:
+                _LOGGER.debug("Background disconnect aborted: Active sessions found.")
+                return
+
+            if not self.is_connected:
+                 return
+
+            try:
+                # Perform final refresh (Log count, Battery, etc.)
+                await self._perform_final_refresh()
+            except Exception as e:
+                _LOGGER.error("Background refresh failed: %s", e)
+            finally:
+                self._refresh_needed = False
+                await self._execute_physical_disconnect()
 
     def _log_packet(self, direction: str, packet: BoksTXPacket | BoksRXPacket):
         """Log TX or RX packet with anonymization."""
@@ -747,12 +794,11 @@ class BoksBluetoothDevice:
 
         return clean_code
 
-    async def open_door(self, code: str = None) -> bool:
+    async def open_door(self, code: str) -> bool:
         """Open the door."""
-        if code:
-            code = self._validate_pin(code)
+        code = self._validate_pin(code)
 
-        packet = OpenDoorPacket(code or "")
+        packet = OpenDoorPacket(code)
         resp = await self.send_packet(packet, wait_for_opcodes=[BoksNotificationOpcode.VALID_OPEN_CODE, BoksNotificationOpcode.INVALID_OPEN_CODE, BoksNotificationOpcode.ERROR_UNAUTHORIZED])
         if resp and resp.opcode == BoksNotificationOpcode.VALID_OPEN_CODE:
             self._door_status = True

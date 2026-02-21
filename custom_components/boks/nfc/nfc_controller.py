@@ -88,20 +88,20 @@ class BoksNfcController:
             # Always disconnect at the end of the session
             await self.coordinator.ble_device.disconnect()
 
-    async def register_tag(self, uid: str, name: str | None) -> None:
+    async def register_tag(self, uid: str, name: str | None) -> bool:
         """Register a tag."""
         await self.coordinator.updates.ensure_prerequisites("NFC", "4.0", "4.3.3")
         await self.coordinator.ble_device.connect()
         try:
-            await self.coordinator.ble_device.register_nfc_tag(uid, name)
+            return await self.coordinator.ble_device.nfc_register_tag(uid)
         finally:
             await self.coordinator.ble_device.disconnect()
 
-    async def unregister_tag(self, uid: str) -> None:
+    async def unregister_tag(self, uid: str) -> bool:
         """Unregister a tag."""
         await self.coordinator.updates.ensure_prerequisites("NFC", "4.0", "4.3.3")
         await self.coordinator.ble_device.connect()
         try:
-            await self.coordinator.ble_device.unregister_nfc_tag(uid)
+            return await self.coordinator.ble_device.nfc_unregister_tag(uid)
         finally:
             await self.coordinator.ble_device.disconnect()
