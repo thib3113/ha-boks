@@ -1,5 +1,6 @@
 """Log processing and enrichment for Boks."""
 import logging
+import re
 from datetime import datetime
 from typing import Any
 
@@ -8,6 +9,8 @@ from homeassistant.util import dt as dt_util
 
 from ..const import DOMAIN
 from ..packets.base import BoksRXPacket
+
+NON_HEX_PATTERN = re.compile(r"[^0-9A-F]")
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -122,8 +125,7 @@ class BoksLogProcessor:
 
         try:
             # Normalize ID: uppercase and remove any non-hex chars
-            import re
-            tag_id_lookup = re.sub(r'[^0-9A-F]', '', tag_uid.upper())
+            tag_id_lookup = NON_HEX_PATTERN.sub('', tag_uid.upper())
 
             _LOGGER.debug("Resolving tag name for UID: %s (Normalized: %s)", tag_uid, tag_id_lookup)
 
