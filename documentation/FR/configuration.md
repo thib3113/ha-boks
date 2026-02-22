@@ -25,7 +25,7 @@ L'intégration Boks propose une approche à plusieurs niveaux pour la fonctionna
 
 *   **2. Clef de Configuration ou Clef Maître (Optionnel, Recommandé pour les Fonctionnalités Avancées)**
     *   **Saisie** : En plus de votre "Code Permanent", entrez votre **Clef de Configuration** (8 caractères hexadécimaux) ou **Clef Maître** (64 caractères hexadécimaux) dans le champ "Authentifiant".
-        *   *Conseil* : Fournir la **Clef Maître** est recommandé car elle offre plus de capacités et pourrait prendre en charge de futures fonctionnalités telles que la génération de codes hors ligne. Actuellement, la Clef de Configuration et la Clef Maître activent le même ensemble de fonctionnalités avancées.
+        *   *Conseil* : Fournir la **Clef Maître** est vivement recommandé car elle permet la **génération de codes hors ligne**. Alors que la Clef de Configuration (8 car.) limite la gestion au Bluetooth, la Clef Maître (64 car.) permet à Home Assistant de calculer des codes PIN valides sans aucune connexion à l'appareil.
     *   **Fonctionnalités Activées** :
         *   **Toutes les Fonctionnalités du Code Permanent Uniquement**
         *   **Intégration Améliorée de la Liste de Tâches (Gestion des Colis)** : L'entité `todo.<nom>_parcels` offre une fonctionnalité complète.
@@ -33,6 +33,8 @@ L'intégration Boks propose une approche à plusieurs niveaux pour la fonctionna
             *   **Support des Descriptions** : Vous pouvez ajouter des descriptions significatives à vos éléments de liste de tâches, qui sont liés aux codes PIN générés.
             *   **Responsabilité de l'Utilisateur pour les PIN Modifiés** : Si vous modifiez manuellement un code PIN généré automatiquement pour un élément de liste de tâches, l'intégration reconnaîtra le changement mais ne gérera plus automatiquement ce PIN spécifique. Vous devenez responsable de sa gestion.
             *   **Achèvement Automatique des Tâches et Émission d'Événements** : L'intégration marquera automatiquement les tâches comme terminées lorsqu'elle détectera que le code associé est utilisé dans ses journaux et émettra des événements `boks_parcel_completed`.
+        *   **Génération de PIN Hors Ligne (Nécessite la Clef Maître)** : Accès au service `boks.generate_pin_code` pour créer des codes sans connectivité Bluetooth.
+
 
 6.  **Soumettre** : Cliquez sur "Soumettre" pour finaliser la configuration et activer l'intégration avec les fonctionnalités sélectionnées.
 

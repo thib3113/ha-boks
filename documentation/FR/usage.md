@@ -38,6 +38,12 @@ Gère les codes permanents (accès famille, livreur régulier).
 #### `boks.add_single_code` / `boks.delete_single_code`
 Gère les codes à usage unique manuellement (si vous n'utilisez pas la liste de tâches).
 
+#### `boks.generate_pin_code` (Expert)
+Génère un code PIN Boks valide **hors ligne** (nécessite la Clef Maître).
+*   **Type** : Type de code (`master`, `single` ou `multi`).
+*   **Index** : L'index de génération (commence à 0).
+*   **Réponse** : Retourne le PIN de 6 caractères généré. Utilisez ce service si vous devez fournir un code à quelqu'un alors que Home Assistant est hors ligne ou que la Boks est hors de portée.
+
 ### Maintenance
 
 #### `boks.sync_logs`

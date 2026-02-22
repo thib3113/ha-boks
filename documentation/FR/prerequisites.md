@@ -25,5 +25,6 @@ Avant d'installer et de configurer l'intégration Boks pour Home Assistant, assu
 Pour utiliser pleinement l'intégration, vous aurez besoin des identifiants suivants :
 
 1.  **Code Permanent (Obligatoire)** : Il s'agit du code PIN à 6 caractères que vous utilisez généralement pour ouvrir manuellement votre Boks (par exemple, `1234AB`). Ce code est essentiel pour la fonctionnalité de déverrouillage de base.
-2.  **Clef de Configuration (Fortement Recommandé)** : Nécessaire pour les fonctionnalités avancées (gestion des colis, génération de codes, logs).
-    *   Voir le guide dédié : **[Comment récupérer votre Clef de Configuration](RETRIEVE_KEYS.md)**.
+2.  **Clef de Configuration (Fortement Recommandé)** : Nécessaire pour les fonctionnalités avancées (gestion des colis en ligne, génération de codes).
+3.  **Clef Maître (Expert)** : Nécessaire pour la **Génération de Codes Hors Ligne** (calcul de PINs valides sans Bluetooth).
+    *   Voir le guide dédié : **[Comment récupérer vos Clefs](RETRIEVE_KEYS.md)**.

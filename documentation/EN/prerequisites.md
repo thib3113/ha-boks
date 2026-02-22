@@ -25,5 +25,6 @@ Before installing and configuring the Boks Home Assistant integration, ensure yo
 To fully utilize the integration, you will need the following credentials:
 
 1.  **Master Code (Required)**: This is the 6-character PIN code you typically use to manually open your Boks (e.g., `1234AB`). This code is essential for the basic unlock functionality.
-2.  **Configuration Key (Strongly Recommended)**: Needed for advanced features (parcel management, code generation, logs).
-    *   See the dedicated guide: **[How to Retrieve your Configuration Key](RETRIEVE_KEYS.md)**.
+2.  **Configuration Key (Strongly Recommended)**: Needed for advanced features (online parcel management, code generation).
+3.  **Master Key (Expert)**: Needed for **Offline Code Generation** (calculating valid PINs without Bluetooth).
+    *   See the dedicated guide: **[How to Retrieve your Keys](RETRIEVE_KEYS.md)**.

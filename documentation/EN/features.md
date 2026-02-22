@@ -60,3 +60,17 @@ Using the [Boks Web Extension](https://github.com/thib3113/ha-boks-webextension)
 3.  Enter a description (e.g., "Book Delivery").
 4.  The extension communicates with Home Assistant to generate the code and automatically inserts it into the text field.
 
+---
+
+## Expert Features (Requires Master Key)
+
+These features require the full **Master Key** (64 hex characters) to be set.
+
+### 🔌 Offline PIN Generation
+This is a major feature for autonomy and reliability.
+
+*   **No Connection Required**: Home Assistant can now generate valid Boks PIN codes (Master, Single-use, or Multi-use) without any Bluetooth connection to the device.
+*   **Infinite Codes**: While the device has limits on stored codes, the offline generator allows you to pre-calculate valid codes using an index system (supporting 3300+ indices).
+*   **Service Integration**: Use the `boks.generate_pin_code` service to get a code for a specific index. This is perfect for long-term planning or when you know you will be out of range.
+
+

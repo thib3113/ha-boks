@@ -47,8 +47,9 @@ It allows you to open your Boks directly from Home Assistant without needing the
     *   *Note: Most Shelly devices do not support active connections.*
 2.  **Credentials**:
     *   **Master Code (Required)**: The 6-character PIN code (e.g., `1234AB`).
-    *   **Configuration Key (Recommended)**: Required for **Automatic Code Generation**.
-        *   [How to retrieve your Configuration Key](documentation/EN/RETRIEVE_KEYS.md).
+    *   **Configuration Key (Recommended)**: Required for **Automatic Code Generation** (online).
+    *   **Master Key (Expert)**: Required for **Offline Code Generation** (no Bluetooth needed).
+        *   [How to retrieve your keys](documentation/EN/RETRIEVE_KEYS.md).
 
 ## Installation
 
@@ -73,7 +74,8 @@ It allows you to open your Boks directly from Home Assistant without needing the
 1.  **Settings** -> **Devices & Services** -> **Add Integration** -> **Boks**.
 2.  **Setup**:
     *   **Master Code**: Your unlock code.
-    *   **Credential**: Your Configuration Key (for auto-code generation).
+    *   **Credential**: Your Configuration Key (8 chars) or Master Key (64 chars).
+        *   *Tip:* Use the **Master Key** to enable offline code calculation.
 
 ## Events & Automations
 

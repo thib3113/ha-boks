@@ -60,3 +60,17 @@ L'utilisation de l'[Extension Web Boks](https://github.com/thib3113/ha-boks-webe
 3.  Entrez une description (ex: "Livraison Livres").
 4.  L'extension communique avec Home Assistant pour générer le code et l'insère automatiquement dans le champ texte.
 
+---
+
+## Fonctionnalités Expertes (Nécessite la Clef Maître)
+
+Ces fonctionnalités nécessitent d'avoir renseigné la **Clef Maître** complète (64 caractères hexadécimaux).
+
+### 🔌 Génération de PIN Hors Ligne
+Il s'agit d'une avancée majeure pour l'autonomie et la fiabilité de votre installation.
+
+*   **Aucune connexion requise** : Home Assistant peut désormais générer des codes PIN Boks valides (Master, Usage unique ou Multi-usage) sans aucune connexion Bluetooth avec le boîtier.
+*   **Codes illimités** : Alors que le boîtier a des limites de stockage physique, le générateur hors ligne vous permet de pré-calculer des codes valides via un système d'index (supportant plus de 3300 index).
+*   **Intégration de Service** : Utilisez le service `boks.generate_pin_code` pour obtenir un code pour un index spécifique. Idéal pour la planification à long terme ou lorsque vous prévoyez d'être hors de portée Bluetooth.
+
+

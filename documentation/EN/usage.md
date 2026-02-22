@@ -38,6 +38,12 @@ Manages master codes (family access, regular delivery person).
 #### `boks.add_single_code` / `boks.delete_single_code`
 Manages single-use codes manually (if you don't use the Todo list).
 
+#### `boks.generate_pin_code` (Expert)
+Generates a valid Boks PIN code **offline** (requires Master Key).
+*   **Type**: Type of code (`master`, `single`, or `multi`).
+*   **Index**: The generation index (starts at 0).
+*   **Response**: Returns the generated 6-character PIN. Use this if you need to provide a code to someone while Home Assistant is offline or the Boks is out of range.
+
 ### Maintenance
 
 #### `boks.sync_logs`

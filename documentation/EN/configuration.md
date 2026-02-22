@@ -25,7 +25,7 @@ The Boks integration offers a tiered approach to functionality based on the cred
 
 *   **2. Config Key or Master Key (Optional, Recommended for Advanced Features)**
     *   **Input**: In addition to your "Master Code," enter your **Configuration Key** (8 hex characters) or **Master Key** (64 hex characters) into the "Credential" field.
-        *   *Tip:* Providing the **Master Key** is recommended as it offers more capabilities and may support future features such as offline code generation. Currently, both Config Key and Master Key enable the same set of advanced features.
+        *   *Tip:* Providing the **Master Key** is highly recommended as it enables **offline code generation**. While the Config Key (8 chars) allows online management via BLE, the Master Key (64 chars) allows Home Assistant to calculate valid PIN codes without any Bluetooth connection.
     *   **Features Enabled**:
         *   **All Master Code Only Features**
         *   **Enhanced Todo List Integration (Parcel Management)**: The `todo.<name>_parcels` entity provides full functionality.
@@ -33,6 +33,8 @@ The Boks integration offers a tiered approach to functionality based on the cred
             *   **Description Support**: You can add meaningful descriptions to your todo items, which are linked to the generated PINs.
             *   **User Responsibility for Modified PINs**: If you manually change an automatically generated PIN for a todo item, the integration will recognize the change but will no longer automatically manage that specific PIN. You become responsible for its management.
             *   **Automatic Task Completion & Event Emission**: The integration will automatically mark tasks as complete when it detects the associated code being used in its logs and will emit `boks_parcel_completed` events.
+        *   **Offline PIN Generation (Requires Master Key)**: Access to the `boks.generate_pin_code` service to create codes without Bluetooth connectivity.
+
 
 6.  **Submit**: Click "Submit" to complete the configuration and activate the integration with the selected features.
 

@@ -12,7 +12,8 @@ Technically, it consists of the **last 8 characters** of the **Master Key** (a 6
 > **About the Master Key:**
 > The full Master Key (64 characters) can only be obtained during the Boks initialization (first pairing) or during a code "re-generation" procedure (which itself requires the previous Config Key).
 >
-> However, its value is currently very limited for Home Assistant, as the **Configuration Key** is sufficient to enable all advanced features (including code generation via the integration).
+> The **Master Key** is now highly valuable for Home Assistant, as it enables **offline PIN generation**. While the Configuration Key is sufficient for standard Bluetooth management, providing the full Master Key allows you to generate valid PIN codes without any connection to the Boks.
+
 
 ## Method 1: Via Cloud Script (Recommended)
 
