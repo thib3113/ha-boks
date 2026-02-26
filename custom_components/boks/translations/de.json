@@ -343,9 +343,6 @@
       "battery": {
         "name": "Batterie"
       },
-      "last_connection": {
-        "name": "Letzte Verbindung"
-      },
       "last_event": {
         "name": "Letztes Ereignis",
         "state": {

@@ -343,9 +343,6 @@
       "battery": {
         "name": "Batterij"
       },
-      "last_connection": {
-        "name": "Laatste Verbinding"
-      },
       "last_event": {
         "name": "Laatste gebeurtenis",
         "state": {

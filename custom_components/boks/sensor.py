@@ -7,7 +7,6 @@ from .const import DOMAIN
 from .sensors.battery import BoksBatterySensor
 from .sensors.battery_temperature import BoksBatteryTemperatureSensor
 from .sensors.codes import BoksCodeCountSensor
-from .sensors.connection import BoksLastConnectionSensor
 from .sensors.diagnostics import (
     BoksBatteryDiagnosticSensor,
     BoksBatteryFormatSensor,
@@ -30,7 +29,6 @@ async def async_setup_entry(
     entities: list[SensorEntity] = [
         BoksBatterySensor(coordinator, entry),
         BoksBatteryTemperatureSensor(coordinator, entry),
-        BoksLastConnectionSensor(coordinator, entry),
         BoksLastEventSensor(coordinator, entry),
         BoksBatteryFormatSensor(coordinator, entry),
         BoksBatteryTypeSensor(coordinator, entry),
