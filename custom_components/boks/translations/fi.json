@@ -343,9 +343,6 @@
       "battery": {
         "name": "Akku"
       },
-      "last_connection": {
-        "name": "Viimeisin yhteys"
-      },
       "last_event": {
         "name": "Viimeisin tapahtuma",
         "state": {

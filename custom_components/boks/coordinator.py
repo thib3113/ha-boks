@@ -229,7 +229,6 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
             self.hass.async_create_task(self._process_pushed_logs(logs_raw))
 
         self.data.update(status_data)
-        self.data["last_connection"] = dt_util.now().isoformat()
 
         # Persist battery format if detected
         if "battery_stats" in status_data:
@@ -392,7 +391,6 @@ class BoksDataUpdateCoordinator(DataUpdateCoordinator):
                     # 4. Logs
                     await self._fetch_logs_and_sync(data)
 
-                    data["last_connection"] = dt_util.now().isoformat()
 
                 finally:
                     await asyncio.shield(self.ble_device.disconnect())

@@ -343,9 +343,6 @@
       "battery": {
         "name": "Akkumulátor"
       },
-      "last_connection": {
-        "name": "Utolsó kapcsolat"
-      },
       "last_event": {
         "name": "Utolsó esemény",
         "state": {

@@ -343,9 +343,6 @@
       "battery": {
         "name": "البطارية"
       },
-      "last_connection": {
-        "name": "آخر اتصال"
-      },
       "last_event": {
         "name": "آخر حدث",
         "state": {

@@ -343,9 +343,6 @@
       "battery": {
         "name": "Batéria"
       },
-      "last_connection": {
-        "name": "Posledné pripojenie"
-      },
       "last_event": {
         "name": "Posledná udalosť",
         "state": {

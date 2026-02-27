@@ -343,9 +343,6 @@
       "battery": {
         "name": "Akumulators"
       },
-      "last_connection": {
-        "name": "Pēdējais savienojums"
-      },
       "last_event": {
         "name": "Pēdējais notikums",
         "state": {
