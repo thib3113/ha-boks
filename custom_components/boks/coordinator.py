@@ -14,7 +14,6 @@ from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
-from homeassistant.util import dt as dt_util
 
 from .ble import BoksBluetoothDevice
 from .codes.codes_controller import BoksCodesController
