@@ -842,11 +842,6 @@ class BoksBluetoothDevice:
     async def _get_logs_count(self) -> int:
         """Internal get logs count with stabilization."""
 
-        # Check cache first
-        if self._last_log_count_value is not None and (time.time() - self._last_log_count_ts) < 3.0:
-            _LOGGER.debug("Using cached log count: %d", self._last_log_count_value)
-            return self._last_log_count_value
-
         counts: list[int] = []
 
         def handle_count(data: bytearray):
